@@ -1,5 +1,4 @@
-# Capstone Project
-## 🎵 MusicApp – Online & Offline Music Streaming Application
+# Capstone Project - 🎵 MusicApp – Online & Offline Music Streaming Application
 ### 📖 Project Summary
 
 With the rising demand for online music streaming, users expect a consistent experience: quickly finding their favorite songs, seamless playback even when switching apps, and a clean way to manage their personal library.
