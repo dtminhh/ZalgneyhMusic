@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SignUpFragment">
+    tools:context=".ui.fragment.auth.SignUpFragment">
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/imageViewAppName"
@@ -58,6 +58,7 @@
             android:background="@drawable/item_shape_background"
             android:fontFamily="@font/urbanist_medium"
             android:hint="@string/password"
+            android:inputType="textPassword"
             android:padding="14dp"
             android:textSize="14sp" />
 
@@ -70,6 +71,7 @@
             android:background="@drawable/item_shape_background"
             android:fontFamily="@font/urbanist_medium"
             android:hint="@string/confirm_password"
+            android:inputType="textPassword"
             android:padding="14dp"
             android:textSize="14sp" />
 

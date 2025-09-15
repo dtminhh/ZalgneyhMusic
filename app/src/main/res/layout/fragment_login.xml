@@ -59,6 +59,7 @@
             android:background="@drawable/item_shape_background"
             android:fontFamily="@font/urbanist_medium"
             android:hint="@string/password"
+            android:inputType="textPassword"
             android:padding="14dp"
             android:textSize="14sp" />
 
