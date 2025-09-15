@@ -1,5 +1,20 @@
 <resources>
-    <string name="app_name">ZalgneyhMusic</string>
+    <string name="app_name">Zalgneyh</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="login_text">Don’t have an account? <u>Sign Up</u></string>
+    <string name="signUp_text">Have an account? <u>Sign In</u></string>
+
+    <string name="privacy_service"><u>Terms of Service</u> | <u>Privacy Policy</u></string>
+    <string name="sign_up">Sign Up</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="join">Join</string>
+    <string name="sign_in">Sign In</string>
+    <string name="confirm">Confirm</string>
+    <string name="or">Or</string>
+    <string name="google">Google</string>
+
 </resources>
