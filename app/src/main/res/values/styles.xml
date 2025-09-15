@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MainTitleFormat">
+        <item name="android:textColor">"#1E1E1E"</item>
+        <item name="android:fontFamily">""@font/urbanist_bold""</item>
+    </style>
+
+    <style name="SubTitleFormat">
+        <item name="android:textColor">"#80000000"</item>
+        <item name="android:fontFamily">"@font/urbanist_medium"</item>
+    </style>
+
+    <style name="SignTitleFormat">
+        <item name="android:textColor">"#EDEDED"</item>
+        <item name="android:fontFamily">"@font/urbanist_semibold"</item>
+    </style>
+</resources>
