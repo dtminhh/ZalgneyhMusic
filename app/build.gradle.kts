@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("plugin.serialization") version "2.0.21"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -41,6 +42,8 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.fragment)
