@@ -1,3 +1,5 @@
 package com.example.zalgneyhmusic.ui.fragment
 
-class BaseFragment
+import androidx.fragment.app.Fragment
+
+open class BaseFragment : Fragment()
