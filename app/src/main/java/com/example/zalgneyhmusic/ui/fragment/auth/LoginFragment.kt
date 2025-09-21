@@ -16,12 +16,19 @@ import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+/**
+ * Fragment responsible for handling user login functionality.
+ *
+ * Features:
+ * - Observes [AuthViewModel] to track authentication state (loading, success, failure).
+ * - Provides input validation for email and password.
+ * - Navigates to the sign-up screen or main screen depending on user actions and authentication state.
+ * - Uses Hilt's [@AndroidEntryPoint] for dependency injection.
+ */
 @AndroidEntryPoint
 class LoginFragment : BaseFragment() {
-
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
-
     private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
@@ -40,6 +47,10 @@ class LoginFragment : BaseFragment() {
         checkCurrentUser()
     }
 
+    /**
+     * Observes the login flow from [AuthViewModel] and updates the UI
+     * based on the [Resource] state: Loading, Success, or Failure.
+     */
     private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             authViewModel.loginFlow.collect { resource ->
@@ -47,6 +58,7 @@ class LoginFragment : BaseFragment() {
                     is Resource.Loading -> {
                         binding.buttonConfirmSignIn.isEnabled = false
                     }
+
                     is Resource.Success -> {
                         binding.buttonConfirmSignIn.isEnabled = true
                         binding.buttonConfirmSignIn.text = getString(R.string.join)
@@ -54,6 +66,7 @@ class LoginFragment : BaseFragment() {
                         // Navigate to main screen
                         findNavController().navigate(R.id.mainFragment)
                     }
+
                     is Resource.Failure -> {
                         binding.buttonConfirmSignIn.isEnabled = true
                         binding.buttonConfirmSignIn.text = getString(R.string.join)
@@ -63,6 +76,7 @@ class LoginFragment : BaseFragment() {
                             Toast.LENGTH_LONG
                         ).show()
                     }
+
                     null -> {
                         binding.buttonConfirmSignIn.isEnabled = true
                         binding.buttonConfirmSignIn.text = getString(R.string.join)
@@ -72,6 +86,10 @@ class LoginFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Sets up click listeners for login, sign-up navigation,
+     * and Google sign-in (currently a placeholder).
+     */
     private fun setupClickListeners() {
         binding.buttonConfirmSignIn.setOnClickListener {
             val email = binding.editTextUserNameSignIn.text.toString().trim()
@@ -92,6 +110,13 @@ class LoginFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Validates user input for email and password fields.
+     *
+     * @param email The email entered by the user.
+     * @param password The password entered by the user.
+     * @return True if input is valid, false otherwise.
+     */
     private fun validateInput(email: String, password: String): Boolean {
         if (email.isEmpty()) {
             binding.editTextUserNameSignIn.error = "Email is required"
@@ -112,6 +137,10 @@ class LoginFragment : BaseFragment() {
         return true
     }
 
+    /**
+     * Checks if a user is already logged in and navigates
+     * directly to the main screen if so.
+     */
     private fun checkCurrentUser() {
         if (authViewModel.currentUser != null) {
             // User already logged in, navigate to main screen

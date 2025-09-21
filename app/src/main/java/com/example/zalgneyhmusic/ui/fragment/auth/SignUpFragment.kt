@@ -16,12 +16,22 @@ import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+/**
+ * Fragment responsible for handling user sign-up functionality.
+ *
+ * Features:
+ * - Observes [AuthViewModel] to track sign-up state (loading, success, failure).
+ * - Provides input validation for email, password, and confirm password fields.
+ * - Navigates to the main screen upon successful registration.
+ * - Uses Hilt's [@AndroidEntryPoint] for dependency injection.
+ */
 @AndroidEntryPoint
 class SignUpFragment : BaseFragment() {
 
     private var _binding: FragmentSignUpBinding? = null
     private val binding get() = _binding!!
 
+    // ViewModel injected using Hilt and lifecycle-aware delegation.
     private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
@@ -39,6 +49,10 @@ class SignUpFragment : BaseFragment() {
         setupClickListeners()
     }
 
+    /**
+     * Observes the sign-up flow from [AuthViewModel] and updates the UI
+     * based on the [Resource] state: Loading, Success, or Failure.
+     */
     private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             authViewModel.signupFlow.collect { resource ->
@@ -75,6 +89,9 @@ class SignUpFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Sets up click listeners for the sign-up button and navigation back to login.
+     */
     private fun setupClickListeners() {
         binding.buttonConfirmSignUp.setOnClickListener {
             val email = binding.editTextUserNameSignUp.text.toString().trim()
@@ -89,6 +106,14 @@ class SignUpFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Validates user input for email, password, and confirm password fields.
+     *
+     * @param email The email entered by the user.
+     * @param password The password entered by the user.
+     * @param confirmPassword The repeated password for confirmation.
+     * @return True if input is valid, false otherwise.
+     */
     private fun validateInput(email: String, password: String, confirmPassword: String): Boolean {
         if (email.isEmpty()) {
             binding.editTextUserNameSignUp.error = "Email is required"
@@ -99,7 +124,7 @@ class SignUpFragment : BaseFragment() {
             return false
         }
         if (password.isEmpty()) {
-            binding.editTextPasswordSignUp.error = "password is required"
+            binding.editTextPasswordSignUp.error = "Password is required"
             return false
         }
         if (password.length < 6) {
@@ -107,11 +132,11 @@ class SignUpFragment : BaseFragment() {
             return false
         }
         if (confirmPassword.isEmpty()) {
-            binding.editTextConfirmPasswordSignUp.error = "password is not match"
+            binding.editTextConfirmPasswordSignUp.error = "Confirm password is required"
             return false
         }
         if (password != confirmPassword) {
-            binding.editTextConfirmPasswordSignUp.error = "password is not match"
+            binding.editTextConfirmPasswordSignUp.error = "Passwords do not match"
             return false
         }
         return true
