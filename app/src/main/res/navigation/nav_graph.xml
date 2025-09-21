@@ -15,4 +15,9 @@
         android:name="com.example.zalgneyhmusic.ui.fragment.auth.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" />
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="com.example.zalgneyhmusic.ui.fragment.auth.SignUpFragment"
+        android:label="fragment_sign_up"
+        tools:layout="@layout/fragment_sign_up" />
 </navigation>
