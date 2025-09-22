@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
 
 /**
  * Hilt module that provides application-level dependencies.
@@ -36,4 +37,20 @@ class AppModule {
     @Provides
     @Singleton
     fun provideAuthRepository(impl: AuthRepositoryImpl): AuthRepository = impl
+
+    /**
+     * Provides a singleton instance of [GoogleSignInHelper] for dependency injection.
+     *
+     * This method is annotated with `@Provides` and `@Singleton`, meaning:
+     * - Hilt/Dagger will use this function to create and supply a single instance
+     *   of [GoogleSignInHelper] throughout the application lifecycle.
+     * - Any class that requires [GoogleSignInHelper] in its constructor
+     *   can have it automatically injected by Hilt.
+     *
+     * @return a singleton instance of [GoogleSignInHelper]
+     */
+    @Provides
+    @Singleton
+    fun provideGoogleSignInHelper(): GoogleSignInHelper = GoogleSignInHelper()
+
 }

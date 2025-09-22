@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.zalgneyhmusic.R
+import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
+import javax.inject.Inject
 import com.example.zalgneyhmusic.databinding.FragmentMainBinding
 import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import com.example.zalgneyhmusic.ui.fragment.auth.LoginFragment
@@ -31,6 +33,8 @@ class MainFragment : BaseFragment() {
 
     // ViewModel providing access to authentication state
     private val authViewModel: AuthViewModel by viewModels()
+    @Inject
+    lateinit var googleSignInHelper: GoogleSignInHelper
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,6 +53,27 @@ class MainFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Logs the user out of the application.
+     *
+     * - Calls ViewModel to perform Firebase logout.
+     * - Signs out the user from Google Sign-In.
+     * - Navigates back to the Login screen.
+     */
+    private fun logout() {
+        // Firebase logout
+        authViewModel.logout()
+        // Google logout
+        googleSignInHelper.signOut()
+        // Navigate to login
+        findNavController().navigate(R.id.loginFragment)
+    }
+
+    /**
+     * Called when the fragment's view is being destroyed.
+     *
+     * - Clears the binding reference to avoid memory leaks.
+     */
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

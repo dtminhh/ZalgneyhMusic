@@ -34,6 +34,20 @@ interface AuthRepository {
     suspend fun signup(email: String, password: String): Resource<FirebaseUser>
 
     /**
+     * Authenticates a user with Firebase using a Google ID token.
+     *
+     * This is a suspend function and must be called from a coroutine or another
+     * suspend function. It exchanges the provided Google ID token for Firebase
+     * credentials, and signs the user into Firebase Authentication.
+     *
+     * @param idToken The Google ID token obtained from the Google Sign-In flow.
+     * @return [Resource] wrapping the result:
+     *   - [Resource.Success] containing the authenticated [FirebaseUser] if sign-in is successful.
+     *   - [Resource.Failure] containing the exception if an error occurs during sign-in.
+     */
+    suspend fun signInWithGoogle(idToken: String): Resource<FirebaseUser>
+
+    /**
      * Logs out the currently authenticated user.
      */
     fun logout()
