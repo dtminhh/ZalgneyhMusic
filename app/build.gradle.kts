@@ -43,7 +43,10 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.play.services.auth)
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(platform(libs.firebase.bom))

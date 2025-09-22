@@ -62,6 +62,15 @@ class AuthViewModel @Inject constructor(
         _loginFlow.value = result
     }
 
+    private val _googleSignInFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
+    val googleSignInFlow: StateFlow<Resource<FirebaseUser>?> = _googleSignInFlow
+
+    fun signInWithGoogle(idToken: String) = viewModelScope.launch {
+        _googleSignInFlow.value = Resource.Loading
+        val result = repository.signInWithGoogle(idToken)
+        _googleSignInFlow.value = result
+    }
+
     /**
      * Initiates sign-up with the given [email] and [password].
      * Updates [signupFlow] with the registration result.
@@ -70,5 +79,52 @@ class AuthViewModel @Inject constructor(
         _singupFlow.value = Resource.Loading
         val result = repository.signup(email, password)
         _singupFlow.value = result
+    }
+    /**
+     * Resets the Google Sign-In flow state.
+     *
+     * Sets the `_googleSignInFlow` LiveData/StateFlow to `null`
+     * so that observers no longer receive previous Google login results.
+     */
+    fun resetGoogleSignInFlow() {
+        _googleSignInFlow.value = null
+    }
+
+    /**
+     * Resets the login flow state.
+     *
+     * Sets the `_loginFlow` LiveData/StateFlow to `null`
+     * to clear any previous login result or error message.
+     */
+    fun resetLoginFlow() {
+        _loginFlow.value = null
+    }
+
+    /**
+     * Resets the signup flow state.
+     *
+     * Sets the `_signupFlow` LiveData/StateFlow to `null`
+     * to clear any previous signup result or error message.
+     */
+    fun resetSignupFlow() {
+        _singupFlow.value = null
+    }
+
+    /**
+     * Logs the user out from the application.
+     *
+     * - Calls the repository to perform actual logout (e.g., Firebase sign-out).
+     * - Resets all authentication-related flows:
+     *   + Login flow
+     *   + Google Sign-In flow
+     *   + Signup flow
+     *
+     * This ensures a clean state for future authentication attempts.
+     */
+    fun logout() {
+        repository.logout()
+        _loginFlow.value = null
+        _googleSignInFlow.value = null
+        _singupFlow.value = null
     }
 }

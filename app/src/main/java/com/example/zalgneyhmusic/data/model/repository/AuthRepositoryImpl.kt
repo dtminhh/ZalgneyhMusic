@@ -5,6 +5,7 @@ import com.example.zalgneyhmusic.data.model.utils.await
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import javax.inject.Inject
+import com.google.firebase.auth.GoogleAuthProvider
 
 /**
  * Implementation of [AuthRepository] that uses Firebase Authentication
@@ -57,6 +58,28 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signup(email: String, password: String): Resource<FirebaseUser> {
         return try {
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            Resource.Success(result.user!!)
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
+    }
+
+    /**
+     * Signs in a user with Google using the provided ID token.
+     *
+     * - Creates a Firebase credential from the Google ID token.
+     * - Uses Firebase Authentication to sign in with the credential.
+     * - Awaits the result asynchronously.
+     *
+     * @param idToken The ID token retrieved from Google Sign-In flow.
+     * @return [Resource] containing:
+     *   - [Resource.Success] with the authenticated [FirebaseUser] if sign-in succeeds.
+     *   - [Resource.Failure] with the thrown [Exception] if sign-in fails.
+     */
+    override suspend fun signInWithGoogle(idToken: String): Resource<FirebaseUser> {
+        return try {
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            val result = firebaseAuth.signInWithCredential(credential).await()
             Resource.Success(result.user!!)
         } catch (e: Exception) {
             Resource.Failure(e)
