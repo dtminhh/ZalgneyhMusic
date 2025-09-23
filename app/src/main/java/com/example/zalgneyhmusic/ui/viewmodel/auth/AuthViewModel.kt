@@ -78,8 +78,14 @@ class AuthViewModel @Inject constructor(
     fun signup(email: String, password: String) = viewModelScope.launch {
         _singupFlow.value = Resource.Loading
         val result = repository.signup(email, password)
-        _singupFlow.value = result
+        if (result is Resource.Success) {
+            repository.logout()
+            _singupFlow.value = Resource.Success(result.result)
+        } else {
+            _singupFlow.value = result
+        }
     }
+
     /**
      * Resets the Google Sign-In flow state.
      *
