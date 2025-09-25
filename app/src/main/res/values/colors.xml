@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
+    <color name="black_50opa">#80000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="dark_gray">#1E1E1E</color>
+    <color name="light_gray">#EDEDED</color>
+    <color name="start_color_main_app_color">#996A00FF</color>
+    <color name="center_color_main_app_color">#A63D44FF</color>
+    <color name="end_color_main_app_color">#E63D44FF</color>
 </resources>
