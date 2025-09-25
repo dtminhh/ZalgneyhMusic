@@ -124,7 +124,7 @@ class LoginFragment : BaseFragment() {
                                 binding.buttonGoogleSignIn.isEnabled = true
                                 Toast.makeText(
                                     requireContext(),
-                                    getString(R.string.stt_google_sign_in_failed),
+                                    getString(R.string.stt_google_sign_in_failed, resource.exception.message),
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
