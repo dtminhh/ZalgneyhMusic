@@ -1,14 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.fragment.MainFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/lnTopBar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="72dp"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="12dp"
+        android:background="@drawable/parent_item_shape_background"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-</FrameLayout>
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/imgAvatar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="11dp"
+            android:layout_marginStart="12dp"
+            android:contentDescription="@string/app_name"
+            android:src="@mipmap/ic_launcher_round" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/txtPageTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:fontFamily="@font/urbanist_semibold"
+            android:text="@string/home"
+            android:textAlignment="center"
+            android:textColor="@color/dark_gray"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/imgNotification"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:layout_marginHorizontal="16dp"
+            android:src="@drawable/notifications" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <!-- ViewPager cho nội dung -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/vp2MainContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lnTopBar"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/customBottomNav"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/bottom_nav_bar_background"
+        android:baselineAligned="false"
+        android:elevation="8dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:weightSum="5"
+        app:layout_constraintBottom_toBottomOf="@+id/appCompatImageView"
+        app:layout_constraintEnd_toStartOf="@+id/appCompatImageView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/appCompatImageView">
+
+        <!-- Home Item -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/navHome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/mainnavhome"
+                app:tint="@color/bottom_nav_icon_selector" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/urbanist_semibold"
+                android:text="@string/home"
+                android:textColor="@color/bottom_nav_text_selector"
+                android:textSize="11sp" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <!-- Search Item -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/navSong"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/mainnavsongs"
+                app:tint="@color/bottom_nav_icon_selector" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/urbanist_semibold"
+                android:text="@string/song"
+                android:textColor="@color/bottom_nav_text_selector"
+                android:textSize="11sp" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <!-- Favorites Item -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/navAlbums"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/mainnavalbum"
+                app:tint="@color/bottom_nav_icon_selector" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/urbanist_semibold"
+                android:text="@string/albums"
+                android:textColor="@color/bottom_nav_text_selector"
+                android:textSize="11sp" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <!-- Profile Item -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/navArtist"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/mainnavartist"
+                app:tint="@color/bottom_nav_icon_selector" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/urbanist_semibold"
+                android:text="@string/artist"
+                android:textColor="@color/bottom_nav_text_selector"
+                android:textSize="11sp" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/navPlaylist"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/mainnavplaylist"
+                app:tint="@color/bottom_nav_icon_selector" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/urbanist_semibold"
+                android:text="@string/playlist"
+                android:textColor="@color/bottom_nav_text_selector"
+                android:textSize="11sp" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/appCompatImageView"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/bottom_nav_bar_background"
+        android:elevation="8dp"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="?android:attr/actionModeWebSearchDrawable" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

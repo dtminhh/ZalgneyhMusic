@@ -8,4 +8,5 @@
     <color name="start_color_main_app_color">#996A00FF</color>
     <color name="center_color_main_app_color">#A63D44FF</color>
     <color name="end_color_main_app_color">#E63D44FF</color>
+    <color name="sea_blue_50opa">#803D44FF</color>
 </resources>
