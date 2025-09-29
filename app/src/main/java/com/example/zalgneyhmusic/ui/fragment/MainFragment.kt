@@ -44,7 +44,6 @@ class MainFragment : BaseFragment() {
         )
     }
 
-    // ViewModel providing access to authentication state
     /** Page titles from string resources instead of hardcoded values */
     private val pageTitles by lazy {
         listOf(
@@ -56,10 +55,15 @@ class MainFragment : BaseFragment() {
         )
     }
     private lateinit var mainViewPagerAdapter: MainFragmentAdapter
+    private var currentSelectedIndex = DEFAULT_SELECTED_INDEX
     private val authViewModel: AuthViewModel by viewModels()
+
     @Inject
     lateinit var googleSignInHelper: GoogleSignInHelper
 
+    /**
+     * Creates and returns the fragment view.
+     */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -69,6 +73,9 @@ class MainFragment : BaseFragment() {
         return binding.root
     }
 
+    /**
+     * Sets up UI components and checks user authentication.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Check if user is logged in; redirect to LoginFragment if not
@@ -81,11 +88,7 @@ class MainFragment : BaseFragment() {
     }
 
     /**
-     * Logs the user out of the application.
-     *
-     * - Calls ViewModel to perform Firebase logout.
-     * - Signs out the user from Google Sign-In.
-     * - Navigates back to the Login screen.
+     * Logs out user from Firebase and Google Sign-In.
      */
     private fun logout() {
         // Firebase logout
@@ -151,9 +154,7 @@ class MainFragment : BaseFragment() {
     }
 
     /**
-     * Called when the fragment's view is being destroyed.
-     *
-     * - Clears the binding reference to avoid memory leaks.
+     * Clears binding to prevent memory leaks.
      */
     override fun onDestroyView() {
         super.onDestroyView()
