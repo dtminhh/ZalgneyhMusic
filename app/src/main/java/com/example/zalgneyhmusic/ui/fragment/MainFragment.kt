@@ -10,9 +10,13 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
 import javax.inject.Inject
 import com.example.zalgneyhmusic.databinding.FragmentMainBinding
+import com.example.zalgneyhmusic.ui.adapter.MainFragmentAdapter
 import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import com.example.zalgneyhmusic.ui.fragment.auth.LoginFragment
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.viewpager2.widget.ViewPager2
+import com.example.zalgneyhmusic.ui.UIConstants.Navigation.DEFAULT_NAV_INDEX
+import com.example.zalgneyhmusic.ui.UIConstants.ViewPager.USER_INPUT_ENABLED
 
 /**
  * Main fragment displayed after successful login or sign-up.
@@ -30,8 +34,28 @@ class MainFragment : BaseFragment() {
 
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
+    private val navItems by lazy {
+        listOf(
+            binding.navHome,
+            binding.navSong,
+            binding.navAlbums,
+            binding.navArtist,
+            binding.navPlaylist
+        )
+    }
 
     // ViewModel providing access to authentication state
+    /** Page titles from string resources instead of hardcoded values */
+    private val pageTitles by lazy {
+        listOf(
+            getString(R.string.home),
+            getString(R.string.song),
+            getString(R.string.albums),
+            getString(R.string.artist),
+            getString(R.string.playlist)
+        )
+    }
+    private lateinit var mainViewPagerAdapter: MainFragmentAdapter
     private val authViewModel: AuthViewModel by viewModels()
     @Inject
     lateinit var googleSignInHelper: GoogleSignInHelper
@@ -51,6 +75,9 @@ class MainFragment : BaseFragment() {
         if (authViewModel.currentUser == null) {
             findNavController().navigate(R.id.loginFragment)
         }
+        setupViewPager()
+        setupBottomNavigation()
+        selectNavItem(DEFAULT_NAV_INDEX) // Use constant instead of hardcoded 0
     }
 
     /**
@@ -70,6 +97,60 @@ class MainFragment : BaseFragment() {
     }
 
     /**
+     * Initializes ViewPager2 with adapter and callbacks.
+     */
+    private fun setupViewPager() {
+        mainViewPagerAdapter = MainFragmentAdapter(this)
+        binding.apply {
+            vp2MainContent.adapter = mainViewPagerAdapter
+            vp2MainContent.isUserInputEnabled =
+                USER_INPUT_ENABLED // Use constant
+
+            // Listen for page changes from ViewPager
+            vp2MainContent.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    selectNavItem(position)
+                    updateTopBarTitle(position)
+                }
+            })
+        }
+
+    }
+
+    /**
+     * Sets up bottom navigation click listeners.
+     */
+    private fun setupBottomNavigation() {
+        navItems.forEachIndexed { index, navItem ->
+            navItem.setOnClickListener {
+                if (currentSelectedIndex != index) {
+                    binding.vp2MainContent.currentItem = index
+                }
+            }
+        }
+    }
+
+    /**
+     * Updates visual state of navigation items.
+     */
+    private fun selectNavItem(selectedIndex: Int) {
+        currentSelectedIndex = selectedIndex
+        navItems.forEachIndexed { index, navItem ->
+            navItem.isSelected = (index == selectedIndex)
+        }
+    }
+
+    /**
+     * Updates top bar title based on current page.
+     */
+    private fun updateTopBarTitle(position: Int) {
+        if (position < pageTitles.size) {
+            binding.txtPageTitle.text = pageTitles[position]
+        }
+    }
+
+    /**
      * Called when the fragment's view is being destroyed.
      *
      * - Clears the binding reference to avoid memory leaks.
@@ -77,5 +158,9 @@ class MainFragment : BaseFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        const val DEFAULT_SELECTED_INDEX = 0
     }
 }
