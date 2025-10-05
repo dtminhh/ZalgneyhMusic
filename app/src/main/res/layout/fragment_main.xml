@@ -9,49 +9,69 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/lnTopBar"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
         android:layout_marginVertical="12dp"
         android:background="@drawable/parent_item_shape_background"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/imgAvatar"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginVertical="11dp"
-            android:layout_marginStart="12dp"
-            android:contentDescription="@string/app_name"
-            android:src="@mipmap/ic_launcher_round" />
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/txtPageTitle"
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:fontFamily="@font/urbanist_semibold"
-            android:text="@string/home"
-            android:textAlignment="center"
-            android:textColor="@color/dark_gray"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/imgNotification"
-            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="end"
-            android:layout_marginHorizontal="16dp"
-            android:src="@drawable/notifications" />
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/imgAvatar"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginVertical="11dp"
+                android:layout_marginStart="12dp"
+                android:contentDescription="@string/app_name"
+                android:src="@mipmap/ic_launcher_round" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/txtPageTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:fontFamily="@font/urbanist_semibold"
+                android:text="@string/home"
+                android:textAlignment="center"
+                android:textColor="@color/dark_gray"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/imgNotification"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:layout_marginHorizontal="16dp"
+                android:src="@drawable/notifications" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayoutOptions"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@android:color/transparent"
+            android:visibility="gone"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="@color/bottom_nav_icon_selector"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="@android:color/black"
+            app:tabTextColor="@color/black_50opa" />
+
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <!-- ViewPager cho nội dung -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/vp2MainContent"
         android:layout_width="0dp"
@@ -80,7 +100,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/appCompatImageView">
 
-        <!-- Home Item -->
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/navHome"
             android:layout_width="0dp"
@@ -107,7 +126,6 @@
                 android:textSize="11sp" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <!-- Search Item -->
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/navSong"
             android:layout_width="0dp"
@@ -133,7 +151,6 @@
                 android:textSize="11sp" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <!-- Favorites Item -->
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/navAlbums"
             android:layout_width="0dp"
@@ -159,7 +176,6 @@
                 android:textSize="11sp" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <!-- Profile Item -->
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/navArtist"
             android:layout_width="0dp"
