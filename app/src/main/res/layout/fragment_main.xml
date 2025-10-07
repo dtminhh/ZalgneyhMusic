@@ -112,7 +112,7 @@
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="18dp"
                 android:layout_height="18dp"
-                android:importantForAccessibility="no"
+                android:contentDescription="@string/home"
                 android:src="@drawable/mainnavhome"
                 app:tint="@color/bottom_nav_icon_selector" />
 
@@ -138,6 +138,7 @@
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="18dp"
                 android:layout_height="18dp"
+                android:contentDescription="@string/song"
                 android:src="@drawable/mainnavsongs"
                 app:tint="@color/bottom_nav_icon_selector" />
 

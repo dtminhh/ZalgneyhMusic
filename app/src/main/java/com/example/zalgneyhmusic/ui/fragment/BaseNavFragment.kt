@@ -110,7 +110,10 @@ abstract class BaseNavFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         isTabLayoutSetup = false
-        childViewPager = null
+        if (childViewPager != null && viewPagerCallback != null) {
+            childViewPager?.unregisterOnPageChangeCallback(viewPagerCallback!!)
+            viewPagerCallback = null
+        }
     }
 
     /**
