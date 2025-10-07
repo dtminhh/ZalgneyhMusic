@@ -34,4 +34,9 @@
     <string name="stt_google_sign_in_success">Google Sign In Success</string>
     <string name="error">Error: %1$s</string>
     <string name="success">Success</string>
+    <string name="home">Home</string>
+    <string name="song">Song</string>
+    <string name="albums">Albums</string>
+    <string name="artist">Artist</string>
+    <string name="playlist">Playlist</string>
 </resources>
