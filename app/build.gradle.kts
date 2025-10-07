@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.play.services.auth)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.swiperefreshlayout)
     ksp(libs.hilt.android.compiler)
     implementation(platform(libs.firebase.bom))
     implementation(libs.google.firebase.auth)
@@ -68,4 +69,31 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Retrofit - API client
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+
+    // OkHttp - HTTP client
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+
+    // Gson - JSON parser
+    implementation(libs.gson)
+
+    // Coil - Image loading
+    implementation(libs.coil)
+
+    // ExoPlayer - Music player
+    implementation(libs.exoplayer.core)
+    implementation(libs.exoplayer.ui)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
+
+    // Lifecycle
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.livedata.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
 }

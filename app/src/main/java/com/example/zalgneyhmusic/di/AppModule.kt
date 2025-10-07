@@ -9,6 +9,12 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
+import com.example.zalgneyhmusic.data.api.MusicApiService
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 /**
  * Hilt module that provides application-level dependencies.
@@ -19,6 +25,11 @@ import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
 @InstallIn(SingletonComponent::class)
 @Module
 class AppModule {
+
+    companion object {
+        private const val BASE_URL = "http://192.168.5.4:3000/"
+    }
+
     /**
      * Provides a singleton instance of [FirebaseAuth].
      *
@@ -53,4 +64,52 @@ class AppModule {
     @Singleton
     fun provideGoogleSignInHelper(): GoogleSignInHelper = GoogleSignInHelper()
 
+    // ===== API PROVIDERS =====
+
+    /**
+     * Provides logging interceptor for debugging API calls
+     */
+    @Provides
+    @Singleton
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
+        return HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+    }
+
+    /**
+     * Provides OkHttpClient with timeout and logging configuration
+     */
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
+    /**
+     * Provides Retrofit instance configured with base URL and Gson converter
+     */
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    /**
+     * Provides MusicApiService for making API calls
+     */
+    @Provides
+    @Singleton
+    fun provideMusicApiService(retrofit: Retrofit): MusicApiService {
+        return retrofit.create(MusicApiService::class.java)
+    }
 }
