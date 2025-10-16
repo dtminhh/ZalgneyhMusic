@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_marginEnd="10dp"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imgAlbumCover"
+        android:layout_width="100dp"
+        android:layout_height="130dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeCorner8Style" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/txtAlbumName"
+        style="@style/childTitleFormat"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:freezesText="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:maxLines="1"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
+        android:textSize="13sp"
+        app:layout_constraintEnd_toEndOf="@+id/imgAlbumCover"
+        app:layout_constraintStart_toStartOf="@+id/imgAlbumCover"
+        app:layout_constraintTop_toBottomOf="@+id/imgAlbumCover" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/txtArtistName"
+        style="@style/childTitleFormat"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:alpha="0.7"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/txtAlbumName"
+        app:layout_constraintStart_toStartOf="@+id/txtAlbumName"
+        app:layout_constraintTop_toBottomOf="@+id/txtAlbumName" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
