@@ -40,4 +40,68 @@
     <string name="artist">Artist</string>
     <string name="playlist">Playlist</string>
     <string name="see_more">See more</string>
+
+    <!-- Music Player Strings -->
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="play_pause">Play/Pause</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="repeat">Repeat</string>
+    <string name="close">Close</string>
+    <string name="playing_now">Playing Now</string>
+    <string name="queue">Queue</string>
+    <string name="lyrics">Lyrics</string>
+
+    <!-- Search Strings -->
+    <string name="search">Search</string>
+    <string name="search_songs_artists_albums">Search songs, artists, albums…</string>
+    <string name="search_for_music">Search for music</string>
+    <string name="search_description">Find your favorite songs, artists, and albums</string>
+    <string name="recent_searches">Recent Searches</string>
+    <string name="clear_search">Clear search</string>
+    <string name="clear_all">Clear All</string>
+    <string name="no_results_found">No results found</string>
+    <string name="try_different_keywords">Try searching with different keywords</string>
+    <string name="songs">Songs</string>
+    <string name="artists">Artists</string>
+    <string name="remove">Remove</string>
+
+    <!-- Common Strings -->
+    <string name="loading">Loading…</string>
+    <string name="error_loading">Error loading data</string>
+    <string name="retry">Retry</string>
+    <string name="ok">OK</string>
+    <string name="top_artists_in_your_country">Top Artists in your country</string>
+    <string name="sort_by_recent">Sort by: Recent</string>
+    <string name="album_cover">Album cover</string>
+    <string name="playlist_cover">Playlist cover</string>
+    <string name="song_title">Song Title</string>
+    <string name="artist_name">Artist Name</string>
+
+    <!-- Toast Messages -->
+    <string name="toast_playing">Playing: %1$s</string>
+    <string name="toast_song">Song: %1$s</string>
+    <string name="toast_artist">Artist: %1$s</string>
+    <string name="toast_album">Album: %1$s</string>
+    <string name="toast_menu">Menu: %1$s</string>
+    <string name="toast_playlist">Playlist: %1$s</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_artists">Error loading artists: %1$s</string>
+    <string name="error_loading_albums">Error loading albums: %1$s</string>
+    <string name="error_loading_recently_heard">Error loading recently heard: %1$s</string>
+    <string name="error_loading_suggestions">Error loading suggestions: %1$s</string>
+    <string name="unknown_error">Unknown error</string>
+
+    <!-- Section Titles -->
+    <string name="top_artist_in_your_country">Top Artist in your country</string>
+    <string name="top_world_artist_of_the_month">Top World Artist Of The Month</string>
+
+    <!-- Adapter Strings -->
+    <string name="song_count">%1$d songs</string>
+    <string name="created_by">By %1$s</string>
+    <string name="track_count">%1$d tracks</string>
+    <string name="no_description">No description</string>
 </resources>

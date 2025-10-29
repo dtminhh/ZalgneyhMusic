@@ -80,15 +80,15 @@ class HomeFragment : Fragment() {
                     findNavController().navigate(R.id.action_mainFragment_to_playerFragment)
                 } catch (_: Exception) {
                     // Fallback if navigation fails - exception details not needed
-                    Toast.makeText(context, "Playing: ${song.title}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.toast_playing, song.title), Toast.LENGTH_SHORT).show()
                 }
             },
             onArtistClick = { artist ->
-                Toast.makeText(context, "Artist: ${artist.name}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.toast_artist, artist.name), Toast.LENGTH_SHORT).show()
                 // TODO: Navigate to artist detail
             },
             onAlbumClick = { album ->
-                Toast.makeText(context, "Album: ${album.title}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.toast_album, album.title), Toast.LENGTH_SHORT).show()
                 // TODO: Navigate to album detail
             }
         )
@@ -138,7 +138,7 @@ class HomeFragment : Fragment() {
                         is Resource.Failure -> {
                             Toast.makeText(
                                 context,
-                                "Error loading artists: ${resource.exception.message}",
+                                getString(R.string.error_loading_artists, resource.exception.message),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -159,7 +159,7 @@ class HomeFragment : Fragment() {
                         is Resource.Failure -> {
                             Toast.makeText(
                                 context,
-                                "Error loading albums: ${resource.exception.message}",
+                                getString(R.string.error_loading_albums, resource.exception.message),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -180,7 +180,7 @@ class HomeFragment : Fragment() {
                         is Resource.Failure -> {
                             Toast.makeText(
                                 context,
-                                "Error loading recently heard: ${resource.exception.message}",
+                                getString(R.string.error_loading_recently_heard, resource.exception.message),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -201,7 +201,7 @@ class HomeFragment : Fragment() {
                         is Resource.Failure -> {
                             Toast.makeText(
                                 context,
-                                "Error loading suggestions: ${resource.exception.message}",
+                                getString(R.string.error_loading_suggestions, resource.exception.message),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }

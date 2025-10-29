@@ -1,11 +1,11 @@
-package com.example.zalgneyhmusic.data.model.repository
+package com.example.zalgneyhmusic.data.repository.auth
 
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.utils.await
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import javax.inject.Inject
 import com.google.firebase.auth.GoogleAuthProvider
+import javax.inject.Inject
 
 /**
  * Implementation of [AuthRepository] that uses Firebase Authentication

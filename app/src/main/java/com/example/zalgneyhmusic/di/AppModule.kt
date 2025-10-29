@@ -1,14 +1,21 @@
 package com.example.zalgneyhmusic.di
 
-import com.example.zalgneyhmusic.data.model.repository.AuthRepository
-import com.example.zalgneyhmusic.data.model.repository.AuthRepositoryImpl
+import android.content.Context
+import androidx.room.Room
+import com.example.zalgneyhmusic.data.local.MusicDatabase
+import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
+import com.example.zalgneyhmusic.data.repository.auth.AuthRepository
+import com.example.zalgneyhmusic.data.repository.auth.AuthRepositoryImpl
+import com.example.zalgneyhmusic.data.repository.music.MusicLocalRepository
+import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.player.MusicPlayer
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
 
 /**
  * Hilt module that provides application-level dependencies.
@@ -53,4 +60,34 @@ class AppModule {
     @Singleton
     fun provideGoogleSignInHelper(): GoogleSignInHelper = GoogleSignInHelper()
 
+    /**
+     * Provides Room Database instance
+     */
+    @Provides
+    @Singleton
+    fun provideMusicDatabase(@ApplicationContext context: Context): MusicDatabase {
+        return Room.databaseBuilder(
+            context,
+            MusicDatabase::class.java,
+            "music_database"
+        ).build()
+    }
+
+    /**
+     * Provides MusicRepository implementation
+     * When you need to switch to API, just replace MusicLocalRepository with MusicApiRepository     */
+    @Provides
+    @Singleton
+    fun provideMusicRepository(database: MusicDatabase): MusicRepository {
+        return MusicLocalRepository(database)
+    }
+
+    /**
+     * Provides MusicPlayer singleton instance
+     */
+    @Provides
+    @Singleton
+    fun provideMusicPlayer(@ApplicationContext context: Context): MusicPlayer {
+        return MusicPlayer(context)
+    }
 }

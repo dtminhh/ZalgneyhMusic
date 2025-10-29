@@ -1,7 +1,11 @@
-package com.example.zalgneyhmusic.data.model
+package com.example.zalgneyhmusic.data.model.domain
 
 import com.google.gson.annotations.SerializedName
 
+/**
+ * Domain Model for Artist
+ * Used in UI, ViewModel, and API response
+ */
 data class Artist(
     @SerializedName("_id")
     val id: String,
@@ -27,3 +31,4 @@ data class Artist(
     @SerializedName("updatedAt")
     val updatedAt: String? = null
 )
+

@@ -4,24 +4,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import androidx.viewpager2.widget.ViewPager2
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
-import javax.inject.Inject
 import com.example.zalgneyhmusic.databinding.FragmentMainBinding
-import com.example.zalgneyhmusic.ui.adapter.MainFragmentAdapter
-import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
-import com.example.zalgneyhmusic.ui.fragment.auth.LoginFragment
-import dagger.hilt.android.AndroidEntryPoint
-import androidx.viewpager2.widget.ViewPager2
 import com.example.zalgneyhmusic.ui.UIConstants.Navigation.DEFAULT_NAV_INDEX
 import com.example.zalgneyhmusic.ui.UIConstants.ViewPager.USER_INPUT_ENABLED
+import com.example.zalgneyhmusic.ui.adapter.MainFragmentAdapter
+import com.example.zalgneyhmusic.ui.fragment.auth.LoginFragment
 import com.example.zalgneyhmusic.ui.viewmodel.TopBarState
 import com.example.zalgneyhmusic.ui.viewmodel.TopBarViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import com.google.android.material.tabs.TabLayout
-import androidx.core.view.isVisible
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Main fragment displayed after successful login or sign-up.
@@ -96,6 +96,7 @@ class MainFragment : BaseFragment() {
         setupViewPager()
         setupBottomNavigation()
         setupTopBarObserver()
+        setupMiniPlayer()
         selectNavItem(DEFAULT_NAV_INDEX) // Use constant instead of hardcoded 0
     }
 
@@ -392,6 +393,16 @@ class MainFragment : BaseFragment() {
                 }
             }
         }
+        binding.imgSearch.setOnClickListener {
+            findNavController().navigate(R.id.action_mainFragment_to_searchFragment)
+        }
+    }
+
+    /**
+     * Setup mini player functionality
+     */
+    private fun setupMiniPlayer() {
+        setupMiniPlayerExt(binding)
     }
 
     /**
