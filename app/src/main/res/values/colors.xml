@@ -5,6 +5,9 @@
     <color name="white">#FFFFFFFF</color>
     <color name="dark_gray">#1E1E1E</color>
     <color name="light_gray">#EDEDED</color>
+    <color name="gray">#757575</color>
+    <color name="gray_light">#BDBDBD</color>
+    <color name="error_red">#F44336</color>
     <color name="start_color_main_app_color">#996A00FF</color>
     <color name="center_color_main_app_color">#A63D44FF</color>
     <color name="end_color_main_app_color">#E63D44FF</color>
