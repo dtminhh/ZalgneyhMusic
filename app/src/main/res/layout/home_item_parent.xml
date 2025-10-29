@@ -33,8 +33,7 @@
             android:text="@string/see_more"
             android:textColor="@color/black"
             android:alpha="0.6"
-            style="@style/childTitleFormat"
-            android:textSize="14sp" />
+            style="@style/childTitleFormat" />
     </LinearLayout>
 
     <!-- RecyclerView con -->

@@ -18,7 +18,7 @@ import com.example.zalgneyhmusic.ui.model.SectionType
  * Manages nested RecyclerView with different section types
  */
 class HomeParentAdapter(
-    private val onSongClick: (Song) -> Unit,
+    private val onSongClick: (Song, SectionType) -> Unit,
     private val onArtistClick: (Artist) -> Unit,
     private val onAlbumClick: (Album) -> Unit
 ) : RecyclerView.Adapter<HomeParentAdapter.HomeParentViewHolder>() {
@@ -97,7 +97,9 @@ class HomeParentAdapter(
         }
 
         private fun setupFeaturedSongsRecyclerView(section: HomeSection<Song>) {
-            val adapter = FeaturedSongsAdapter(onSongClick)
+            val adapter = FeaturedSongsAdapter { song ->
+                onSongClick(song, section.sectionType)
+            }
             binding.rvChild.apply {
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
                 this.adapter = adapter
@@ -124,7 +126,9 @@ class HomeParentAdapter(
         }
 
         private fun setupRecentSuggestRecyclerView(section: HomeSection<Song>) {
-            val adapter = RecentSuggestAdapter(onSongClick)
+            val adapter = RecentSuggestAdapter { song ->
+                onSongClick(song, section.sectionType)
+            }
             binding.rvChild.apply {
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 this.adapter = adapter

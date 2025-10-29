@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Style cho circular image view (Artists avatar) -->
+    <!-- Style for circular image view (Artists avatar, profile pictures) -->
     <style name="CircleImageView">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
-    </style>
-
-    <!-- Alternative name cho CircleImageView (dùng trong một số layout) -->
-    <style name="CircleImageStyle">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
@@ -37,14 +31,8 @@
         <item name="android:ellipsize">end</item>
     </style>
 
-    <!-- Shape Styles cho rounded corners -->
+    <!-- Shape style for 8dp rounded corners (thumbnails, cards) -->
     <style name="ShapeCorner8Style">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">8dp</item>
-    </style>
-
-    <!-- Alternative name cho ShapeCorner8Style -->
-    <style name="RoundedCorner8Style">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
     </style>

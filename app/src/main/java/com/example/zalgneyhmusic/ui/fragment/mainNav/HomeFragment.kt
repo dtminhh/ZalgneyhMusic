@@ -58,13 +58,16 @@ class HomeFragment : Fragment() {
      */
     private fun setupRecyclerView() {
         homeAdapter = HomeParentAdapter(
-            onSongClick = { song ->
-                // Get current section songs for playlist
-                val currentSongs = when {
-                    viewModel.featuredSongs.value is Resource.Success ->
-                        (viewModel.featuredSongs.value as Resource.Success).result
-
-                    else -> listOf(song)
+            onSongClick = { song, sectionType ->
+                // Get correct section songs based on which section was clicked
+                val currentSongs = when (sectionType) {
+                    SectionType.FEATURED_SONGS ->
+                        (viewModel.featuredSongs.value as? Resource.Success)?.result ?: listOf(song)
+                    SectionType.RECENTLY_HEARD ->
+                        (viewModel.recentlyHeard.value as? Resource.Success)?.result ?: listOf(song)
+                    SectionType.SUGGESTIONS ->
+                        (viewModel.suggestions.value as? Resource.Success)?.result ?: listOf(song)
+                    else -> listOf(song) // For non-song sections
                 }
 
                 // Set playlist and play

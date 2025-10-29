@@ -12,22 +12,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/CircleImageStyle" />
+        app:shapeAppearanceOverlay="@style/CircleImageView" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/txtArtistName"
-        style="@style/childTitleFormat"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="11dp"
-        android:ellipsize="marquee"
-        android:focusable="true"
-        android:freezesText="true"
+        android:ellipsize="end"
         android:gravity="center"
-        android:marqueeRepeatLimit="marquee_forever"
         android:maxLines="2"
-        android:scrollHorizontally="true"
         android:textSize="13sp"
+        android:textColor="@android:color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
