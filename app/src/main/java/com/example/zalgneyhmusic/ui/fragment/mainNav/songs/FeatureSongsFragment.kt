@@ -13,6 +13,8 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
 import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
 import com.example.zalgneyhmusic.ui.viewmodel.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,13 +63,52 @@ class FeatureSongsFragment : Fragment() {
                 Toast.makeText(context, getString(R.string.toast_playing, song.title), Toast.LENGTH_SHORT).show()
             },
             onMenuClick = { song ->
-                Toast.makeText(context, getString(R.string.toast_menu, song.title), Toast.LENGTH_SHORT).show()
+                showMoreOptions(song)
             }
         )
 
         binding.rvSongs.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = songAdapter
+        }
+    }
+
+    private fun showMoreOptions(song: com.example.zalgneyhmusic.data.model.domain.Song) {
+        MoreOptionsManager.showForSong(
+            fragmentManager = childFragmentManager,
+            song = song,
+            onActionClick = { action ->
+                handleSongAction(action, song)
+            }
+        )
+    }
+
+    private fun handleSongAction(action: MoreOptionsAction.SongAction, song: com.example.zalgneyhmusic.data.model.domain.Song) {
+        when (action) {
+            is MoreOptionsAction.SongAction.PlayNext -> {
+                Toast.makeText(context, "Play next: ${song.title}", Toast.LENGTH_SHORT).show()
+                // TODO: Implement play next
+            }
+            is MoreOptionsAction.SongAction.AddToQueue -> {
+                Toast.makeText(context, "Added to queue: ${song.title}", Toast.LENGTH_SHORT).show()
+                // TODO: Implement add to queue
+            }
+            is MoreOptionsAction.SongAction.AddToPlaylist -> {
+                Toast.makeText(context, "Add to playlist: ${song.title}", Toast.LENGTH_SHORT).show()
+                // TODO: Show playlist selection dialog
+            }
+            is MoreOptionsAction.SongAction.GoToArtist -> {
+                Toast.makeText(context, "Go to artist: ${song.artist.name}", Toast.LENGTH_SHORT).show()
+                // TODO: Navigate to artist detail
+            }
+            is MoreOptionsAction.SongAction.GoToAlbum -> {
+                Toast.makeText(context, "Go to album: ${song.album?.title ?: "Unknown"}", Toast.LENGTH_SHORT).show()
+                // TODO: Navigate to album detail
+            }
+            is MoreOptionsAction.SongAction.Share -> {
+                Toast.makeText(context, "Share: ${song.title}", Toast.LENGTH_SHORT).show()
+                // TODO: Implement share functionality
+            }
         }
     }
 

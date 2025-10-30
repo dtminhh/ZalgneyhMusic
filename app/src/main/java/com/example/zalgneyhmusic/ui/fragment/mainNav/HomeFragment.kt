@@ -17,6 +17,8 @@ import com.example.zalgneyhmusic.databinding.FragmentHomeBinding
 import com.example.zalgneyhmusic.ui.adapter.home.HomeParentAdapter
 import com.example.zalgneyhmusic.ui.model.HomeSection
 import com.example.zalgneyhmusic.ui.model.SectionType
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
 import com.example.zalgneyhmusic.ui.viewmodel.HomeViewModel
 import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -90,12 +92,105 @@ class HomeFragment : Fragment() {
             onAlbumClick = { album ->
                 Toast.makeText(context, getString(R.string.toast_album, album.title), Toast.LENGTH_SHORT).show()
                 // TODO: Navigate to album detail
+            },
+            onSongMoreClick = { song ->
+                showSongMoreOptions(song)
+            },
+            onArtistMoreClick = { artist ->
+                showArtistMoreOptions(artist)
+            },
+            onAlbumMoreClick = { album ->
+                showAlbumMoreOptions(album)
             }
         )
 
         binding.rvHome.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = homeAdapter
+        }
+    }
+
+    private fun showSongMoreOptions(song: com.example.zalgneyhmusic.data.model.domain.Song) {
+        MoreOptionsManager.showForSong(
+            fragmentManager = childFragmentManager,
+            song = song,
+            onActionClick = { action ->
+                handleSongAction(action, song)
+            }
+        )
+    }
+
+    private fun showArtistMoreOptions(artist: com.example.zalgneyhmusic.data.model.domain.Artist) {
+        MoreOptionsManager.showForArtist(
+            fragmentManager = childFragmentManager,
+            artist = artist,
+            onActionClick = { action ->
+                handleArtistAction(action, artist)
+            }
+        )
+    }
+
+    private fun showAlbumMoreOptions(album: com.example.zalgneyhmusic.data.model.domain.Album) {
+        MoreOptionsManager.showForAlbum(
+            fragmentManager = childFragmentManager,
+            album = album,
+            onActionClick = { action ->
+                handleAlbumAction(action, album)
+            }
+        )
+    }
+
+    private fun handleSongAction(action: MoreOptionsAction.SongAction, song: com.example.zalgneyhmusic.data.model.domain.Song) {
+        when (action) {
+            is MoreOptionsAction.SongAction.PlayNext -> {
+                Toast.makeText(context, "Play next: ${song.title}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.SongAction.AddToQueue -> {
+                Toast.makeText(context, "Add to queue: ${song.title}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.SongAction.AddToPlaylist -> {
+                Toast.makeText(context, "Add to playlist: ${song.title}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.SongAction.GoToArtist -> {
+                Toast.makeText(context, "Go to artist: ${song.artist.name}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.SongAction.GoToAlbum -> {
+                Toast.makeText(context, "Go to album: ${song.album?.title ?: "Unknown"}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.SongAction.Share -> {
+                Toast.makeText(context, "Share: ${song.title}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun handleArtistAction(action: MoreOptionsAction.ArtistAction, artist: com.example.zalgneyhmusic.data.model.domain.Artist) {
+        when (action) {
+            is MoreOptionsAction.ArtistAction.Follow -> {
+                Toast.makeText(context, "Follow: ${artist.name}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.ArtistAction.PlayAllSongs -> {
+                Toast.makeText(context, "Play all by: ${artist.name}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.ArtistAction.Share -> {
+                Toast.makeText(context, "Share: ${artist.name}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun handleAlbumAction(action: MoreOptionsAction.AlbumAction, album: com.example.zalgneyhmusic.data.model.domain.Album) {
+        when (action) {
+            is MoreOptionsAction.AlbumAction.PlayAll -> {
+                Toast.makeText(context, "Play all: ${album.title}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.AlbumAction.AddToPlaylist -> {
+                Toast.makeText(context, "Add all to playlist: ${album.title}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.AlbumAction.GoToArtist -> {
+                Toast.makeText(context, "Go to artist: ${album.artist}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.AlbumAction.Share -> {
+                Toast.makeText(context, "Share: ${album.title}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
