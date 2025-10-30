@@ -24,7 +24,7 @@ class MusicLocalRepository @Inject constructor(
     private val artistDao = database.artistDao()
     private val albumDao = database.albumDao()
 
-    //Songs
+    // Songs
     override fun getAllSongs(): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
         try {

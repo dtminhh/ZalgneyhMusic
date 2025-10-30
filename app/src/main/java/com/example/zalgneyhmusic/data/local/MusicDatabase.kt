@@ -11,7 +11,7 @@ import com.example.zalgneyhmusic.data.model.local.dao.SongDao
 
 /**
  * Room Database for Music application
- * Manage Entities: Song, Artist, Album
+ * Manages Entities: Song, Artist, Album
  */
 @Database(
     entities = [

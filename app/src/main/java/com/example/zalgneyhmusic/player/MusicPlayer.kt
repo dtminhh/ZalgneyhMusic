@@ -286,7 +286,7 @@ class MusicPlayer @Inject constructor(
      */
     fun previous() {
         // If playing more than threshold, restart current song
-        if (mediaPlayer?.currentPosition ?: 0 > RESTART_SONG_THRESHOLD_MS) {
+        if ((mediaPlayer?.currentPosition ?: 0) > RESTART_SONG_THRESHOLD_MS) {
             seekTo(0)
         } else {
             val prevIndex = if (currentIndex - 1 >= 0) {
@@ -334,7 +334,7 @@ class MusicPlayer @Inject constructor(
     }
 
     /**
-     * process when play end
+     * Handles playback completion
      */
     private fun onSongComplete() {
         when (_repeatMode.value) {

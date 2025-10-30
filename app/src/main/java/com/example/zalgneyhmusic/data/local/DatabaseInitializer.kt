@@ -18,10 +18,10 @@ class DatabaseInitializer @Inject constructor(
 ) {
 
     suspend fun initializeDatabase() = withContext(Dispatchers.IO) {
-        // check availble data
+        // check available data
         val existingSongs = database.songDao().getAllSongs().first()
         if (existingSongs.isNotEmpty()) {
-            return@withContext // Database already have data -> not init again
+            return@withContext // Database already has data -> not init again
         }
 
         // Insert sample artists

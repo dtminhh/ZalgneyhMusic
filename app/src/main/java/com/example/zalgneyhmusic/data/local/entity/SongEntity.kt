@@ -33,7 +33,7 @@ data class SongEntity(
     val updatedAt: String? = null
 ) {
     /**
-     * Convert Entity sang Domain Model
+     * Convert Entity to Domain Model
      */
     fun toDomain(): Song {
         return Song(
@@ -71,7 +71,7 @@ data class SongEntity(
 
     companion object {
         /**
-         * Convert Domain Model sang Entity
+         * Convert Domain Model to Entity
          */
         fun fromDomain(song: Song): SongEntity {
             return SongEntity(
