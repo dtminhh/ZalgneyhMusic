@@ -15,7 +15,8 @@ import com.example.zalgneyhmusic.ui.adapter.BaseDiffItemCallback
  * Displays albums with cover image, title, and artist name
  */
 class FeaturedAlbumsAdapter(
-    private val onItemClick: (Album) -> Unit
+    private val onItemClick: (Album) -> Unit,
+    private val onMoreClick: ((Album) -> Unit)? = null
 ) : ListAdapter<Album, FeaturedAlbumsAdapter.ViewHolder>(
     BaseDiffItemCallback(
         itemsTheSame = { oldItem, newItem -> oldItem.id == newItem.id },
@@ -53,6 +54,10 @@ class FeaturedAlbumsAdapter(
 
                 root.setOnClickListener {
                     onItemClick(album)
+                }
+
+                btnMoreOptions.setOnClickListener {
+                    onMoreClick?.invoke(album)
                 }
             }
         }

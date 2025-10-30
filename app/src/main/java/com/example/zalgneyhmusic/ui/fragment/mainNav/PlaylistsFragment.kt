@@ -12,6 +12,8 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentPlaylistsBinding
 import com.example.zalgneyhmusic.ui.adapter.PlaylistAdapter
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
 import com.example.zalgneyhmusic.ui.viewmodel.PlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -42,18 +44,51 @@ class PlaylistsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        playlistAdapter = PlaylistAdapter { playlist ->
-            // TODO: Navigate to playlist detail screen
-            Toast.makeText(
-                context,
-                getString(R.string.toast_playlist, "${playlist.name} (${playlist.songs.size} songs)"),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+        playlistAdapter = PlaylistAdapter(
+            onPlaylistClick = { playlist ->
+                // TODO: Navigate to playlist detail screen
+                Toast.makeText(
+                    context,
+                    getString(R.string.toast_playlist, "${playlist.name} (${playlist.songs.size} songs)"),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            onPlaylistLongClick = { playlist ->
+                showPlaylistMoreOptions(playlist)
+                true
+            }
+        )
 
         binding.rvPlaylists.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = playlistAdapter
+        }
+    }
+
+    private fun showPlaylistMoreOptions(playlist: com.example.zalgneyhmusic.data.model.domain.Playlist) {
+        MoreOptionsManager.showForPlaylist(
+            fragmentManager = childFragmentManager,
+            playlist = playlist,
+            onActionClick = { action ->
+                handlePlaylistAction(action, playlist)
+            }
+        )
+    }
+
+    private fun handlePlaylistAction(action: MoreOptionsAction.PlaylistAction, playlist: com.example.zalgneyhmusic.data.model.domain.Playlist) {
+        when (action) {
+            is MoreOptionsAction.PlaylistAction.PlayAll -> {
+                Toast.makeText(context, "Play all: ${playlist.name}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.PlaylistAction.Edit -> {
+                Toast.makeText(context, "Edit: ${playlist.name}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.PlaylistAction.Delete -> {
+                Toast.makeText(context, "Delete: ${playlist.name}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.PlaylistAction.Share -> {
+                Toast.makeText(context, "Share: ${playlist.name}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

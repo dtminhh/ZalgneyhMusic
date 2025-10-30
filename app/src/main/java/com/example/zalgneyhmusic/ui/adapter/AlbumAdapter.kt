@@ -15,7 +15,8 @@ import com.example.zalgneyhmusic.databinding.ItemAlbumBinding
  * Uses ListAdapter for automatic diff calculation
  */
 class AlbumAdapter(
-    private val onAlbumClick: (Album) -> Unit
+    private val onAlbumClick: (Album) -> Unit,
+    private val onAlbumLongClick: ((Album) -> Boolean)? = null
 ) : ListAdapter<Album, AlbumAdapter.AlbumViewHolder>(AlbumDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumViewHolder {
@@ -24,7 +25,7 @@ class AlbumAdapter(
             parent,
             false
         )
-        return AlbumViewHolder(binding, onAlbumClick)
+        return AlbumViewHolder(binding, onAlbumClick, onAlbumLongClick)
     }
 
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
@@ -34,7 +35,8 @@ class AlbumAdapter(
     /** ViewHolder for album item */
     class AlbumViewHolder(
         private val binding: ItemAlbumBinding,
-        private val onAlbumClick: (Album) -> Unit
+        private val onAlbumClick: (Album) -> Unit,
+        private val onAlbumLongClick: ((Album) -> Boolean)?
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(album: Album) {
@@ -51,6 +53,7 @@ class AlbumAdapter(
                     .into(imgAlbumCover)
 
                 root.setOnClickListener { onAlbumClick(album) }
+                root.setOnLongClickListener { onAlbumLongClick?.invoke(album) ?: false }
             }
         }
     }

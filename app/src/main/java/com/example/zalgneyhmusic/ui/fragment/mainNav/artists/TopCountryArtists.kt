@@ -12,6 +12,8 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentArtistListBinding
 import com.example.zalgneyhmusic.ui.adapter.ArtistAdapter
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
 import com.example.zalgneyhmusic.ui.viewmodel.ArtistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -54,13 +56,37 @@ class TopCountryArtists : Fragment() {
                 // TODO: Navigate to artist detail
             },
             onMenuClick = { artist ->
-                Toast.makeText(context, "Menu: ${artist.name}", Toast.LENGTH_SHORT).show()
+                showArtistMoreOptions(artist)
             }
         )
 
         binding.rvArtists.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = artistAdapter
+        }
+    }
+
+    private fun showArtistMoreOptions(artist: com.example.zalgneyhmusic.data.model.domain.Artist) {
+        MoreOptionsManager.showForArtist(
+            fragmentManager = childFragmentManager,
+            artist = artist,
+            onActionClick = { action ->
+                handleArtistAction(action, artist)
+            }
+        )
+    }
+
+    private fun handleArtistAction(action: MoreOptionsAction.ArtistAction, artist: com.example.zalgneyhmusic.data.model.domain.Artist) {
+        when (action) {
+            is MoreOptionsAction.ArtistAction.Follow -> {
+                Toast.makeText(context, "Follow: ${artist.name}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.ArtistAction.PlayAllSongs -> {
+                Toast.makeText(context, "Play all by: ${artist.name}", Toast.LENGTH_SHORT).show()
+            }
+            is MoreOptionsAction.ArtistAction.Share -> {
+                Toast.makeText(context, "Share: ${artist.name}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

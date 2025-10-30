@@ -15,7 +15,8 @@ import com.example.zalgneyhmusic.ui.adapter.BaseDiffItemCallback
  * Displays artists in circular avatar with name
  */
 class TopArtistsAdapter(
-    private val onItemClick: (Artist) -> Unit
+    private val onItemClick: (Artist) -> Unit,
+    private val onMoreClick: ((Artist) -> Unit)? = null
 ) : ListAdapter<Artist, TopArtistsAdapter.ViewHolder>(
     BaseDiffItemCallback(
         itemsTheSame = { oldItem, newItem -> oldItem.id == newItem.id },
@@ -52,6 +53,10 @@ class TopArtistsAdapter(
                     .into(imgArtistAva)
                 root.setOnClickListener {
                     onItemClick(artist)
+                }
+
+                btnMoreOptions.setOnClickListener {
+                    onMoreClick?.invoke(artist)
                 }
             }
         }
