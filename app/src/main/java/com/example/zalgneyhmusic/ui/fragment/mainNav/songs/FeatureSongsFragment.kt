@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
@@ -17,7 +18,7 @@ import com.example.zalgneyhmusic.ui.viewmodel.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * Feature Songs Fragment - Hiển thị các bài hát nổi bật
+ * Feature Songs Fragment - Displays featured songs
  */
 @AndroidEntryPoint
 class FeatureSongsFragment : Fragment() {
@@ -47,20 +48,20 @@ class FeatureSongsFragment : Fragment() {
     private fun setupRecyclerView() {
         songAdapter = SongAdapter(
             onSongClick = { song ->
-                Toast.makeText(context, "Song: ${song.title}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.toast_song, song.title), Toast.LENGTH_SHORT).show()
             },
             onPlayClick = { song ->
                 // Get all songs from current list
                 val songs = songAdapter.currentList
                 val index = songs.indexOf(song)
 
-                // Set playlist và play
+                // Set playlist and play
                 playerViewModel.setPlaylist(songs, index)
 
-                Toast.makeText(context, "Playing: ${song.title}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.toast_playing, song.title), Toast.LENGTH_SHORT).show()
             },
             onMenuClick = { song ->
-                Toast.makeText(context, "Menu: ${song.title}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.toast_menu, song.title), Toast.LENGTH_SHORT).show()
             }
         )
 
@@ -90,7 +91,7 @@ class FeatureSongsFragment : Fragment() {
                     binding.progressBar.visibility = View.GONE
                     binding.rvSongs.visibility = View.GONE
                     binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text = resource.exception.message ?: "Unknown error"
+                    binding.txtError.text = resource.exception.message ?: getString(R.string.unknown_error)
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.data.model.repository
+package com.example.zalgneyhmusic.data.repository.auth
 
 import com.example.zalgneyhmusic.data.Resource
 import com.google.firebase.auth.FirebaseUser
