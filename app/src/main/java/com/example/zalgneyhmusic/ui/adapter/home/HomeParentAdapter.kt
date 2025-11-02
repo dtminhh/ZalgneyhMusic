@@ -20,7 +20,10 @@ import com.example.zalgneyhmusic.ui.model.SectionType
 class HomeParentAdapter(
     private val onSongClick: (Song, SectionType) -> Unit,
     private val onArtistClick: (Artist) -> Unit,
-    private val onAlbumClick: (Album) -> Unit
+    private val onAlbumClick: (Album) -> Unit,
+    private val onSongMoreClick: ((Song) -> Unit)? = null,
+    private val onArtistMoreClick: ((Artist) -> Unit)? = null,
+    private val onAlbumMoreClick: ((Album) -> Unit)? = null
 ) : RecyclerView.Adapter<HomeParentAdapter.HomeParentViewHolder>() {
 
     private val sections = mutableListOf<HomeSection<*>>()
@@ -97,9 +100,12 @@ class HomeParentAdapter(
         }
 
         private fun setupFeaturedSongsRecyclerView(section: HomeSection<Song>) {
-            val adapter = FeaturedSongsAdapter { song ->
-                onSongClick(song, section.sectionType)
-            }
+            val adapter = FeaturedSongsAdapter(
+                onItemClick = { song ->
+                    onSongClick(song, section.sectionType)
+                },
+                onMoreClick = onSongMoreClick
+            )
             binding.rvChild.apply {
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
                 this.adapter = adapter
@@ -108,7 +114,10 @@ class HomeParentAdapter(
         }
 
         private fun setupArtistsRecyclerView(section: HomeSection<Artist>) {
-            val adapter = TopArtistsAdapter(onArtistClick)
+            val adapter = TopArtistsAdapter(
+                onItemClick = onArtistClick,
+                onMoreClick = onArtistMoreClick
+            )
             binding.rvChild.apply {
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 this.adapter = adapter
@@ -117,7 +126,10 @@ class HomeParentAdapter(
         }
 
         private fun setupAlbumsRecyclerView(section: HomeSection<Album>) {
-            val adapter = FeaturedAlbumsAdapter(onAlbumClick)
+            val adapter = FeaturedAlbumsAdapter(
+                onItemClick = onAlbumClick,
+                onMoreClick = onAlbumMoreClick
+            )
             binding.rvChild.apply {
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 this.adapter = adapter
@@ -126,9 +138,12 @@ class HomeParentAdapter(
         }
 
         private fun setupRecentSuggestRecyclerView(section: HomeSection<Song>) {
-            val adapter = RecentSuggestAdapter { song ->
-                onSongClick(song, section.sectionType)
-            }
+            val adapter = RecentSuggestAdapter(
+                onItemClick = { song ->
+                    onSongClick(song, section.sectionType)
+                },
+                onMoreClick = onSongMoreClick
+            )
             binding.rvChild.apply {
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 this.adapter = adapter

@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment.mainNav
+package com.example.zalgneyhmusic.ui.fragment.mainNav.artists
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,8 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.zalgneyhmusic.databinding.FragmentArtistsBinding
 import com.example.zalgneyhmusic.ui.fragment.BaseNavFragment
-import com.example.zalgneyhmusic.ui.fragment.mainNav.artists.TopCountryArtists
-import com.example.zalgneyhmusic.ui.fragment.mainNav.artists.TopWorldArtists
 
 /**
  * Artists fragment displaying list of music artists and performers.
@@ -22,7 +20,7 @@ class ArtistsFragment : BaseNavFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentArtistsBinding.inflate(inflater, container, false)
         return binding.root
     }

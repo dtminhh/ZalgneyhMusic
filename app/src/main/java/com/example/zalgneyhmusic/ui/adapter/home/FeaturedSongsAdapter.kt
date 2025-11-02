@@ -16,7 +16,8 @@ import com.example.zalgneyhmusic.ui.adapter.BaseDiffItemCallback
  * Displays songs with ranking number, thumbnail, title, and artist
  */
 class FeaturedSongsAdapter(
-    private val onItemClick: (Song) -> Unit
+    private val onItemClick: (Song) -> Unit,
+    private val onMoreClick: ((Song) -> Unit)? = null
 ) : ListAdapter<Song, FeaturedSongsAdapter.ViewHolder>(
     BaseDiffItemCallback(
         itemsTheSame = { oldItem, newItem -> oldItem.id == newItem.id },
@@ -57,6 +58,10 @@ class FeaturedSongsAdapter(
 
                 root.setOnClickListener {
                     onItemClick(song)
+                }
+
+                btnMenu.setOnClickListener {
+                    onMoreClick?.invoke(song)
                 }
             }
         }

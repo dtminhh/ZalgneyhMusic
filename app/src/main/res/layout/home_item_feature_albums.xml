@@ -5,15 +5,32 @@
     android:layout_marginEnd="10dp"
     android:layout_height="wrap_content">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/imgAlbumCover"
+    <FrameLayout
+        android:id="@+id/flAlbumContainer"
         android:layout_width="100dp"
         android:layout_height="130dp"
-        android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/ShapeCorner8Style" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imgAlbumCover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeCorner8Style" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/btnMoreOptions"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="4dp"
+            android:padding="2dp"
+            android:background="@color/black_50opa"
+            android:src="@drawable/mini_more_option_button"
+            app:tint="@android:color/white" />
+    </FrameLayout>
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/txtAlbumName"
@@ -30,9 +47,9 @@
         android:scrollHorizontally="true"
         android:singleLine="true"
         android:textSize="13sp"
-        app:layout_constraintEnd_toEndOf="@+id/imgAlbumCover"
-        app:layout_constraintStart_toStartOf="@+id/imgAlbumCover"
-        app:layout_constraintTop_toBottomOf="@+id/imgAlbumCover" />
+        app:layout_constraintEnd_toEndOf="@+id/flAlbumContainer"
+        app:layout_constraintStart_toStartOf="@+id/flAlbumContainer"
+        app:layout_constraintTop_toBottomOf="@+id/flAlbumContainer" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/txtArtistName"

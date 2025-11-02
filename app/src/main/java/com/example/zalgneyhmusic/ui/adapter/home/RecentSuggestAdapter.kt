@@ -15,7 +15,8 @@ import com.example.zalgneyhmusic.ui.adapter.BaseDiffItemCallback
  * Displays square thumbnail with play button overlay
  */
 class RecentSuggestAdapter(
-    private val onItemClick: (Song) -> Unit
+    private val onItemClick: (Song) -> Unit,
+    private val onMoreClick: ((Song) -> Unit)? = null
 ) : ListAdapter<Song, RecentSuggestAdapter.ViewHolder>(
     BaseDiffItemCallback(
         itemsTheSame = { oldItem, newItem -> oldItem.id == newItem.id },
@@ -53,6 +54,10 @@ class RecentSuggestAdapter(
 
                 root.setOnClickListener {
                     onItemClick(song)
+                }
+
+                btnMoreOptions.setOnClickListener {
+                    onMoreClick?.invoke(song)
                 }
             }
         }

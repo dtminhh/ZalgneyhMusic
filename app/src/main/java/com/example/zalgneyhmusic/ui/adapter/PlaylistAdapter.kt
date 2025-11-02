@@ -14,7 +14,8 @@ import com.example.zalgneyhmusic.databinding.ItemPlaylistBinding
  * RecyclerView adapter for displaying playlists
  */
 class PlaylistAdapter(
-    private val onPlaylistClick: (Playlist) -> Unit
+    private val onPlaylistClick: (Playlist) -> Unit,
+    private val onPlaylistLongClick: ((Playlist) -> Boolean)? = null
 ) : ListAdapter<Playlist, PlaylistAdapter.PlaylistViewHolder>(PlaylistDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaylistViewHolder {
@@ -23,7 +24,7 @@ class PlaylistAdapter(
             parent,
             false
         )
-        return PlaylistViewHolder(binding, onPlaylistClick)
+        return PlaylistViewHolder(binding, onPlaylistClick, onPlaylistLongClick)
     }
 
     override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
@@ -32,7 +33,8 @@ class PlaylistAdapter(
 
     class PlaylistViewHolder(
         private val binding: ItemPlaylistBinding,
-        private val onPlaylistClick: (Playlist) -> Unit
+        private val onPlaylistClick: (Playlist) -> Unit,
+        private val onPlaylistLongClick: ((Playlist) -> Boolean)?
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(playlist: Playlist) {
@@ -49,6 +51,7 @@ class PlaylistAdapter(
                     .into(imgPlaylistCover)
 
                 root.setOnClickListener { onPlaylistClick(playlist) }
+                root.setOnLongClickListener { onPlaylistLongClick?.invoke(playlist) ?: false }
             }
         }
     }

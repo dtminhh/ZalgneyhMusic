@@ -13,6 +13,8 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
+import com.example.zalgneyhmusic.ui.handler.SongActionHandler
+import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
 import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
 import com.example.zalgneyhmusic.ui.viewmodel.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,16 +50,24 @@ class TopSongsFragment : Fragment() {
     private fun setupRecyclerView() {
         songAdapter = SongAdapter(
             onSongClick = { song ->
-                Toast.makeText(context, getString(R.string.toast_song, song.title), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    getString(R.string.toast_song, song.title),
+                    Toast.LENGTH_SHORT
+                ).show()
             },
             onPlayClick = { song ->
                 val songs = songAdapter.currentList
                 val index = songs.indexOf(song)
                 playerViewModel.setPlaylist(songs, index)
-                Toast.makeText(context, getString(R.string.toast_playing, song.title), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    getString(R.string.toast_playing, song.title),
+                    Toast.LENGTH_SHORT
+                ).show()
             },
             onMenuClick = { song ->
-                Toast.makeText(context, getString(R.string.toast_menu, song.title), Toast.LENGTH_SHORT).show()
+                showMoreOptions(song)
             }
         )
 
@@ -87,10 +97,21 @@ class TopSongsFragment : Fragment() {
                     binding.progressBar.visibility = View.GONE
                     binding.rvSongs.visibility = View.GONE
                     binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text = resource.exception.message ?: getString(R.string.unknown_error)
+                    binding.txtError.text =
+                        resource.exception.message ?: getString(R.string.unknown_error)
                 }
             }
         }
+    }
+
+    private fun showMoreOptions(song: com.example.zalgneyhmusic.data.model.domain.Song) {
+        MoreOptionsManager.showForSong(
+            fragmentManager = childFragmentManager,
+            song = song,
+            onActionClick = { action ->
+                SongActionHandler.handleSongAction(requireContext(), action, song)
+            }
+        )
     }
 
     override fun onDestroyView() {
