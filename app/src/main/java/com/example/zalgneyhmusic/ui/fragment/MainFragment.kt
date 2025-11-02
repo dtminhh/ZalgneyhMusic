@@ -396,6 +396,19 @@ class MainFragment : BaseFragment() {
         binding.imgSearch.setOnClickListener {
             findNavController().navigate(R.id.action_mainFragment_to_searchFragment)
         }
+
+        // Open Account Settings Side Sheet when avatar is clicked
+        binding.imgAvatar.setOnClickListener {
+            openAccountSettings()
+        }
+    }
+
+    /**
+     * Opens Account & Settings Side Sheet with smooth animation
+     */
+    private fun openAccountSettings() {
+        val sideSheet = com.example.zalgneyhmusic.ui.account.AccountSettingsSideSheet.newInstance()
+        sideSheet.show(childFragmentManager, "AccountSettingsSideSheet")
     }
 
     /**

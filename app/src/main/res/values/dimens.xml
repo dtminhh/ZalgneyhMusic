@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Side Sheet dimensions -->
+    <dimen name="side_sheet_width">320dp</dimen>
+</resources>
+
