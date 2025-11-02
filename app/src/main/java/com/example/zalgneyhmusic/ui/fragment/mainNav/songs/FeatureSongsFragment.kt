@@ -13,7 +13,7 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
-import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
+import com.example.zalgneyhmusic.ui.handler.SongActionHandler
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
 import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
 import com.example.zalgneyhmusic.ui.viewmodel.SongViewModel
@@ -50,7 +50,11 @@ class FeatureSongsFragment : Fragment() {
     private fun setupRecyclerView() {
         songAdapter = SongAdapter(
             onSongClick = { song ->
-                Toast.makeText(context, getString(R.string.toast_song, song.title), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    getString(R.string.toast_song, song.title),
+                    Toast.LENGTH_SHORT
+                ).show()
             },
             onPlayClick = { song ->
                 // Get all songs from current list
@@ -60,7 +64,11 @@ class FeatureSongsFragment : Fragment() {
                 // Set playlist and play
                 playerViewModel.setPlaylist(songs, index)
 
-                Toast.makeText(context, getString(R.string.toast_playing, song.title), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    getString(R.string.toast_playing, song.title),
+                    Toast.LENGTH_SHORT
+                ).show()
             },
             onMenuClick = { song ->
                 showMoreOptions(song)
@@ -78,38 +86,9 @@ class FeatureSongsFragment : Fragment() {
             fragmentManager = childFragmentManager,
             song = song,
             onActionClick = { action ->
-                handleSongAction(action, song)
+                SongActionHandler.handleSongAction(requireContext(), action, song)
             }
         )
-    }
-
-    private fun handleSongAction(action: MoreOptionsAction.SongAction, song: com.example.zalgneyhmusic.data.model.domain.Song) {
-        when (action) {
-            is MoreOptionsAction.SongAction.PlayNext -> {
-                Toast.makeText(context, "Play next: ${song.title}", Toast.LENGTH_SHORT).show()
-                // TODO: Implement play next
-            }
-            is MoreOptionsAction.SongAction.AddToQueue -> {
-                Toast.makeText(context, "Added to queue: ${song.title}", Toast.LENGTH_SHORT).show()
-                // TODO: Implement add to queue
-            }
-            is MoreOptionsAction.SongAction.AddToPlaylist -> {
-                Toast.makeText(context, "Add to playlist: ${song.title}", Toast.LENGTH_SHORT).show()
-                // TODO: Show playlist selection dialog
-            }
-            is MoreOptionsAction.SongAction.GoToArtist -> {
-                Toast.makeText(context, "Go to artist: ${song.artist.name}", Toast.LENGTH_SHORT).show()
-                // TODO: Navigate to artist detail
-            }
-            is MoreOptionsAction.SongAction.GoToAlbum -> {
-                Toast.makeText(context, "Go to album: ${song.album?.title ?: "Unknown"}", Toast.LENGTH_SHORT).show()
-                // TODO: Navigate to album detail
-            }
-            is MoreOptionsAction.SongAction.Share -> {
-                Toast.makeText(context, "Share: ${song.title}", Toast.LENGTH_SHORT).show()
-                // TODO: Implement share functionality
-            }
-        }
     }
 
     private fun observeSongs() {
@@ -132,7 +111,8 @@ class FeatureSongsFragment : Fragment() {
                     binding.progressBar.visibility = View.GONE
                     binding.rvSongs.visibility = View.GONE
                     binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text = resource.exception.message ?: getString(R.string.unknown_error)
+                    binding.txtError.text =
+                        resource.exception.message ?: getString(R.string.unknown_error)
                 }
             }
         }

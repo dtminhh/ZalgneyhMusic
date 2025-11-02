@@ -3,7 +3,7 @@ package com.example.zalgneyhmusic.ui.adapter
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.AlbumsFragment
-import com.example.zalgneyhmusic.ui.fragment.mainNav.ArtistsFragment
+import com.example.zalgneyhmusic.ui.fragment.mainNav.artists.ArtistsFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.HomeFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.PlaylistsFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.SongsFragment
