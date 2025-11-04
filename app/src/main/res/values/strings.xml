@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Zalgneyh</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -71,8 +71,8 @@
     <!-- Common Strings -->
     <string name="loading">Loading…</string>
     <string name="error_loading">Error loading data</string>
-    <string name="retry">Retry</string>
-    <string name="ok">OK</string>
+    <string name="retry" tools:ignore="PrivateResource">Retry</string>
+    <string name="ok" tools:ignore="PrivateResource">OK</string>
     <string name="top_artists_in_your_country">Top Artists in your country</string>
     <string name="sort_by_recent">Sort by: Recent</string>
     <string name="album_cover">Album cover</string>
@@ -118,4 +118,37 @@
     <string name="mo_add_all_to_playlist">Add all to playlist</string>
     <string name="mo_edit_playlist">Edit playlist</string>
     <string name="mo_delete_playlist">Delete playlist</string>
+
+    <!-- Account & Settings -->
+    <string name="account_settings">Account &amp; Settings</string>
+
+    <!-- Account Actions -->
+    <string name="account_edit_profile">Edit Profile</string>
+    <string name="account_view_stats">View Statistics</string>
+    <string name="account_manage_subscription">Manage Subscription</string>
+    <string name="account_help">Help &amp; Support</string>
+    <string name="account_about">About</string>
+    <string name="account_privacy_policy">Privacy Policy</string>
+    <string name="account_logout">Logout</string>
+
+    <!-- Settings Actions -->
+    <string name="settings_theme">Theme</string>
+    <string name="settings_audio_quality">Audio Quality</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_storage">Storage</string>
+    <string name="settings_language">Language</string>
+
+    <!-- Section Headers -->
+    <string name="section_account">Account</string>
+    <string name="section_app_settings">App Settings</string>
+    <string name="section_help_about">Help &amp; About</string>
+    <string name="section_danger_zone">Danger Zone</string>
+
+    <!-- Logout Confirmation -->
+    <string name="logout_confirmation_title">Logout</string>
+    <string name="logout_confirmation_message">Are you sure you want to logout?</string>
+    <string name="user_name">User Name</string>
+    <string name="user_email_com">user@email.com</string>
+    <string name="action_title">Action Title</string>
+    <string name="section_title">Section Title</string>
 </resources>
