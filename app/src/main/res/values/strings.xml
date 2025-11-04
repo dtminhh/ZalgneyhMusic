@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Zalgneyh</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -71,8 +71,8 @@
     <!-- Common Strings -->
     <string name="loading">Loading…</string>
     <string name="error_loading">Error loading data</string>
-    <string name="retry">Retry</string>
-    <string name="ok">OK</string>
+    <string name="retry" tools:ignore="PrivateResource">Retry</string>
+    <string name="ok" tools:ignore="PrivateResource">OK</string>
     <string name="top_artists_in_your_country">Top Artists in your country</string>
     <string name="sort_by_recent">Sort by: Recent</string>
     <string name="album_cover">Album cover</string>
@@ -147,4 +147,8 @@
     <!-- Logout Confirmation -->
     <string name="logout_confirmation_title">Logout</string>
     <string name="logout_confirmation_message">Are you sure you want to logout?</string>
+    <string name="user_name">User Name</string>
+    <string name="user_email_com">user@email.com</string>
+    <string name="action_title">Action Title</string>
+    <string name="section_title">Section Title</string>
 </resources>

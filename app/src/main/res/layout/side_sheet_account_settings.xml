@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="320dp"
+    android:layout_width="@dimen/side_sheet_width"
     android:layout_height="match_parent"
     android:layout_gravity="start"
     android:background="@drawable/bottom_sheet_background"
@@ -41,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:fontFamily="@font/urbanist_semibold"
-                android:text="User Name"
+                android:text="@string/user_name"
                 android:textColor="@color/dark_gray"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -53,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="@font/urbanist_medium"
-                android:text="user@email.com"
+                android:text="@string/user_email_com"
                 android:textColor="@color/black_50opa"
                 android:textSize="14sp" />
         </androidx.appcompat.widget.LinearLayoutCompat>

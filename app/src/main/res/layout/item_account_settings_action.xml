@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:fontFamily="@font/urbanist_medium"
-        android:text="Action Title"
+        android:text="@string/action_title"
         android:textColor="@color/dark_gray"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"

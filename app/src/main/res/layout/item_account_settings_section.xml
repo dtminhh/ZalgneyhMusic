@@ -12,7 +12,7 @@
         android:layout_marginStart="4dp"
         android:layout_marginBottom="8dp"
         android:fontFamily="@font/urbanist_semibold"
-        android:text="Section Title"
+        android:text="@string/section_title"
         android:textColor="@color/bottom_nav_icon_selector"
         android:textSize="14sp"
         android:textStyle="bold" />
