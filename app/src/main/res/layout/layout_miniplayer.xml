@@ -33,7 +33,7 @@
         android:layout_marginEnd="12dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnMiniPlayPause"
+        app:layout_constraintEnd_toStartOf="@+id/btnMiniPrevious"
         app:layout_constraintStart_toEndOf="@+id/imgMiniAlbumArt"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -78,6 +78,18 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="@color/dark_gray" />
 
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/btnMiniPrevious"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:padding="8dp"
+        android:src="@drawable/ic_skip_next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnMiniPlayPause"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/dark_gray" />
     <!-- Next Button -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/btnMiniNext"

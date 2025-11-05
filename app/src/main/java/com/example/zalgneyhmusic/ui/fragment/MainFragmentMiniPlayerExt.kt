@@ -20,56 +20,63 @@ import kotlinx.coroutines.launch
 fun MainFragment.setupMiniPlayerExt(binding: FragmentMainBinding) {
     val playerViewModel: PlayerViewModel by activityViewModels()
 
-    // Setup click listeners
-    binding.miniPlayer.miniPlayerContainer.setOnClickListener {
-        // Navigate to full player screen
-        try {
-            findNavController().navigate(R.id.action_mainFragment_to_playerFragment)
-        } catch (e: Exception) {
-            // Handle navigation error silently
-        }
-    }
-
-    binding.miniPlayer.btnMiniPlayPause.setOnClickListener {
-        playerViewModel.togglePlayPause()
-    }
-
-    binding.miniPlayer.btnMiniNext.setOnClickListener {
-        playerViewModel.next()
-    }
-
-    // Observe player state
-    lifecycleScope.launch {
-        // Observe current song
-        launch {
-            playerViewModel.currentSong.collect { song ->
-                if (song != null) {
-                    // Show mini player
-                    binding.miniPlayer.miniPlayerContainer.visibility = View.VISIBLE
-
-                    // Update song info
-                    binding.miniPlayer.tvMiniSongTitle.text = song.title
-                    binding.miniPlayer.tvMiniArtistName.text = song.artist.name
-
-                    // Load album art
-                    Glide.with(this@setupMiniPlayerExt)
-                        .load(song.imageUrl)
-                        .placeholder(R.drawable.ic_music_note)
-                        .error(R.drawable.ic_music_note)
-                        .into(binding.miniPlayer.imgMiniAlbumArt)
-                } else {
-                    // Hide mini player if no song
-                    binding.miniPlayer.miniPlayerContainer.visibility = View.GONE
-                }
+    binding.miniPlayer.apply {
+        // Setup click listeners
+        miniPlayerContainer.setOnClickListener {
+            // Navigate to full player screen
+            try {
+                findNavController().navigate(R.id.action_mainFragment_to_playerFragment)
+            } catch (e: Exception) {
+                // Handle navigation error silently
             }
         }
 
-        // Observe playing state
-        launch {
-            playerViewModel.isPlaying.collect { isPlaying ->
-                binding.miniPlayer.btnMiniPlayPause.setImageResource(
-                    if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-                )
+        btnMiniPlayPause.setOnClickListener {
+            playerViewModel.togglePlayPause()
+        }
+
+        btnMiniNext.setOnClickListener {
+            playerViewModel.next()
+        }
+
+        btnMiniPrevious.setOnClickListener {
+            playerViewModel.previous()
+        }
+
+
+        // Observe player state
+        lifecycleScope.launch {
+            // Observe current song
+            launch {
+                playerViewModel.currentSong.collect { song ->
+                    if (song != null) {
+                        // Show mini player
+                        miniPlayerContainer.visibility = View.VISIBLE
+
+                        // Update song info
+                        tvMiniSongTitle.text = song.title
+                        tvMiniArtistName.text = song.artist.name
+
+                        // Load album art
+                        Glide.with(this@setupMiniPlayerExt)
+                            .load(song.imageUrl)
+                            .placeholder(R.drawable.ic_music_note)
+                            .error(R.drawable.ic_music_note)
+                            .into(imgMiniAlbumArt)
+                    } else {
+                        // Hide mini player if no song
+                        miniPlayerContainer.visibility = View.GONE
+                    }
+                }
+            }
+
+            // Observe playing state
+            launch {
+                playerViewModel.isPlaying.collect { isPlaying ->
+                    btnMiniPlayPause.setImageResource(
+                        if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+                    )
+                }
             }
         }
     }
