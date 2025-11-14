@@ -37,17 +37,17 @@ class SearchAlbumsAdapter(
         fun bind(album: Album) {
             binding.apply {
                 tvAlbumTitle.text = album.title
-                tvArtistName.text = album.artist
+                tvArtistName.text = album.artist.name
 
+                // Use unified image property
+                val imageToLoad = album.image
                 Glide.with(itemView.context)
-                    .load(album.imageUrl)
+                    .load(imageToLoad)
                     .placeholder(R.drawable.ic_album)
                     .error(R.drawable.ic_album)
                     .into(imgAlbumArt)
 
-                root.setOnClickListener {
-                    onAlbumClick(album)
-                }
+                root.setOnClickListener { onAlbumClick(album) }
             }
         }
     }

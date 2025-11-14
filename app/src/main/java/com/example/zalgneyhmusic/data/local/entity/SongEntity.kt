@@ -17,14 +17,14 @@ data class SongEntity(
     val title: String,
     val artistId: String,
     val artistName: String,
-    val artistImageUrl: String,
+    val artistImageUrl: String?,
     val albumId: String? = null,
     val albumTitle: String? = null,
     val duration: Int,
     val url: String,
-    val imageUrl: String,
+    val imageUrl: String?,
     val lyrics: String? = null,
-    val genre: String? = null, // Stored as JSON string
+    val genre: String? = null, // Stored as comma-separated string (e.g., "Pop,Synth-pop")
     val releaseDate: String,
     val plays: Int = 0,
     val likes: Int = 0,
@@ -42,7 +42,7 @@ data class SongEntity(
             artist = Artist(
                 id = artistId,
                 name = artistName,
-                imageUrl = artistImageUrl,
+                imageUrl = artistImageUrl.orEmpty(),
                 bio = null,
                 followers = 0,
                 verified = false
@@ -51,15 +51,24 @@ data class SongEntity(
                 Album(
                     id = it,
                     title = albumTitle ?: "",
-                    artist = artistId,
-                    imageUrl = imageUrl
+                    artist = Artist(  // Create Artist object
+                        id = artistId,
+                        name = artistName,
+                        imageUrl = artistImageUrl.orEmpty(),
+                        followers = 0,
+                        verified = false
+                    ),
+                    imageUrl = imageUrl.orEmpty()
                 )
             },
             duration = duration,
             url = url,
-            imageUrl = imageUrl,
+            imageUrl = imageUrl.orEmpty(),
             lyrics = lyrics,
-            genre = genre?.split(","),
+            genre = genre
+                ?.split(',')
+                ?.map { it.trim() }
+                ?.filter { it.isNotEmpty() },
             releaseDate = releaseDate,
             plays = plays,
             likes = likes,
@@ -84,9 +93,12 @@ data class SongEntity(
                 albumTitle = song.album?.title,
                 duration = song.duration,
                 url = song.url,
-                imageUrl = song.imageUrl,
+                imageUrl = song.imageUrl.takeUnless { it.isBlank() },
                 lyrics = song.lyrics,
-                genre = song.genre?.joinToString(","),
+                genre = song.genre
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    ?.joinToString(","),
                 releaseDate = song.releaseDate,
                 plays = song.plays,
                 likes = song.likes,

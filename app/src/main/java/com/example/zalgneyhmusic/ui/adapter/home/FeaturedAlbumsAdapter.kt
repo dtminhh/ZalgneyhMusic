@@ -44,21 +44,18 @@ class FeaturedAlbumsAdapter(
         fun bind(album: Album) {
             binding.apply {
                 txtAlbumName.text = album.title
-                txtArtistName.text = album.artist // Use actual artist field from Album model
+                txtArtistName.text = album.artist.name
 
+                // Use unified image property
+                val imageToLoad = album.image
                 Glide.with(itemView.context)
-                    .load(album.imageUrl)
+                    .load(imageToLoad)
                     .placeholder(R.drawable.ic_launcher_background)
                     .error(R.drawable.ic_launcher_background)
                     .into(imgAlbumCover)
 
-                root.setOnClickListener {
-                    onItemClick(album)
-                }
-
-                btnMoreOptions.setOnClickListener {
-                    onMoreClick?.invoke(album)
-                }
+                root.setOnClickListener { onItemClick(album) }
+                btnMoreOptions.setOnClickListener { onMoreClick?.invoke(album) }
             }
         }
     }

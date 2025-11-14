@@ -98,45 +98,55 @@ class DatabaseInitializer @Inject constructor(
             AlbumEntity(
                 id = "album_1",
                 title = "After Hours",
-                artist = "artist_1",
+                artistId = "artist_1",
+                artistName = "The Weeknd",
                 releaseYear = 2020,
                 imageUrl = "https://picsum.photos/300/300?random=11",
+                coverImage = null,
                 description = "Fourth studio album",
                 totalTracks = 14
             ),
             AlbumEntity(
                 id = "album_2",
                 title = "Midnights",
-                artist = "artist_2",
+                artistId = "artist_2",
+                artistName = "Taylor Swift",
                 releaseYear = 2022,
                 imageUrl = "https://picsum.photos/300/300?random=12",
+                coverImage = null,
                 description = "Tenth studio album",
                 totalTracks = 13
             ),
             AlbumEntity(
                 id = "album_3",
                 title = "÷ (Divide)",
-                artist = "artist_3",
+                artistId = "artist_3",
+                artistName = "Ed Sheeran",
                 releaseYear = 2017,
                 imageUrl = "https://picsum.photos/300/300?random=13",
+                coverImage = null,
                 description = "Third studio album",
                 totalTracks = 16
             ),
             AlbumEntity(
                 id = "album_4",
                 title = "Happier Than Ever",
-                artist = "artist_4",
+                artistId = "artist_4",
+                artistName = "Billie Eilish",
                 releaseYear = 2021,
                 imageUrl = "https://picsum.photos/300/300?random=14",
+                coverImage = null,
                 description = "Second studio album",
                 totalTracks = 16
             ),
             AlbumEntity(
                 id = "album_5",
                 title = "Certified Lover Boy",
-                artist = "artist_5",
+                artistId = "artist_5",
+                artistName = "Drake",
                 releaseYear = 2021,
                 imageUrl = "https://picsum.photos/300/300?random=15",
+                coverImage = null,
                 description = "Sixth studio album",
                 totalTracks = 21
             )

@@ -4,10 +4,10 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.zalgneyhmusic.data.local.dao.AlbumDao
 import com.example.zalgneyhmusic.data.local.dao.ArtistDao
+import com.example.zalgneyhmusic.data.local.dao.SongDao
 import com.example.zalgneyhmusic.data.local.entity.AlbumEntity
 import com.example.zalgneyhmusic.data.local.entity.ArtistEntity
 import com.example.zalgneyhmusic.data.local.entity.SongEntity
-import com.example.zalgneyhmusic.data.model.local.dao.SongDao
 
 /**
  * Room Database for Music application
@@ -19,7 +19,7 @@ import com.example.zalgneyhmusic.data.model.local.dao.SongDao
         ArtistEntity::class,
         AlbumEntity::class
     ],
-    version = 1,
+    version = 9,  // Increased for SongEntity column type changes
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {
