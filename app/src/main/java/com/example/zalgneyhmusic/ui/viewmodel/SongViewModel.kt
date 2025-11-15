@@ -23,32 +23,24 @@ class SongViewModel @Inject constructor(
     private val _featureSongs = MutableLiveData<Resource<List<Song>>>()
     val featureSongs: LiveData<Resource<List<Song>>> = _featureSongs
 
-    private val _topSongs = MutableLiveData<Resource<List<Song>>>()
-    val topSongs: LiveData<Resource<List<Song>>> = _topSongs
-
     private val _recentSongs = MutableLiveData<Resource<List<Song>>>()
     val recentSongs: LiveData<Resource<List<Song>>> = _recentSongs
 
+    private val _newSongs = MutableLiveData<Resource<List<Song>>>()
+    val newSongs: LiveData<Resource<List<Song>>> = _newSongs
+
     init {
         loadFeatureSongs()
-        loadTopSongs()
         loadRecentSongs()
+        loadNewSongs()
     }
 
     fun loadFeatureSongs() {
         viewModelScope.launch {
             _featureSongs.value = Resource.Loading
-            musicRepository.getAllSongs().collect { resource ->
-                _featureSongs.value = resource
-            }
-        }
-    }
-
-    fun loadTopSongs() {
-        viewModelScope.launch {
-            _topSongs.value = Resource.Loading
+            // Feature songs: reuse top songs (limit 20 for this screen)
             musicRepository.getTopSongs(limit = 20).collect { resource ->
-                _topSongs.value = resource
+                _featureSongs.value = resource
             }
         }
     }
@@ -61,5 +53,13 @@ class SongViewModel @Inject constructor(
             }
         }
     }
-}
 
+    fun loadNewSongs() {
+        viewModelScope.launch {
+            _newSongs.value = Resource.Loading
+            musicRepository.getNewSongs(limit = 20).collect { resource ->
+                _newSongs.value = resource
+            }
+        }
+    }
+}

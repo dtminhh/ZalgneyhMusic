@@ -26,6 +26,22 @@ interface ZalgneyhApiService {
     ): Response<ApiResponse<List<SongDTO>>>
 
     /**
+     * GET /api/songs/trending - Get trending songs (already sorted by popularity)
+     */
+    @GET("songs/trending")
+    suspend fun getTrendingSongs(
+        @Query("limit") limit: Int = 20
+    ): Response<ApiResponse<List<SongDTO>>>
+
+    /**
+     * GET /api/songs/new - Get new songs
+     */
+    @GET("songs/new")
+    suspend fun getNewSongs(
+        @Query("limit") limit: Int = 20
+    ): Response<ApiResponse<List<SongDTO>>>
+
+    /**
      * GET /api/songs/:id - Get song by ID
      */
     @GET("songs/{id}")

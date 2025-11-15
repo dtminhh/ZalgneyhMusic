@@ -78,18 +78,16 @@ class MusicHybridRepository @Inject constructor(
         emit(Resource.Loading)
 
         try {
-            // Use getAllSongs and take top N by plays
-            val response = apiService.getAllSongs(limit = limit)
+            // Use dedicated trending endpoint; backend already sorts by popularity
+            val response = apiService.getTrendingSongs(limit = limit)
             if (response.isSuccessful && response.body()?.success == true) {
                 val songDTOs = response.body()?.data ?: emptyList()
                 val songs = songDTOs.map { it.toDomain() }
-                    .sortedByDescending { it.plays }
-                    .take(limit)
 
                 // Update cache
                 songDao.insertAll(songs.map { SongEntity.fromDomain(it) })
 
-                Log.d(TAG, "getTopSongs: Fetched ${songs.size} songs")
+                Log.d(TAG, "getTopSongs: Fetched ${songs.size} trending songs")
                 emit(Resource.Success(songs))
                 return@flow
             }
@@ -97,7 +95,7 @@ class MusicHybridRepository @Inject constructor(
             Log.e(TAG, "getTopSongs: API error", e)
         }
 
-        // Fallback to cache
+        // Fallback to cache (approximate top by plays)
         try {
             val cached = songDao.getAllSongsSync()
                 .map { it.toDomain() }
@@ -136,6 +134,42 @@ class MusicHybridRepository @Inject constructor(
         }
 
         // Fallback
+        try {
+            val cached = songDao.getAllSongsSync()
+                .map { it.toDomain() }
+                .sortedByDescending { it.createdAt }
+                .take(limit)
+            if (cached.isNotEmpty()) {
+                emit(Resource.Success(cached))
+            } else {
+                emit(Resource.Failure(Exception("No data available")))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }
+
+    override fun getNewSongs(limit: Int): Flow<Resource<List<Song>>> = flow {
+        emit(Resource.Loading)
+
+        try {
+            val response = apiService.getNewSongs(limit = limit)
+            if (response.isSuccessful && response.body()?.success == true) {
+                val songDTOs = response.body()?.data ?: emptyList()
+                val songs = songDTOs.map { it.toDomain() }
+
+                // Cập nhật cache
+                songDao.insertAll(songs.map { SongEntity.fromDomain(it) })
+
+                Log.d(TAG, "getNewSongs: Fetched ${songs.size} new songs")
+                emit(Resource.Success(songs))
+                return@flow
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getNewSongs: API error", e)
+        }
+
+        // Fallback: dùng cache, coi createdAt là "mới"
         try {
             val cached = songDao.getAllSongsSync()
                 .map { it.toDomain() }
@@ -384,4 +418,3 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 }
-

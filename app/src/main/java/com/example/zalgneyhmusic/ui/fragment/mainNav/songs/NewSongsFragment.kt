@@ -20,10 +20,10 @@ import com.example.zalgneyhmusic.ui.viewmodel.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * Top Songs Fragment - Displays top songs (most played)
+ * New Songs Fragment - Displays latest songs
  */
 @AndroidEntryPoint
-class TopSongsFragment : Fragment() {
+class NewSongsFragment : Fragment() {
 
     private var _binding: FragmentSongListBinding? = null
     private val binding get() = _binding!!
@@ -78,7 +78,7 @@ class TopSongsFragment : Fragment() {
     }
 
     private fun observeSongs() {
-        songViewModel.topSongs.observe(viewLifecycleOwner) { resource ->
+        songViewModel.newSongs.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
