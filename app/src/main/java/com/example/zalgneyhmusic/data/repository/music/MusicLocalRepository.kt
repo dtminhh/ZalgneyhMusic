@@ -1,10 +1,10 @@
 package com.example.zalgneyhmusic.data.repository.music
 
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.Song
-import com.example.zalgneyhmusic.data.local.MusicDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -17,7 +17,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class MusicLocalRepository @Inject constructor(
-    private val database: MusicDatabase
+    database: MusicDatabase
 ) : MusicRepository {
 
     private val songDao = database.songDao()
@@ -54,6 +54,20 @@ class MusicLocalRepository @Inject constructor(
     override fun getRecentSongs(limit: Int): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
         try {
+            songDao.getRecentSongs(limit).map { entities ->
+                entities.map { it.toDomain() }
+            }.collect { songs ->
+                emit(Resource.Success(songs))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }
+
+    override fun getNewSongs(limit: Int): Flow<Resource<List<Song>>> = flow {
+        emit(Resource.Loading)
+        try {
+            // Tạm thời sử dụng cùng nguồn với recentSongs (createdAt DESC)
             songDao.getRecentSongs(limit).map { entities ->
                 entities.map { it.toDomain() }
             }.collect { songs ->

@@ -58,8 +58,8 @@ object MoreOptionsManager {
     ) {
         MoreOptionsBottomSheet.forAlbum(
             title = album.title,
-            subtitle = album.artist,
-            imageUrl = album.imageUrl ?: "",
+            subtitle = album.artist.name,
+            imageUrl = album.image ?: "",
             actions = listOf(
                 MoreOptionsAction.AlbumAction.PlayAll,
                 MoreOptionsAction.AlbumAction.AddToPlaylist,
@@ -89,4 +89,3 @@ object MoreOptionsManager {
         ).show(fragmentManager, "PlaylistOptions")
     }
 }
-

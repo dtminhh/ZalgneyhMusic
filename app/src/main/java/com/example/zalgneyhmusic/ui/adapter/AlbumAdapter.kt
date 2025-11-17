@@ -42,12 +42,13 @@ class AlbumAdapter(
         fun bind(album: Album) {
             binding.apply {
                 txtAlbumTitle.text = album.title
-                txtArtistName.text = album.artist
+                txtArtistName.text = album.artist.name  // ✅ Display artist name
                 txtTrackCount.text = itemView.context.getString(R.string.track_count, album.totalTracks)
 
-                // Load album cover with Glide
+                // Load album cover using unified image property
+                val imageToLoad = album.image
                 Glide.with(imgAlbumCover.context)
-                    .load(album.imageUrl)
+                    .load(imageToLoad)
                     .placeholder(R.drawable.ic_album_placeholder)
                     .centerCrop()
                     .into(imgAlbumCover)

@@ -43,12 +43,12 @@ android {
 }
 
 dependencies {
-    // Retrofit
+    // Retrofit & Networking
     implementation(libs.retrofit)
-    // Retrofit with Scalar Converter
+    implementation(libs.converter.gson)
     implementation(libs.converter.scalars)
-
-    implementation(libs.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)

@@ -2,6 +2,7 @@ package com.example.zalgneyhmusic.data.model.utils
 
 import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /**
@@ -24,14 +25,22 @@ import kotlin.coroutines.resumeWithException
  * @return The result of the completed [Task].
  * @throws Exception If the task fails with an exception.
  */
-suspend fun <T> Task<T>.await(): T {
-    return suspendCancellableCoroutine { cont ->
-        addOnCompleteListener {
-            if (it.exception != null) {
-                cont.resumeWithException(it.exception!!)
-            } else {
-                cont.resume(it.result) { cause, _, _ -> null?.let { it1 -> it1(cause) } }
+suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->
+    addOnCompleteListener { task ->
+        if (!cont.isActive) return@addOnCompleteListener
+
+        val exception = task.exception
+        when {
+            task.isSuccessful -> {
+                @Suppress("UNCHECKED_CAST")
+                cont.resume(task.result as T)
             }
+            exception != null -> cont.resumeWithException(exception)
+            else -> cont.resumeWithException(IllegalStateException("Task ${this::class.java.simpleName} failed without exception"))
         }
+    }
+
+    cont.invokeOnCancellation {
+        // Firebase Task API doesn't expose a direct cancellation hook, so we just ignore.
     }
 }

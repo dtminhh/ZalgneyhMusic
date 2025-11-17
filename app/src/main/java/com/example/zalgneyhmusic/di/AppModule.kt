@@ -6,7 +6,6 @@ import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
 import com.example.zalgneyhmusic.data.repository.auth.AuthRepository
 import com.example.zalgneyhmusic.data.repository.auth.AuthRepositoryImpl
-import com.example.zalgneyhmusic.data.repository.music.MusicLocalRepository
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
 import com.example.zalgneyhmusic.player.MusicPlayer
 import com.google.firebase.auth.FirebaseAuth
@@ -70,16 +69,27 @@ class AppModule {
             context,
             MusicDatabase::class.java,
             "music_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration() // Allow DB recreation on schema changes (dev mode)
+            .build()
     }
 
     /**
-     * Provides MusicRepository implementation
-     * When you need to switch to API, just replace MusicLocalRepository with MusicApiRepository     */
+     * Provides MusicRepository implementation (Hybrid: API + Local Cache)
+     * Strategy: Try API first, fallback to cache on error
+     */
     @Provides
     @Singleton
-    fun provideMusicRepository(database: MusicDatabase): MusicRepository {
-        return MusicLocalRepository(database)
+    fun provideMusicRepository(
+        database: MusicDatabase,
+        apiService: com.example.zalgneyhmusic.service.ZalgneyhApiService
+    ): MusicRepository {
+        return com.example.zalgneyhmusic.data.repository.music.MusicHybridRepository(
+            apiService = apiService,
+            songDao = database.songDao(),
+            artistDao = database.artistDao(),
+            albumDao = database.albumDao()
+        )
     }
 
     /**

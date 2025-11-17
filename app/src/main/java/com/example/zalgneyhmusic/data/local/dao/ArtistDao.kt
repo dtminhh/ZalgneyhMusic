@@ -16,8 +16,16 @@ interface ArtistDao {
     @Query("SELECT * FROM artists ORDER BY name ASC")
     fun getAllArtists(): Flow<List<ArtistEntity>>
 
+    // Synchronous version for fallback
+    @Query("SELECT * FROM artists ORDER BY name ASC")
+    fun getAllArtistsSync(): List<ArtistEntity>
+
     @Query("SELECT * FROM artists WHERE id = :id")
     suspend fun getArtistById(id: String): ArtistEntity?
+
+    // Synchronous version
+    @Query("SELECT * FROM artists WHERE id = :id")
+    fun getArtistByIdSync(id: String): ArtistEntity?
 
     @Query("SELECT * FROM artists ORDER BY followers DESC LIMIT :limit")
     fun getTopArtists(limit: Int = 10): Flow<List<ArtistEntity>>
@@ -28,9 +36,16 @@ interface ArtistDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertArtists(artists: List<ArtistEntity>)
 
+    // Aliases for consistency
+    suspend fun insert(artist: ArtistEntity) = insertArtist(artist)
+    suspend fun insertAll(artists: List<ArtistEntity>) = insertArtists(artists)
+
     @Query("DELETE FROM artists WHERE id = :id")
     suspend fun deleteArtist(id: String)
 
     @Query("DELETE FROM artists")
     suspend fun deleteAllArtists()
+
+    // Alias
+    suspend fun deleteAll() = deleteAllArtists()
 }
