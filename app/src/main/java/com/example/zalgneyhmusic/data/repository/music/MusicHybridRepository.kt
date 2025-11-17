@@ -67,7 +67,7 @@ class MusicHybridRepository @Inject constructor(
                 Log.d(TAG, "getAllSongs: Using ${cachedSongs.size} cached songs")
                 emit(Resource.Success(cachedSongs))
             } else {
-                emit(Resource.Failure(Exception("No data available")))
+                emit(Resource.Failure(Exception("Failed to fetch data from API and no cached data available")))
             }
         } catch (e: Exception) {
             emit(Resource.Failure(e))

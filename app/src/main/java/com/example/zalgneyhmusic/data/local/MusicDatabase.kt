@@ -19,7 +19,7 @@ import com.example.zalgneyhmusic.data.local.entity.SongEntity
         ArtistEntity::class,
         AlbumEntity::class
     ],
-    version = 9,  // Increased for SongEntity column type changes
+    version = 9,  // Increased for SongEntity column type changes and AlbumEntity schema changes (artist split into artistId & artistName, added coverImage)
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {

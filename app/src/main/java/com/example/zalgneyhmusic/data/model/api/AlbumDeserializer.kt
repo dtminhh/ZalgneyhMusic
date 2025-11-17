@@ -1,6 +1,8 @@
 package com.example.zalgneyhmusic.data.model.api
 
-import com.google.gson.*
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
 import java.lang.reflect.Type
 
 /**
@@ -18,13 +20,19 @@ class AlbumDeserializer : JsonDeserializer<AlbumDTO> {
         val obj = json.asJsonObject
 
         fun JsonElement?.asStringOrNull(): String? =
-            if (this == null || isJsonNull) null else try { asString } catch (_: Exception) { null }
+            if (this == null || isJsonNull) null else try {
+                asString
+            } catch (_: Exception) {
+                null
+            }
 
         fun JsonElement?.asIntOrNull(): Int? {
             if (this == null || isJsonNull) return null
             return try {
                 if (asJsonPrimitive.isNumber) asInt else asString.toIntOrNull()
-            } catch (_: Exception) { null }
+            } catch (_: Exception) {
+                null
+            }
         }
 
         val id = obj.get("_id").asString
@@ -45,6 +53,7 @@ class AlbumDeserializer : JsonDeserializer<AlbumDTO> {
                     updatedAt = null
                 )
             }
+
             artistElement.isJsonPrimitive && artistElement.asJsonPrimitive.isString -> {
                 val artistId = artistElement.asString
                 ArtistDTO(
@@ -58,8 +67,20 @@ class AlbumDeserializer : JsonDeserializer<AlbumDTO> {
                     updatedAt = null
                 )
             }
+
             artistElement.isJsonObject -> {
-                context.deserialize(artistElement, ArtistDTO::class.java)
+                val deserializedArtist =
+                    context.deserialize<ArtistDTO>(artistElement, ArtistDTO::class.java)
+                deserializedArtist ?: ArtistDTO(
+                    id = "",
+                    name = "Unknown Artist",
+                    bio = null,
+                    imageUrl = null,
+                    followers = 0,
+                    verified = false,
+                    createdAt = null,
+                    updatedAt = null
+                )
             }
             else -> {
                 ArtistDTO(
