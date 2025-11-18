@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.fragment.mainNav.songs.FeatureSongsFragment">
+    tools:context=".ui.fragment.mainNav.songs.vpSongFragment.FeatureSongsFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <TextView

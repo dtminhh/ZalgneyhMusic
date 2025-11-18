@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment.mainNav
+package com.example.zalgneyhmusic.ui.fragment.mainNav.playlist
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,11 +10,12 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.databinding.FragmentPlaylistsBinding
 import com.example.zalgneyhmusic.ui.adapter.PlaylistAdapter
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
-import com.example.zalgneyhmusic.ui.viewmodel.PlaylistViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -49,7 +50,10 @@ class PlaylistsFragment : Fragment() {
                 // TODO: Navigate to playlist detail screen
                 Toast.makeText(
                     context,
-                    getString(R.string.toast_playlist, "${playlist.name} (${playlist.songs.size} songs)"),
+                    getString(
+                        R.string.toast_playlist,
+                        "${playlist.name} (${playlist.songs.size} songs)"
+                    ),
                     Toast.LENGTH_SHORT
                 ).show()
             },
@@ -65,7 +69,7 @@ class PlaylistsFragment : Fragment() {
         }
     }
 
-    private fun showPlaylistMoreOptions(playlist: com.example.zalgneyhmusic.data.model.domain.Playlist) {
+    private fun showPlaylistMoreOptions(playlist: Playlist) {
         MoreOptionsManager.showForPlaylist(
             fragmentManager = childFragmentManager,
             playlist = playlist,
@@ -75,7 +79,7 @@ class PlaylistsFragment : Fragment() {
         )
     }
 
-    private fun handlePlaylistAction(action: MoreOptionsAction.PlaylistAction, playlist: com.example.zalgneyhmusic.data.model.domain.Playlist) {
+    private fun handlePlaylistAction(action: MoreOptionsAction.PlaylistAction, playlist: Playlist) {
         when (action) {
             is MoreOptionsAction.PlaylistAction.PlayAll -> {
                 Toast.makeText(context, "Play all: ${playlist.name}", Toast.LENGTH_SHORT).show()

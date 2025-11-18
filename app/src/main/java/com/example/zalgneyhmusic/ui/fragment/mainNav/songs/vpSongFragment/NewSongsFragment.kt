@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment.mainNav.songs
+package com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,12 +11,13 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
 import com.example.zalgneyhmusic.ui.handler.SongActionHandler
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
-import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
-import com.example.zalgneyhmusic.ui.viewmodel.SongViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -104,7 +105,7 @@ class NewSongsFragment : Fragment() {
         }
     }
 
-    private fun showMoreOptions(song: com.example.zalgneyhmusic.data.model.domain.Song) {
+    private fun showMoreOptions(song: Song) {
         MoreOptionsManager.showForSong(
             fragmentManager = childFragmentManager,
             song = song,

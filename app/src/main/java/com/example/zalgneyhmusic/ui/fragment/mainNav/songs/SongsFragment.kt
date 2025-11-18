@@ -1,13 +1,14 @@
-package com.example.zalgneyhmusic.ui.fragment.mainNav
+package com.example.zalgneyhmusic.ui.fragment.mainNav.songs
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.example.zalgneyhmusic.databinding.FragmentSongsBinding
 import com.example.zalgneyhmusic.ui.fragment.BaseNavFragment
-import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.FeatureSongsFragment
-import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.NewSongsFragment
+import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.FeatureSongsFragment
+import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.NewSongsFragment
 
 /**
  * Songs fragment with TabLayout and child ViewPager2
@@ -33,7 +34,7 @@ class SongsFragment : BaseNavFragment() {
 
     override fun setupTabLayoutAndViewPager() {
         val tabs = listOf("Feature Songs", "New Songs")
-        val fragments = listOf<() -> androidx.fragment.app.Fragment>(
+        val fragments = listOf<() -> Fragment>(
             { FeatureSongsFragment() },
             { NewSongsFragment() }
         )

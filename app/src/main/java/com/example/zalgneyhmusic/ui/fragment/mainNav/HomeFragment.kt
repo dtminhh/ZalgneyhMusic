@@ -19,8 +19,8 @@ import com.example.zalgneyhmusic.ui.model.HomeSection
 import com.example.zalgneyhmusic.ui.model.SectionType
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
-import com.example.zalgneyhmusic.ui.viewmodel.HomeViewModel
-import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.HomeViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

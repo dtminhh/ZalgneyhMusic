@@ -24,7 +24,7 @@
 
     <fragment
         android:id="@+id/playerFragment"
-        android:name="com.example.zalgneyhmusic.ui.fragment.PlayerFragment"
+        android:name="com.example.zalgneyhmusic.ui.fragment.player.PlayerFragment"
         android:label="fragment_player"
         tools:layout="@layout/fragment_player" />
 
@@ -41,6 +41,6 @@
         tools:layout="@layout/fragment_sign_up" />
     <fragment
         android:id="@+id/searchFragment"
-        android:name="com.example.zalgneyhmusic.ui.fragment.SearchFragment"
+        android:name="com.example.zalgneyhmusic.ui.fragment.search.SearchFragment"
         android:label="SearchFragment" />
 </navigation>

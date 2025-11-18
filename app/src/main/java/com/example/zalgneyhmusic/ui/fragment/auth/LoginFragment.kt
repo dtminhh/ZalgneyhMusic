@@ -11,7 +11,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentLoginBinding
-import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -21,6 +20,7 @@ import javax.inject.Inject
 import android.content.Intent
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.zalgneyhmusic.ui.PASSWORD_LENGTH_REQUIREMENT
@@ -35,7 +35,7 @@ import com.example.zalgneyhmusic.ui.PASSWORD_LENGTH_REQUIREMENT
  * - Uses Hilt's [@AndroidEntryPoint] for dependency injection.
  */
 @AndroidEntryPoint
-class LoginFragment : BaseFragment() {
+class LoginFragment : Fragment() {
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
     private val authViewModel: AuthViewModel by viewModels()

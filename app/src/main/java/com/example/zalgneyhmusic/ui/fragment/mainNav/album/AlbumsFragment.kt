@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment.mainNav
+package com.example.zalgneyhmusic.ui.fragment.mainNav.album
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,11 +10,12 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.databinding.FragmentAlbumsBinding
 import com.example.zalgneyhmusic.ui.adapter.AlbumAdapter
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
-import com.example.zalgneyhmusic.ui.viewmodel.AlbumViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.AlbumViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -65,7 +66,7 @@ class AlbumsFragment : Fragment() {
         }
     }
 
-    private fun showAlbumMoreOptions(album: com.example.zalgneyhmusic.data.model.domain.Album) {
+    private fun showAlbumMoreOptions(album: Album) {
         MoreOptionsManager.showForAlbum(
             fragmentManager = childFragmentManager,
             album = album,
@@ -75,7 +76,7 @@ class AlbumsFragment : Fragment() {
         )
     }
 
-    private fun handleAlbumAction(action: MoreOptionsAction.AlbumAction, album: com.example.zalgneyhmusic.data.model.domain.Album) {
+    private fun handleAlbumAction(action: MoreOptionsAction.AlbumAction, album: Album) {
         when (action) {
             is MoreOptionsAction.AlbumAction.PlayAll -> {
                 Toast.makeText(context, "Play all: ${album.title}", Toast.LENGTH_SHORT).show()

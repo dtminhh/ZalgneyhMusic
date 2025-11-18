@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment
+package com.example.zalgneyhmusic.ui.fragment.player
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,7 +13,7 @@ import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.FragmentPlayerBinding
 import com.example.zalgneyhmusic.player.RepeatMode
-import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
