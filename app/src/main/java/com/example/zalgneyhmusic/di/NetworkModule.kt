@@ -2,6 +2,8 @@ package com.example.zalgneyhmusic.di
 
 import com.example.zalgneyhmusic.data.model.api.AlbumDeserializer
 import com.example.zalgneyhmusic.data.model.api.AlbumDTO
+import com.example.zalgneyhmusic.data.model.api.ArtistDTO
+import com.example.zalgneyhmusic.data.model.api.ArtistDeserializer
 import com.example.zalgneyhmusic.data.model.api.PlaylistDTO
 import com.example.zalgneyhmusic.data.model.api.PlaylistDeserializer
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
@@ -47,6 +49,7 @@ object NetworkModule {
             .registerTypeAdapter(AlbumDTO::class.java, AlbumDeserializer())
             // Register deserializer for PlaylistDTO (not domain Playlist)
             .registerTypeAdapter(PlaylistDTO::class.java, PlaylistDeserializer())
+            .registerTypeAdapter(ArtistDTO::class.java, ArtistDeserializer())
             .create()
     }
 

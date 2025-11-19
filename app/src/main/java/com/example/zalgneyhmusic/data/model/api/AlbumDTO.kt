@@ -33,6 +33,9 @@ data class AlbumDTO(
     @SerializedName("totalTracks")
     val totalTracks: Int = 0,
 
+    @SerializedName("songs")
+    val songs: List<SongDTO> = emptyList(),
+
     @SerializedName("createdAt")
     val createdAt: String? = null,
 
@@ -48,6 +51,7 @@ data class AlbumDTO(
         imageUrl = imageUrl,
         description = description,
         totalTracks = totalTracks,
+        songs = songs.map { it.toDomain() },
         createdAt = createdAt,
         updatedAt = updatedAt
     )

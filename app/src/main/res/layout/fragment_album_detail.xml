@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".ui.fragment.detail.album.AlbumDetailBottomSheet">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="24dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgAlbumCoverDetail"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginHorizontal="64dp"
+                android:layout_marginTop="32dp"
+                android:scaleType="centerCrop"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearanceOverlay="@style/RoundedCorner16Style"
+                tools:src="@drawable/ic_album_placeholder" />
+
+            <TextView
+                android:id="@+id/txtAlbumTitleDetail"
+                style="@style/SignTitleFormat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:textSize="24sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/imgAlbumCoverDetail"
+                tools:text="Tên Album Rất Dài Của Nghệ Sĩ" />
+
+            <TextView
+                android:id="@+id/txtArtistNameDetailAlbum"
+                style="@style/SubTitleFormat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="@id/txtAlbumTitleDetail"
+                app:layout_constraintStart_toStartOf="@id/txtAlbumTitleDetail"
+                app:layout_constraintTop_toBottomOf="@id/txtAlbumTitleDetail"
+                tools:text="Nghệ Sĩ Thể Hiện" />
+
+            <TextView
+                android:id="@+id/txtAlbumInfo"
+                style="@style/SubTitleFormat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                app:layout_constraintEnd_toEndOf="@id/txtAlbumTitleDetail"
+                app:layout_constraintStart_toStartOf="@id/txtAlbumTitleDetail"
+                app:layout_constraintTop_toBottomOf="@id/txtArtistNameDetailAlbum"
+                tools:text="2024 • 12 bài hát" />
+
+            <TextView
+                android:id="@+id/txtTrackListHeading"
+                style="@style/SignTitleFormat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="32dp"
+                android:text="@string/track_list"
+                android:textSize="20sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtAlbumInfo" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAlbumSongs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@id/txtTrackListHeading"
+                tools:itemCount="12"
+                tools:listitem="@layout/item_search_song" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

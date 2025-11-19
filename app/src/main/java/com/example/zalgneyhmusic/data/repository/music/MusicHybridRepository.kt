@@ -323,6 +323,34 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    override suspend fun getSongsByArtist(artistId: String): Resource<List<Song>> {
+        return try {
+            val response = apiService.getArtistSongs(artistId)
+            if (response.isSuccessful && response.body()?.success == true) {
+                val songs = response.body()?.data?.map { it.toDomain() } ?: emptyList()
+                Resource.Success(songs)
+            } else {
+                Resource.Failure(Exception("Failed to load artist songs"))
+            }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun getAlbumsByArtist(artistId: String): Resource<List<Album>> {
+        return try {
+            val response = apiService.getAlbumsByArtist(artistId)
+            if (response.isSuccessful && response.body()?.success == true) {
+                val albums = response.body()?.data?.map { it.toDomain() } ?: emptyList()
+                Resource.Success(albums)
+            } else {
+                Resource.Failure(Exception("Failed to load artist albums"))
+            }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
+    }
+
     // ==================== ALBUMS ====================
 
     override fun getAllAlbums(): Flow<Resource<List<Album>>> = flow {

@@ -5,16 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
-import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.databinding.FragmentPlaylistsBinding
 import com.example.zalgneyhmusic.ui.adapter.PlaylistAdapter
-import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
-import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
+import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -22,7 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
  * Fragment displaying playlists in vertical list
  */
 @AndroidEntryPoint
-class PlaylistsFragment : Fragment() {
+class PlaylistsFragment : BaseFragment() {
 
     private var _binding: FragmentPlaylistsBinding? = null
     private val binding get() = _binding!!
@@ -58,7 +55,7 @@ class PlaylistsFragment : Fragment() {
                 ).show()
             },
             onPlaylistLongClick = { playlist ->
-                showPlaylistMoreOptions(playlist)
+                mediaActionHandler.onPlaylistMenuClick(playlist)
                 true
             }
         )
@@ -66,33 +63,6 @@ class PlaylistsFragment : Fragment() {
         binding.rvPlaylists.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = playlistAdapter
-        }
-    }
-
-    private fun showPlaylistMoreOptions(playlist: Playlist) {
-        MoreOptionsManager.showForPlaylist(
-            fragmentManager = childFragmentManager,
-            playlist = playlist,
-            onActionClick = { action ->
-                handlePlaylistAction(action, playlist)
-            }
-        )
-    }
-
-    private fun handlePlaylistAction(action: MoreOptionsAction.PlaylistAction, playlist: Playlist) {
-        when (action) {
-            is MoreOptionsAction.PlaylistAction.PlayAll -> {
-                Toast.makeText(context, "Play all: ${playlist.name}", Toast.LENGTH_SHORT).show()
-            }
-            is MoreOptionsAction.PlaylistAction.Edit -> {
-                Toast.makeText(context, "Edit: ${playlist.name}", Toast.LENGTH_SHORT).show()
-            }
-            is MoreOptionsAction.PlaylistAction.Delete -> {
-                Toast.makeText(context, "Delete: ${playlist.name}", Toast.LENGTH_SHORT).show()
-            }
-            is MoreOptionsAction.PlaylistAction.Share -> {
-                Toast.makeText(context, "Share: ${playlist.name}", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 
