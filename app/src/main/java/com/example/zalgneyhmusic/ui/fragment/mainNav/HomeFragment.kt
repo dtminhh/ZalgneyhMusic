@@ -1,5 +1,6 @@
 package com.example.zalgneyhmusic.ui.fragment.mainNav
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,12 +14,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.DetailType
 import com.example.zalgneyhmusic.databinding.FragmentHomeBinding
 import com.example.zalgneyhmusic.ui.adapter.home.HomeParentAdapter
 import com.example.zalgneyhmusic.ui.model.HomeSection
 import com.example.zalgneyhmusic.ui.model.SectionType
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
+import com.example.zalgneyhmusic.ui.navigation.DetailNavigator
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.HomeViewModel
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,7 +37,17 @@ class HomeFragment : Fragment() {
     private val viewModel: HomeViewModel by viewModels()
     private val playerViewModel: PlayerViewModel by activityViewModels()
     private lateinit var homeAdapter: HomeParentAdapter
+    private lateinit var detailNavigator: DetailNavigator
 
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if(context is DetailNavigator){
+            detailNavigator = context
+        }else{
+            throw RuntimeException("$context must implement DetailNavigator")
+        }
+    }
     /**
      * Creates and returns the fragment view.
      */
@@ -86,12 +99,10 @@ class HomeFragment : Fragment() {
                 }
             },
             onArtistClick = { artist ->
-                Toast.makeText(context, getString(R.string.toast_artist, artist.name), Toast.LENGTH_SHORT).show()
-                // TODO: Navigate to artist detail
+                detailNavigator.navigatorToDetailScreen(DetailType.Artist(artist.id))
             },
             onAlbumClick = { album ->
-                Toast.makeText(context, getString(R.string.toast_album, album.title), Toast.LENGTH_SHORT).show()
-                // TODO: Navigate to album detail
+                detailNavigator.navigatorToDetailScreen(DetailType.Album(album.id))
             },
             onSongMoreClick = { song ->
                 showSongMoreOptions(song)
