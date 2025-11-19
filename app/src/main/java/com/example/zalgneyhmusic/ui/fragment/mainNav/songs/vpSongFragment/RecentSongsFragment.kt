@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment.mainNav.songs
+package com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,19 +11,20 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
 import com.example.zalgneyhmusic.ui.handler.SongActionHandler
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
-import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
-import com.example.zalgneyhmusic.ui.viewmodel.SongViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * Feature Songs Fragment - Displays featured songs
+ * Recent Songs Fragment - Displays recently played songs
  */
 @AndroidEntryPoint
-class FeatureSongsFragment : Fragment() {
+class RecentSongsFragment : Fragment() {
 
     private var _binding: FragmentSongListBinding? = null
     private val binding get() = _binding!!
@@ -57,13 +58,9 @@ class FeatureSongsFragment : Fragment() {
                 ).show()
             },
             onPlayClick = { song ->
-                // Get all songs from current list
                 val songs = songAdapter.currentList
                 val index = songs.indexOf(song)
-
-                // Set playlist and play
                 playerViewModel.setPlaylist(songs, index)
-
                 Toast.makeText(
                     context,
                     getString(R.string.toast_playing, song.title),
@@ -81,7 +78,7 @@ class FeatureSongsFragment : Fragment() {
         }
     }
 
-    private fun showMoreOptions(song: com.example.zalgneyhmusic.data.model.domain.Song) {
+    private fun showMoreOptions(song: Song) {
         MoreOptionsManager.showForSong(
             fragmentManager = childFragmentManager,
             song = song,
@@ -92,7 +89,7 @@ class FeatureSongsFragment : Fragment() {
     }
 
     private fun observeSongs() {
-        songViewModel.featureSongs.observe(viewLifecycleOwner) { resource ->
+        songViewModel.recentSongs.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE

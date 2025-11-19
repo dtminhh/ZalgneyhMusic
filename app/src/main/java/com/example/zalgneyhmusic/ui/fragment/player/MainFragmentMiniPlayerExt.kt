@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment
+package com.example.zalgneyhmusic.ui.fragment.player
 
 import android.view.View
 import androidx.fragment.app.activityViewModels
@@ -7,7 +7,8 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.FragmentMainBinding
-import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
+import com.example.zalgneyhmusic.ui.fragment.MainFragment
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
 import kotlinx.coroutines.launch
 
 /**

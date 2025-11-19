@@ -5,13 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSignUpBinding
-import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
  * - Uses Hilt's [@AndroidEntryPoint] for dependency injection.
  */
 @AndroidEntryPoint
-class SignUpFragment : BaseFragment() {
+class SignUpFragment : Fragment() {
 
     private var _binding: FragmentSignUpBinding? = null
     private val binding get() = _binding!!

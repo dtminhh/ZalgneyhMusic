@@ -1,12 +1,12 @@
-package com.example.zalgneyhmusic.ui.viewmodel
+package com.example.zalgneyhmusic.ui.viewmodel.fragment
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ArtistViewModel @Inject constructor(
     private val musicRepository: MusicRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _topWorldArtists = MutableLiveData<Resource<List<Artist>>>()
     val topWorldArtists: LiveData<Resource<List<Artist>>> = _topWorldArtists

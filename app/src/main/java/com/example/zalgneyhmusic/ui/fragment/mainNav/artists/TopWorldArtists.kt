@@ -14,7 +14,7 @@ import com.example.zalgneyhmusic.databinding.FragmentArtistListBinding
 import com.example.zalgneyhmusic.ui.adapter.ArtistAdapter
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
-import com.example.zalgneyhmusic.ui.viewmodel.ArtistViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.ArtistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**

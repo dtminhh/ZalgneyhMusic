@@ -4,7 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
 import com.example.zalgneyhmusic.ui.adapter.ChildFragmentAdapter
-import com.example.zalgneyhmusic.ui.viewmodel.TopBarViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.TopBarViewModel
 
 /**
  * Base class for navigation fragments with TabLayout and child ViewPager2 support

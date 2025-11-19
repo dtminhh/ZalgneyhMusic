@@ -1,10 +1,10 @@
-package com.example.zalgneyhmusic.ui.viewmodel
+package com.example.zalgneyhmusic.ui.viewmodel.fragment
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.player.MusicPlayer
 import com.example.zalgneyhmusic.player.RepeatMode
+import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val musicPlayer: MusicPlayer
-) : ViewModel() {
+) : BaseViewModel() {
 
     companion object {
         private const val POSITION_UPDATE_INTERVAL_MS = 1000L

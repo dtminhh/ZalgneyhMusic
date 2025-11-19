@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment
+package com.example.zalgneyhmusic.ui.fragment.search
 
 import android.os.Bundle
 import android.text.Editable
@@ -18,8 +18,8 @@ import com.example.zalgneyhmusic.ui.adapter.search.RecentSearchesAdapter
 import com.example.zalgneyhmusic.ui.adapter.search.SearchAlbumsAdapter
 import com.example.zalgneyhmusic.ui.adapter.search.SearchArtistsAdapter
 import com.example.zalgneyhmusic.ui.adapter.search.SearchSongsAdapter
-import com.example.zalgneyhmusic.ui.viewmodel.PlayerViewModel
-import com.example.zalgneyhmusic.ui.viewmodel.SearchViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -63,7 +63,11 @@ class SearchFragment : Fragment() {
                 searchViewModel.searchResults.value.songs.let { songs ->
                     playerViewModel.setPlaylist(songs, songs.indexOf(song))
                 }
-                Toast.makeText(context, getString(R.string.toast_playing, song.title), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    getString(R.string.toast_playing, song.title),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         )
         binding.rvSongs.apply {
@@ -74,7 +78,11 @@ class SearchFragment : Fragment() {
         // Artists Adapter
         artistsAdapter = SearchArtistsAdapter(
             onArtistClick = { artist ->
-                Toast.makeText(context, getString(R.string.toast_artist, artist.name), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    getString(R.string.toast_artist, artist.name),
+                    Toast.LENGTH_SHORT
+                ).show()
                 // TODO: Navigate to artist detail
             }
         )
@@ -86,7 +94,11 @@ class SearchFragment : Fragment() {
         // Albums Adapter
         albumsAdapter = SearchAlbumsAdapter(
             onAlbumClick = { album ->
-                Toast.makeText(context, getString(R.string.toast_album, album.title), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    getString(R.string.toast_album, album.title),
+                    Toast.LENGTH_SHORT
+                ).show()
                 // TODO: Navigate to album detail
             }
         )
@@ -206,4 +218,3 @@ class SearchFragment : Fragment() {
         }
     }
 }
-

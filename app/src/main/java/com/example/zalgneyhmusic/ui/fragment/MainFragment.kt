@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -16,8 +17,9 @@ import com.example.zalgneyhmusic.ui.UIConstants.Navigation.DEFAULT_NAV_INDEX
 import com.example.zalgneyhmusic.ui.UIConstants.ViewPager.USER_INPUT_ENABLED
 import com.example.zalgneyhmusic.ui.adapter.MainFragmentAdapter
 import com.example.zalgneyhmusic.ui.fragment.auth.LoginFragment
-import com.example.zalgneyhmusic.ui.viewmodel.TopBarState
-import com.example.zalgneyhmusic.ui.viewmodel.TopBarViewModel
+import com.example.zalgneyhmusic.ui.fragment.player.setupMiniPlayerExt
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.TopBarState
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.TopBarViewModel
 import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,7 +37,7 @@ import javax.inject.Inject
  * Hilt dependency injection for [AuthViewModel].
  */
 @AndroidEntryPoint
-class MainFragment : BaseFragment() {
+class MainFragment : Fragment() {
 
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
@@ -345,19 +347,6 @@ class MainFragment : BaseFragment() {
                 }
                 .start()
         }
-    }
-
-
-    /**
-     * Logs out user from Firebase and Google Sign-In.
-     */
-    private fun logout() {
-        // Firebase logout
-        authViewModel.logout()
-        // Google logout
-        googleSignInHelper.signOut()
-        // Navigate to login
-        findNavController().navigate(R.id.loginFragment)
     }
 
     /**
