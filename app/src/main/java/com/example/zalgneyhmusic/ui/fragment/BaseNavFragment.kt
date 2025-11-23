@@ -9,7 +9,7 @@ import com.example.zalgneyhmusic.ui.viewmodel.fragment.TopBarViewModel
 /**
  * Base class for navigation fragments with TabLayout and child ViewPager2 support
  */
-abstract class BaseNavFragment : BaseFragment() {
+abstract class BaseNavFragment : Fragment() {
 
     protected lateinit var topBarViewModel: TopBarViewModel
     protected lateinit var childAdapter: ChildFragmentAdapter

@@ -20,7 +20,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class MusicPlayer @Inject constructor(
-    private val context: Context
+    context: Context
 ) {
     companion object {
         private const val RESTART_SONG_THRESHOLD_MS = 3000
@@ -35,9 +35,10 @@ class MusicPlayer @Inject constructor(
     // Track if MediaPlayer is prepared
     private var isPrepared = false
 
-    // Current playlist and position
-    private var currentPlaylist: List<Song> = emptyList()
-    private var currentIndex: Int = -1
+    private val _playlist = MutableStateFlow<List<Song>>(emptyList())
+    val playlist: StateFlow<List<Song>> = _playlist.asStateFlow()
+
+    private val _currentIndex = MutableStateFlow<Int>(-1)
 
     // Player states
     private val _currentSong = MutableStateFlow<Song?>(null)
@@ -61,6 +62,42 @@ class MusicPlayer @Inject constructor(
     init {
         audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         initializeAudioFocus()
+    }
+
+    fun addSongToNext(song: Song) {
+        // 1. Lấy list hiện tại (từ StateFlow)
+        val currentList = _playlist.value.toMutableList()
+        if (currentList.isEmpty()) {
+            setPlaylist(listOf(song))
+            return
+        }
+
+        // 2. get current player index
+        val currentIdx = _currentIndex.value
+
+        // 3. caculate insert index
+        val insertIndex = currentIdx + 1
+
+        // 4. insert
+        if (insertIndex <= currentList.size) {
+            currentList.add(insertIndex, song)
+        } else {
+            currentList.add(song)
+        }
+
+        // 5. Update StateFlow -> UI will update automatically
+        _playlist.value = currentList
+    }
+
+    fun addSongToQueue(song: Song) {
+        val currentList = _playlist.value.toMutableList()
+        currentList.add(song)
+        _playlist.value = currentList
+
+        // If nothing is playing, play a new song immediately.
+        if (_currentSong.value == null) {
+            playSongAtIndex(0)
+        }
     }
 
     private fun initializeAudioFocus() {
@@ -114,17 +151,6 @@ class MusicPlayer @Inject constructor(
         }
     }
 
-    private fun abandonAudioFocus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest?.let { request ->
-                audioManager?.abandonAudioFocusRequest(request)
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            audioManager?.abandonAudioFocus { handleAudioFocusChange(it) }
-        }
-    }
-
     /**
      * Set playlist and play first song
      */
@@ -133,22 +159,23 @@ class MusicPlayer @Inject constructor(
             Log.w("MusicPlayer", "Cannot set empty playlist")
             return
         }
-        currentPlaylist = songs
-        currentIndex = startIndex.coerceIn(0, songs.size - 1)
-        playSongAtIndex(currentIndex)
+        _playlist.value = songs
+        _currentIndex.value = startIndex.coerceIn(0, songs.size - 1)
+        playSongAtIndex(_currentIndex.value)
     }
 
     /**
      * Play song at index
      */
     private fun playSongAtIndex(index: Int) {
-        if (index < 0 || index >= currentPlaylist.size) {
+        val currentList = _playlist.value
+        if (index < 0 || index >= currentList.size) {
             Log.w("MusicPlayer", "Invalid index: $index")
             return
         }
 
-        currentIndex = index
-        val song = currentPlaylist[index]
+        _currentIndex.value = index
+        val song = currentList[index]
         _currentSong.value = song
 
         try {
@@ -202,6 +229,7 @@ class MusicPlayer @Inject constructor(
      * Play/Resume
      */
     fun play() {
+        val currentList = _playlist.value
         try {
             mediaPlayer?.let { mp ->
                 if (!isPrepared) {
@@ -224,8 +252,8 @@ class MusicPlayer @Inject constructor(
             } ?: run {
                 Log.w("MusicPlayer", "MediaPlayer is null, cannot play")
                 // If we have a playlist but no MediaPlayer, try to start playing
-                if (currentPlaylist.isNotEmpty() && currentIndex >= 0) {
-                    playSongAtIndex(currentIndex)
+                if (currentList.isNotEmpty() && _currentIndex.value >= 0) {
+                    playSongAtIndex(_currentIndex.value)
                 }
             }
         } catch (e: Exception) {
@@ -267,13 +295,15 @@ class MusicPlayer @Inject constructor(
      * Next song
      */
     fun next() {
+        val currentList = _playlist.value
+        val currentIdx = _currentIndex.value
         val nextIndex = when {
             _shuffleMode.value -> {
-                (0 until currentPlaylist.size).random()
+                (0 until currentList.size).random()
             }
 
-            currentIndex + 1 < currentPlaylist.size -> {
-                currentIndex + 1
+            currentIdx + 1 < currentList.size -> {
+                currentIdx + 1
             }
 
             else -> 0 // Loop to first song
@@ -285,14 +315,16 @@ class MusicPlayer @Inject constructor(
      * Previous song
      */
     fun previous() {
+        val currentList = _playlist.value
+        val currentIdx = _currentIndex.value
         // If playing more than threshold, restart current song
         if ((mediaPlayer?.currentPosition ?: 0) > RESTART_SONG_THRESHOLD_MS) {
             seekTo(0)
         } else {
-            val prevIndex = if (currentIndex - 1 >= 0) {
-                currentIndex - 1
+            val prevIndex = if (currentIdx - 1 >= 0) {
+                currentIdx - 1
             } else {
-                currentPlaylist.size - 1
+                currentList.size - 1
             }
             playSongAtIndex(prevIndex)
         }
@@ -337,6 +369,8 @@ class MusicPlayer @Inject constructor(
      * Handles playback completion
      */
     private fun onSongComplete() {
+        val currentList = _playlist.value
+        val currentIdx = _currentIndex.value
         when (_repeatMode.value) {
             RepeatMode.ONE -> {
                 seekTo(0)
@@ -348,7 +382,7 @@ class MusicPlayer @Inject constructor(
             }
 
             RepeatMode.NONE -> {
-                if (currentIndex + 1 < currentPlaylist.size) {
+                if (currentIdx + 1 < currentList.size) {
                     next()
                 } else {
                     pause()
@@ -391,15 +425,6 @@ class MusicPlayer @Inject constructor(
             mediaPlayer = null
             isPrepared = false
         }
-    }
-
-    /**
-     * Clean up
-     */
-    fun release() {
-        releaseMediaPlayer()
-        abandonAudioFocus()
-        _isPlaying.value = false
     }
 }
 
