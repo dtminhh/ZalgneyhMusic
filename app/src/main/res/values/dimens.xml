@@ -2,5 +2,6 @@
 <resources>
     <!-- Side Sheet dimensions -->
     <dimen name="side_sheet_width">320dp</dimen>
+    <dimen name="bottom_sheet_corner_radius">24dp</dimen>
 </resources>
 

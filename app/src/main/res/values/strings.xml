@@ -151,4 +151,6 @@
     <string name="user_email_com">user@email.com</string>
     <string name="action_title">Action Title</string>
     <string name="section_title">Section Title</string>
+    <string name="feature_songs">Feature songs</string>
+    <string name="track_list">Track list</string>
 </resources>

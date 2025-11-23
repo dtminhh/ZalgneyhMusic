@@ -144,6 +144,14 @@ class MusicLocalRepository @Inject constructor(
         }
     }
 
+    override suspend fun getSongsByArtist(artistId: String): Resource<List<Song>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getAlbumsByArtist(artistId: String): Resource<List<Album>> {
+        TODO("Not yet implemented")
+    }
+
     // Albums
     override fun getAllAlbums(): Flow<Resource<List<Album>>> = flow {
         emit(Resource.Loading)

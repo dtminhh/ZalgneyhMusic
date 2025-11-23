@@ -3,20 +3,30 @@ package com.example.zalgneyhmusic.data.model.api
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Type
 
-/**
- * Custom deserializer for AlbumDTO to handle flexible artist field
- * Backend may send:
- * - artist as STRING (artist ID) - OLD format
- * - artist as OBJECT (full Artist object) - NEW format
- */
 class AlbumDeserializer : JsonDeserializer<AlbumDTO> {
     override fun deserialize(
         json: JsonElement,
         typeOfT: Type,
         context: JsonDeserializationContext
     ): AlbumDTO {
+
+// 1. Safety check: If Album is String ID -> Return empty Album to avoid crash
+        if (json.isJsonPrimitive && json.asJsonPrimitive.isString) {
+            return AlbumDTO(
+                id = json.asString,
+                title = "",
+                artist = ArtistDTO(
+                    id = "",
+                    name = "Unknown Artist",
+                    imageUrl = null
+                ),
+                songs = emptyList() // Trả về list rỗng
+            )
+        }
+
         val obj = json.asJsonObject
 
         fun JsonElement?.asStringOrNull(): String? =
@@ -41,59 +51,22 @@ class AlbumDeserializer : JsonDeserializer<AlbumDTO> {
         // Handle artist field (string id or object)
         val artistElement = obj.get("artist")
         val artistDto: ArtistDTO = when {
-            artistElement == null || artistElement.isJsonNull -> {
-                ArtistDTO(
-                    id = "",
-                    name = "Unknown Artist",
-                    bio = null,
-                    imageUrl = null,
-                    followers = 0,
-                    verified = false,
-                    createdAt = null,
-                    updatedAt = null
-                )
-            }
+            artistElement == null || artistElement.isJsonNull -> ArtistDTO(
+                id = "",
+                name = "Unknown",
+                imageUrl = null
+            )
 
-            artistElement.isJsonPrimitive && artistElement.asJsonPrimitive.isString -> {
-                val artistId = artistElement.asString
-                ArtistDTO(
-                    id = artistId,
-                    name = "Unknown Artist",
-                    bio = null,
-                    imageUrl = null,
-                    followers = 0,
-                    verified = false,
-                    createdAt = null,
-                    updatedAt = null
-                )
-            }
+            artistElement.isJsonPrimitive && artistElement.asJsonPrimitive.isString -> ArtistDTO(
+                id = artistElement.asString,
+                name = "Unknown",
+                imageUrl = null
+            )
 
-            artistElement.isJsonObject -> {
-                val deserializedArtist =
-                    context.deserialize<ArtistDTO>(artistElement, ArtistDTO::class.java)
-                deserializedArtist ?: ArtistDTO(
-                    id = "",
-                    name = "Unknown Artist",
-                    bio = null,
-                    imageUrl = null,
-                    followers = 0,
-                    verified = false,
-                    createdAt = null,
-                    updatedAt = null
-                )
-            }
-            else -> {
-                ArtistDTO(
-                    id = "",
-                    name = "Unknown Artist",
-                    bio = null,
-                    imageUrl = null,
-                    followers = 0,
-                    verified = false,
-                    createdAt = null,
-                    updatedAt = null
-                )
-            }
+            artistElement.isJsonObject -> context.deserialize(artistElement, ArtistDTO::class.java)
+                ?: ArtistDTO(id = "", name = "Unknown", imageUrl = null)
+
+            else -> ArtistDTO(id = "", name = "Unknown", imageUrl = null)
         }
 
         val releaseYear = obj.get("releaseYear").asIntOrNull()
@@ -104,6 +77,16 @@ class AlbumDeserializer : JsonDeserializer<AlbumDTO> {
         val createdAt = obj.get("createdAt").asStringOrNull()
         val updatedAt = obj.get("updatedAt").asStringOrNull()
 
+        // Parse the song list ("songs")
+        val songsElement = obj.get("songs")
+        val songsList: List<SongDTO> = if (songsElement != null && songsElement.isJsonArray) {
+            // Gson automatically parses each element in the array into a SongDTO
+            val listType = object : TypeToken<List<SongDTO>>() {}.type
+            context.deserialize(songsElement, listType)
+        } else {
+            emptyList()
+        }
+
         return AlbumDTO(
             id = id,
             title = title,
@@ -113,6 +96,7 @@ class AlbumDeserializer : JsonDeserializer<AlbumDTO> {
             imageUrl = imageUrl,
             description = description,
             totalTracks = totalTracks,
+            songs = songsList,
             createdAt = createdAt,
             updatedAt = updatedAt
         )

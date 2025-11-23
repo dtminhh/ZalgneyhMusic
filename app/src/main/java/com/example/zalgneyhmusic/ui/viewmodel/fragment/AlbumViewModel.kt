@@ -28,6 +28,9 @@ class AlbumViewModel @Inject constructor(
 
     private val _featuredAlbums = MutableLiveData<Resource<List<Album>>>()
 
+    private val _albumDetail = MutableLiveData<Resource<Album>>()
+    val albumDetail: LiveData<Resource<Album>> = _albumDetail
+
     init {
         loadAlbums()
         loadFeaturedAlbums()
@@ -50,6 +53,14 @@ class AlbumViewModel @Inject constructor(
             musicRepository.getRecentAlbums(limit = 10).collect { resource ->
                 _featuredAlbums.value = resource
             }
+        }
+    }
+
+    fun loadAlbumDetail(id: String) {
+        viewModelScope.launch {
+            _albumDetail.value = Resource.Loading
+            val result = musicRepository.getAlbumById(id)
+            _albumDetail.value = result
         }
     }
 }

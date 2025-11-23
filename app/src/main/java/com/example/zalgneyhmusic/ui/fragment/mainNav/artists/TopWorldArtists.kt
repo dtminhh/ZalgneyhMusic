@@ -4,16 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentArtistListBinding
 import com.example.zalgneyhmusic.ui.adapter.ArtistAdapter
-import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
-import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
+import com.example.zalgneyhmusic.ui.extension.openArtistDetail
+import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.ArtistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,7 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
  * Top World Artists Fragment
  */
 @AndroidEntryPoint
-class TopWorldArtists : Fragment() {
+class TopWorldArtists : BaseFragment() {
 
     private var _binding: FragmentArtistListBinding? = null
     private val binding get() = _binding!!
@@ -52,41 +50,16 @@ class TopWorldArtists : Fragment() {
     private fun setupRecyclerView() {
         artistAdapter = ArtistAdapter(
             onArtistClick = { artist ->
-                Toast.makeText(context, "Artist: ${artist.name}", Toast.LENGTH_SHORT).show()
-                // TODO: Navigate to artist detail
+                openArtistDetail(artist.id)
             },
             onMenuClick = { artist ->
-                showArtistMoreOptions(artist)
+                mediaActionHandler.onArtistMenuClick(artist)
             }
         )
 
         binding.rvArtists.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = artistAdapter
-        }
-    }
-
-    private fun showArtistMoreOptions(artist: com.example.zalgneyhmusic.data.model.domain.Artist) {
-        MoreOptionsManager.showForArtist(
-            fragmentManager = childFragmentManager,
-            artist = artist,
-            onActionClick = { action ->
-                handleArtistAction(action, artist)
-            }
-        )
-    }
-
-    private fun handleArtistAction(action: MoreOptionsAction.ArtistAction, artist: com.example.zalgneyhmusic.data.model.domain.Artist) {
-        when (action) {
-            is MoreOptionsAction.ArtistAction.Follow -> {
-                Toast.makeText(context, "Follow: ${artist.name}", Toast.LENGTH_SHORT).show()
-            }
-            is MoreOptionsAction.ArtistAction.PlayAllSongs -> {
-                Toast.makeText(context, "Play all by: ${artist.name}", Toast.LENGTH_SHORT).show()
-            }
-            is MoreOptionsAction.ArtistAction.Share -> {
-                Toast.makeText(context, "Share: ${artist.name}", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 
@@ -110,7 +83,8 @@ class TopWorldArtists : Fragment() {
                     binding.progressBar.visibility = View.GONE
                     binding.rvArtists.visibility = View.GONE
                     binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text = resource.exception.message ?: getString(R.string.unknown_error)
+                    binding.txtError.text =
+                        resource.exception.message ?: getString(R.string.unknown_error)
                 }
             }
         }

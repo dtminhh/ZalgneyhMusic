@@ -13,6 +13,7 @@ data class Album(
     val imageUrl: String? = null,
     val description: String? = null,
     val totalTracks: Int = 0,
+    val songs: List<Song> = emptyList(),
     val createdAt: String? = null,
     val updatedAt: String? = null
 ) {

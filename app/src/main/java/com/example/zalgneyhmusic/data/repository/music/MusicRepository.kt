@@ -24,6 +24,9 @@ interface MusicRepository {
     fun getTopArtists(limit: Int = 10): Flow<Resource<List<Artist>>>
     suspend fun getArtistById(id: String): Resource<Artist>
 
+    suspend fun getSongsByArtist(artistId: String): Resource<List<Song>>
+    suspend fun getAlbumsByArtist(artistId: String): Resource<List<Album>>
+
     // Albums
     fun getAllAlbums(): Flow<Resource<List<Album>>>
     fun getRecentAlbums(limit: Int = 10): Flow<Resource<List<Album>>>
