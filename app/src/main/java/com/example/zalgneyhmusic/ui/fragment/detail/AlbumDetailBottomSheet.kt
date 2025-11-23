@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment.detail.album
+package com.example.zalgneyhmusic.ui.fragment.detail
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -82,9 +82,7 @@ class AlbumDetailBottomSheet : BaseBottomSheetDialogFragment() {
     private fun observeData() {
         viewModel.albumDetail.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Loading -> {
-                    // Có thể hiện loading bar nếu cần
-                }
+                is Resource.Loading -> {}
 
                 is Resource.Success -> {
                     val album = resource.result

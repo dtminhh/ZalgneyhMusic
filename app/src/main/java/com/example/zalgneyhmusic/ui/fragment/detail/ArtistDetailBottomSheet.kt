@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.ui.fragment.detail.artist
+package com.example.zalgneyhmusic.ui.fragment.detail
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -26,7 +26,6 @@ class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
     private val viewModel: ArtistViewModel by viewModels()
     private var _binding: FragmentArtistDetailBinding? = null
     private val binding get() = _binding!!
-
     private lateinit var albumAdapter: AlbumAdapter
     private lateinit var songAdapter: SongAdapter
 

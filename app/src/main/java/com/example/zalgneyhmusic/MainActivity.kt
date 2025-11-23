@@ -6,8 +6,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.zalgneyhmusic.data.model.domain.DetailType
-import com.example.zalgneyhmusic.ui.fragment.detail.album.AlbumDetailBottomSheet
-import com.example.zalgneyhmusic.ui.fragment.detail.artist.ArtistDetailBottomSheet
+import com.example.zalgneyhmusic.ui.fragment.detail.AlbumDetailBottomSheet
+import com.example.zalgneyhmusic.ui.fragment.detail.ArtistDetailBottomSheet
 import com.example.zalgneyhmusic.ui.navigation.DetailNavigator
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint

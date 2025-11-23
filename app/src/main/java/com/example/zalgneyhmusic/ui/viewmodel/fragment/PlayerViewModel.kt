@@ -64,13 +64,6 @@ class PlayerViewModel @Inject constructor(
     }
 
     /**
-     * Pause
-     */
-    fun pause() {
-        musicPlayer.pause()
-    }
-
-    /**
      * Next song
      */
     fun next() {
@@ -103,6 +96,21 @@ class PlayerViewModel @Inject constructor(
      */
     fun toggleRepeat() {
         musicPlayer.toggleRepeat()
+    }
+
+    /**
+     * add song to next
+     * */
+    fun addSongToNext(song: Song) {
+        musicPlayer.addSongToNext(song)
+    }
+
+
+    /**
+     * add song to player list
+     * */
+    fun addSongToQueue(song: Song) {
+        musicPlayer.addSongToQueue(song)
     }
 
     /**
