@@ -1,6 +1,7 @@
 package com.example.zalgneyhmusic.data.repository.auth
 
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.User
 import com.google.firebase.auth.FirebaseUser
 
 /**
@@ -46,6 +47,19 @@ interface AuthRepository {
      *   - [Resource.Failure] containing the exception if an error occurs during sign-in.
      */
     suspend fun signInWithGoogle(idToken: String): Resource<FirebaseUser>
+
+
+    /**
+     * Synchronizes the authenticated Firebase user with the backend database.
+     *
+     * This method should be called after a successful Firebase login/signup to ensure
+     * the user exists in the backend system (MongoDB) and to retrieve backend-specific
+     * user details (e.g., database ID, role).
+     *
+     * @return A [Resource] containing the synchronized [User] domain model if successful,
+     * or a [Resource.Failure] if the synchronization fails.
+     */
+    suspend fun syncUserToBackEnd(): Resource<User>
 
     /**
      * Logs out the currently authenticated user.
