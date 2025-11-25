@@ -1,8 +1,17 @@
 package com.example.zalgneyhmusic.service
 
-import com.example.zalgneyhmusic.data.model.api.*
+import com.example.zalgneyhmusic.data.model.api.AlbumDTO
+import com.example.zalgneyhmusic.data.model.api.ApiResponse
+import com.example.zalgneyhmusic.data.model.api.ArtistDTO
+import com.example.zalgneyhmusic.data.model.api.PlaylistDTO
+import com.example.zalgneyhmusic.data.model.api.SongDTO
+import com.example.zalgneyhmusic.data.model.api.UserDTO
 import retrofit2.Response
-import retrofit2.http.*
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Retrofit API Service for Zalgneyh Music Backend
@@ -12,6 +21,13 @@ import retrofit2.http.*
  * Based on: API_IMPLEMENTATION_GUIDE.md
  */
 interface ZalgneyhApiService {
+
+    /**
+     * Syncs the authenticated user with the backend.
+     * Requires a valid Bearer token in the Authorization header.
+     */
+    @POST("auth/sync")
+    suspend fun syncUser(@Header("Authorization") token: String): Response<ApiResponse<UserDTO>>
 
     // ==================== SONGS API ====================
 

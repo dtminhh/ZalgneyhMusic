@@ -53,36 +53,88 @@ class AuthViewModel @Inject constructor(
     }
 
     /**
-     * Initiates login with the given [email] and [password].
-     * Updates [loginFlow] with the authentication result.
+     * Initiates login with the given [email] and [android.R.attr.password].
+     *
+     * If Firebase authentication is successful, it attempts to synchronize the user
+     * with the backend. The [loginFlow] is updated with the final result.
+     *
+     * @param email The user's email.
+     * @param pass The user's password.
      */
-    fun login(email: String, password: String) = viewModelScope.launch {
+    fun login(email: String, pass: String) = viewModelScope.launch {
         _loginFlow.value = Resource.Loading
-        val result = repository.login(email, password)
-        _loginFlow.value = result
+
+        // 1. Authenticate with Firebase
+        val loginResult = repository.login(email, pass)
+
+        if (loginResult is Resource.Success) {
+            // 2. Sync with Backend upon successful login
+            val syncResult =
+                repository.syncUserToBackEnd()
+
+            if (syncResult is Resource.Success) {
+                // Sync successful: Update flow with success state
+                // Note: Consider mapping syncResult (User) to expected flow type if needed
+                _loginFlow.value = loginResult
+            } else {
+                // Login successful but Sync failed
+                _loginFlow.value =
+                    Resource.Failure(Exception("Login successful but backend sync failed"))
+            }
+        } else {
+            _loginFlow.value = loginResult
+        }
     }
 
     private val _googleSignInFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
     val googleSignInFlow: StateFlow<Resource<FirebaseUser>?> = _googleSignInFlow
 
+    /**
+     * Authenticates using Google Sign-In and synchronizes the user with the backend.
+     *
+     * @param idToken The Google ID token.
+     */
     fun signInWithGoogle(idToken: String) = viewModelScope.launch {
         _googleSignInFlow.value = Resource.Loading
-        val result = repository.signInWithGoogle(idToken)
-        _googleSignInFlow.value = result
+        val firebaseResult = repository.signInWithGoogle(idToken)
+
+        if (firebaseResult is Resource.Success) {
+            // Sync with Backend
+            val syncResult = repository.syncUserToBackEnd()
+
+            if (syncResult is Resource.Success) {
+                _googleSignInFlow.value = firebaseResult
+            } else {
+                _googleSignInFlow.value =
+                    Resource.Failure(Exception("Google Sign-In successful but backend sync failed"))
+            }
+        } else {
+            _googleSignInFlow.value = firebaseResult
+        }
     }
 
     /**
-     * Initiates sign-up with the given [email] and [password].
-     * Updates [signupFlow] with the registration result.
+     * Registers a new user and synchronizes them with the backend.
+     *
+     * @param email The user's email.
+     * @param password The user's password.
      */
     fun signup(email: String, password: String) = viewModelScope.launch {
         _singupFlow.value = Resource.Loading
-        val result = repository.signup(email, password)
-        if (result is Resource.Success) {
-            repository.logout()
-            _singupFlow.value = Resource.Success(result.result)
+        val firebaseResult = repository.signup(email, password)
+
+        if (firebaseResult is Resource.Success) {
+            // Sync with Backend
+            val syncResult = repository.syncUserToBackEnd()
+
+            if (syncResult is Resource.Success) {
+                _singupFlow.value = Resource.Success(firebaseResult.result)
+            } else {
+                _singupFlow.value =
+                    Resource.Failure(Exception("Signup successful but backend sync failed"))
+            }
         } else {
-            _singupFlow.value = result
+            _singupFlow.value = firebaseResult
         }
     }
 
@@ -104,33 +156,5 @@ class AuthViewModel @Inject constructor(
      */
     fun resetLoginFlow() {
         _loginFlow.value = null
-    }
-
-    /**
-     * Resets the signup flow state.
-     *
-     * Sets the `_signupFlow` LiveData/StateFlow to `null`
-     * to clear any previous signup result or error message.
-     */
-    fun resetSignupFlow() {
-        _singupFlow.value = null
-    }
-
-    /**
-     * Logs the user out from the application.
-     *
-     * - Calls the repository to perform actual logout (e.g., Firebase sign-out).
-     * - Resets all authentication-related flows:
-     *   + Login flow
-     *   + Google Sign-In flow
-     *   + Signup flow
-     *
-     * This ensures a clean state for future authentication attempts.
-     */
-    fun logout() {
-        repository.logout()
-        _loginFlow.value = null
-        _googleSignInFlow.value = null
-        _singupFlow.value = null
     }
 }

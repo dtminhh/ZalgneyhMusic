@@ -1,7 +1,9 @@
 package com.example.zalgneyhmusic.data.repository.auth
 
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.User
 import com.example.zalgneyhmusic.data.model.utils.await
+import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
@@ -17,7 +19,8 @@ import javax.inject.Inject
  * @property firebaseAuth The [FirebaseAuth] instance injected by Hilt for performing authentication operations.
  */
 class AuthRepositoryImpl @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val apiService: ZalgneyhApiService
 ) : AuthRepository {
 
     /**
@@ -25,6 +28,42 @@ class AuthRepositoryImpl @Inject constructor(
      */
     override val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
+
+    /**
+     * Synchronizes the currently authenticated Firebase user with the backend server.
+     *
+     * This process involves:
+     * 1. Retrieving the current Firebase user.
+     * 2. Getting a fresh ID Token from Firebase.
+     * 3. Sending the token to the backend API for verification and user creation/update.
+     *
+     * @return A [Resource] containing the synchronized [User] domain model if successful,
+     * or a [Resource.Failure] if synchronization fails (e.g., no user, network error).
+     */
+    override suspend fun syncUserToBackEnd(): Resource<User> {
+        val user = firebaseAuth.currentUser
+        if (user == null) {
+            android.util.Log.e("DEBUG_SYNC", "Lỗi: Current User is NULL")
+            return Resource.Failure(Exception("No User"))
+        }
+
+        return try {
+            // Retrieve fresh ID token
+            val tokenResult = user.getIdToken(true).await()
+            val token = tokenResult.token
+
+            // Send token to backend
+            val response = apiService.syncUser("Bearer $token")
+
+            if (response.isSuccessful && response.body()?.success == true) {
+                Resource.Success(response.body()!!.data!!.toDomain())
+            } else {
+                Resource.Failure(Exception("Sync failed"))
+            }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
+    }
 
     /**
      * Logs in a user with the given [email] and [password].
