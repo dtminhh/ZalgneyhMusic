@@ -9,6 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -16,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.SideSheetAccountSettingsBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -144,46 +147,58 @@ class AccountSettingsSideSheet : DialogFragment() {
                 Toast.makeText(context, "Edit Profile - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
+
             AccountSettingsAction.ViewStats -> {
                 Toast.makeText(context, "View Statistics - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
+
             AccountSettingsAction.ManageSubscription -> {
-                Toast.makeText(context, "Manage Subscription - Coming soon", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Manage Subscription - Coming soon", Toast.LENGTH_SHORT)
+                    .show()
                 dismiss()
             }
+
             AccountSettingsAction.Theme -> {
                 Toast.makeText(context, "Theme Settings - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
+
             AccountSettingsAction.AudioQuality -> {
                 Toast.makeText(context, "Audio Quality - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
+
             AccountSettingsAction.Notifications -> {
-                Toast.makeText(context, "Notification Settings - Coming soon", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Notification Settings - Coming soon", Toast.LENGTH_SHORT)
+                    .show()
                 dismiss()
             }
+
             AccountSettingsAction.Storage -> {
                 Toast.makeText(context, "Storage Settings - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
+
             AccountSettingsAction.Language -> {
-                Toast.makeText(context, "Language Settings - Coming soon", Toast.LENGTH_SHORT).show()
-                dismiss()
+                showLanguageSelectionDialog()
             }
+
             AccountSettingsAction.Help -> {
                 Toast.makeText(context, "Help & Support - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
+
             AccountSettingsAction.About -> {
                 Toast.makeText(context, "About - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
+
             AccountSettingsAction.PrivacyPolicy -> {
                 Toast.makeText(context, "Privacy Policy - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
+
             AccountSettingsAction.Logout -> {
                 showLogoutConfirmation()
             }
@@ -198,6 +213,36 @@ class AccountSettingsSideSheet : DialogFragment() {
                 viewModel.logout()
             }
             .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * Displays a dialog for selecting the application language.
+     *
+     * Supports switching between English ("en") and Vietnamese ("vi").
+     * Uses [AppCompatDelegate.setApplicationLocales] to persist the choice
+     * and automatically recreate the Activity to apply the new locale.
+     */
+    private fun showLanguageSelectionDialog() {
+        val languages = arrayOf("English", "Tiếng Việt")
+        val languageCodes = arrayOf("en", "vi")
+
+        // Determine current selection index
+        val currentLocale = AppCompatDelegate.getApplicationLocales().getFirstMatch(languageCodes)
+        val checkedItem = if (currentLocale?.language == "vi") 1 else 0
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.settings_language))
+            .setSingleChoiceItems(languages, checkedItem) { dialog, which ->
+                val selectedLang = languageCodes[which]
+
+                // Apply new locale
+                val appLocale = LocaleListCompat.forLanguageTags(selectedLang)
+                AppCompatDelegate.setApplicationLocales(appLocale)
+
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
@@ -224,8 +269,6 @@ class AccountSettingsSideSheet : DialogFragment() {
     }
 
     companion object {
-        const val TAG = "AccountSettingsSideSheet"
-
         fun newInstance() = AccountSettingsSideSheet()
     }
 }
