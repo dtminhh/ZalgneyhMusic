@@ -153,4 +153,11 @@
     <string name="section_title">Section Title</string>
     <string name="feature_songs">Feature songs</string>
     <string name="track_list">Track list</string>
+    <string name="storage_manager">Storage Manager</string>
+    <string name="data_can_delete">Data can delete</string>
+    <string name="image_cache_glide">Image cache (Glide)</string>
+    <string name="music_cache_amp_system"><![CDATA[music cache & system]]></string>
+    <string name="clean_now">Clean now</string>
+    <string name="cleaning">Cleaning...</string>
+    <string name="cleaned">Cleaned</string>
 </resources>

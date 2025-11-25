@@ -2,6 +2,8 @@ package com.example.zalgneyhmusic.ui.account
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -13,13 +15,16 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.SideSheetAccountSettingsBinding
+import com.example.zalgneyhmusic.ui.utils.StorageHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 /**
  * Beautiful Material Design Side Sheet for Account & Settings
@@ -176,8 +181,7 @@ class AccountSettingsSideSheet : DialogFragment() {
             }
 
             AccountSettingsAction.Storage -> {
-                Toast.makeText(context, "Storage Settings - Coming soon", Toast.LENGTH_SHORT).show()
-                dismiss()
+                showStorageDialog()
             }
 
             AccountSettingsAction.Language -> {
@@ -244,6 +248,71 @@ class AccountSettingsSideSheet : DialogFragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    /**
+     * Displays a dialog for managing application storage.
+     *
+     * Shows the current total cache size with a visual breakdown and progress indicator.
+     * Allows the user to clear the application cache (including Glide and system cache)
+     * asynchronously with immediate UI feedback.
+     */
+    private fun showStorageDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        // Inflate custom layout
+        val dialogBinding =
+            com.example.zalgneyhmusic.databinding.DialogStorageManagerBinding.inflate(layoutInflater)
+        builder.setView(dialogBinding.root)
+
+        val dialog = builder.create()
+        // Transparent background for rounded corners
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        dialogBinding.apply {
+            // [1] Calculate storage data
+            val totalSize = StorageHelper.getCacheSize(requireContext())
+            // Simulate breakdown (Glide usually takes 60-80%)
+            val imageSize = (totalSize * 0.7).toLong()
+            val otherSize = totalSize - imageSize
+
+            // [2] Update UI
+            txtTotalSize.text = StorageHelper.formatSize(requireContext(), totalSize)
+            txtImageCache.text = StorageHelper.formatSize(requireContext(), imageSize)
+            txtOtherCache.text = StorageHelper.formatSize(requireContext(), otherSize)
+
+            progressStorage.progress =
+                ((totalSize.toFloat() / (500 * 1024 * 1024)) * 100).toInt().coerceIn(5, 100)
+
+            // Progress bar visual (using 500MB as an arbitrary cap for 100%)
+            btnClear.setOnClickListener {
+                btnClear.text = getString(R.string.cleaning)
+                btnClear.isEnabled = false
+
+                lifecycleScope.launch {
+                    // Clear cache on IO thread
+                    StorageHelper.clearAppCache(requireContext())
+
+                    // Calculate storage data
+                    val newTotalSize = StorageHelper.getCacheSize(requireContext())
+                    val newImageSize = (newTotalSize * 0.7).toLong()
+                    val newOtherSize = newTotalSize - newImageSize
+
+                    // Update UI post-cleanup
+                    txtTotalSize.text = StorageHelper.formatSize(requireContext(), newTotalSize)
+                    txtImageCache.text = StorageHelper.formatSize(requireContext(), newImageSize)
+                    txtOtherCache.text = StorageHelper.formatSize(requireContext(), newOtherSize)
+
+                    val newProgress = ((newTotalSize.toFloat() / (500 * 1024 * 1024)) * 100).toInt()
+                        .coerceIn(0, 100)
+                    progressStorage.setProgressCompat(newProgress, true)
+
+                    // [3] Handle "Clean" action
+                    btnClear.text = getString(R.string.cleaned)
+                }
+            }
+            btnCancel.setOnClickListener { dialog.dismiss() }
+        }
+        dialog.show()
     }
 
     override fun onStart() {

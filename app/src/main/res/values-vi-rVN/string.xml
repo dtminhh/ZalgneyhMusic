@@ -140,4 +140,12 @@
     <string name="section_title">Tiêu đề phần</string>
     <string name="feature_songs">Bài hát nổi bật</string>
     <string name="track_list">Danh sách bài hát</string>
+
+    <string name="storage_manager">Quản lý bộ nhớ</string>
+    <string name="data_can_delete">Dữ liệu có thể xóa</string>
+    <string name="image_cache_glide">Cache ảnh (Glide)</string>
+    <string name="music_cache_amp_system"><![CDATA[Dữ liệu nhạc & hệ thống]]></string>
+    <string name="clean_now">Dọn dẹp ngay</string>
+    <string name="cleaning">Đang dọn...</string>
+    <string name="cleaned">Đã sạch sẽ</string>
 </resources>
