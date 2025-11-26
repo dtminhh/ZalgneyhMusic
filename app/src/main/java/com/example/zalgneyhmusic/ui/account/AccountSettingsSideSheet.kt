@@ -3,7 +3,6 @@ package com.example.zalgneyhmusic.ui.account
 import android.app.AlertDialog
 import android.app.Dialog
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -25,6 +24,7 @@ import com.example.zalgneyhmusic.ui.utils.StorageHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import androidx.core.graphics.drawable.toDrawable
 
 /**
  * Beautiful Material Design Side Sheet for Account & Settings
@@ -123,22 +123,16 @@ class AccountSettingsSideSheet : DialogFragment() {
             // Account Section
             AccountSettingsItem.Section(R.string.section_account),
             AccountSettingsItem.Action(AccountSettingsAction.EditProfile),
-            AccountSettingsItem.Action(AccountSettingsAction.ViewStats),
             AccountSettingsItem.Action(AccountSettingsAction.ManageSubscription),
 
             // App Settings Section
             AccountSettingsItem.Section(R.string.section_app_settings),
-            AccountSettingsItem.Action(AccountSettingsAction.Theme),
-            AccountSettingsItem.Action(AccountSettingsAction.AudioQuality),
-            AccountSettingsItem.Action(AccountSettingsAction.Notifications),
             AccountSettingsItem.Action(AccountSettingsAction.Storage),
             AccountSettingsItem.Action(AccountSettingsAction.Language),
 
             // Help & About Section
             AccountSettingsItem.Section(R.string.section_help_about),
-            AccountSettingsItem.Action(AccountSettingsAction.Help),
             AccountSettingsItem.Action(AccountSettingsAction.About),
-            AccountSettingsItem.Action(AccountSettingsAction.PrivacyPolicy),
 
             // Danger Zone
             AccountSettingsItem.Section(R.string.section_danger_zone),
@@ -153,29 +147,8 @@ class AccountSettingsSideSheet : DialogFragment() {
                 dismiss()
             }
 
-            AccountSettingsAction.ViewStats -> {
-                Toast.makeText(context, "View Statistics - Coming soon", Toast.LENGTH_SHORT).show()
-                dismiss()
-            }
-
             AccountSettingsAction.ManageSubscription -> {
                 Toast.makeText(context, "Manage Subscription - Coming soon", Toast.LENGTH_SHORT)
-                    .show()
-                dismiss()
-            }
-
-            AccountSettingsAction.Theme -> {
-                Toast.makeText(context, "Theme Settings - Coming soon", Toast.LENGTH_SHORT).show()
-                dismiss()
-            }
-
-            AccountSettingsAction.AudioQuality -> {
-                Toast.makeText(context, "Audio Quality - Coming soon", Toast.LENGTH_SHORT).show()
-                dismiss()
-            }
-
-            AccountSettingsAction.Notifications -> {
-                Toast.makeText(context, "Notification Settings - Coming soon", Toast.LENGTH_SHORT)
                     .show()
                 dismiss()
             }
@@ -188,18 +161,8 @@ class AccountSettingsSideSheet : DialogFragment() {
                 showLanguageSelectionDialog()
             }
 
-            AccountSettingsAction.Help -> {
-                Toast.makeText(context, "Help & Support - Coming soon", Toast.LENGTH_SHORT).show()
-                dismiss()
-            }
-
             AccountSettingsAction.About -> {
                 Toast.makeText(context, "About - Coming soon", Toast.LENGTH_SHORT).show()
-                dismiss()
-            }
-
-            AccountSettingsAction.PrivacyPolicy -> {
-                Toast.makeText(context, "Privacy Policy - Coming soon", Toast.LENGTH_SHORT).show()
                 dismiss()
             }
 
@@ -266,7 +229,7 @@ class AccountSettingsSideSheet : DialogFragment() {
 
         val dialog = builder.create()
         // Transparent background for rounded corners
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
 
         dialogBinding.apply {
             // [1] Calculate storage data
