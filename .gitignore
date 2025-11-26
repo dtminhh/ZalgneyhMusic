@@ -16,17 +16,6 @@ local.properties
 app/google-services.json
 # IDE
 /.idea/
-# Explicitly ignore specific .idea files referenced by user (redundant due to /.idea/ but kept for clarity)
-/.idea/markdown.xml
-/.idea/appInsightsSettings.xml
-/.idea/copilot.data.migration.agent.xml
-/.idea/copilot.data.migration.ask.xml
-/.idea/copilot.data.migration.ask2agent.xml
-/.idea/copilot.data.migration.edit.xml
-/.idea/copilotDiffState.xml
-/.idea/deploymentTargetSelector.xml
-/.idea/deviceManager.xml
-
 # Gradle
 .gradle/
 /build/
