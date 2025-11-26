@@ -18,9 +18,9 @@ import com.example.zalgneyhmusic.ui.UIConstants.ViewPager.USER_INPUT_ENABLED
 import com.example.zalgneyhmusic.ui.adapter.MainFragmentAdapter
 import com.example.zalgneyhmusic.ui.fragment.auth.LoginFragment
 import com.example.zalgneyhmusic.ui.fragment.player.setupMiniPlayerExt
+import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.TopBarState
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.TopBarViewModel
-import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -41,8 +41,9 @@ class MainFragment : Fragment() {
 
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
-    private val navItems by lazy {
-        listOf(
+
+    private fun getNavItems(): List<View> {
+        return listOf(
             binding.navHome,
             binding.navSong,
             binding.navAlbums,
@@ -375,7 +376,7 @@ class MainFragment : Fragment() {
      * Sets up bottom navigation click listeners.
      */
     private fun setupBottomNavigation() {
-        navItems.forEachIndexed { index, navItem ->
+        getNavItems().forEachIndexed { index, navItem ->
             navItem.setOnClickListener {
                 if (currentSelectedIndex != index) {
                     binding.vp2MainContent.currentItem = index
@@ -412,7 +413,7 @@ class MainFragment : Fragment() {
      */
     private fun selectNavItem(selectedIndex: Int) {
         currentSelectedIndex = selectedIndex
-        navItems.forEachIndexed { index, navItem ->
+        getNavItems().forEachIndexed { index, navItem ->
             navItem.isSelected = (index == selectedIndex)
         }
     }
