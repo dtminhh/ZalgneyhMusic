@@ -56,6 +56,7 @@ class SearchFragment : BaseFragment() {
         // Songs Adapter
         songsAdapter = SearchSongsAdapter(
             onSongClick = { song ->
+                searchViewModel.addSongToHistory(song)
                 mediaActionHandler.onSongClick(song, songsAdapter.currentList)
             }
         )
@@ -67,6 +68,7 @@ class SearchFragment : BaseFragment() {
         // Artists Adapter
         artistsAdapter = SearchArtistsAdapter(
             onArtistClick = { artist ->
+                searchViewModel.addArtistToHistory(artist)
                 openArtistDetail(artist.id)
             }
         )
@@ -78,6 +80,7 @@ class SearchFragment : BaseFragment() {
         // Albums Adapter
         albumsAdapter = SearchAlbumsAdapter(
             onAlbumClick = { album ->
+                searchViewModel.addAlbumToHistory(album)
                 openAlbumDetail(album.id)
             }
         )
@@ -88,12 +91,27 @@ class SearchFragment : BaseFragment() {
 
         // Recent Searches Adapter
         recentSearchesAdapter = RecentSearchesAdapter(
-            onSearchClick = { query ->
-                binding.etSearch.setText(query)
-                binding.etSearch.setSelection(query.length)
+            onItemClick = { item ->
+                // Xử lý khi click lại vào mục lịch sử
+                when (item.type) {
+                    "QUERY" -> {
+                        // Điền lại vào ô tìm kiếm và tìm luôn
+                        binding.etSearch.setText(item.title)
+                        binding.etSearch.setSelection(item.title.length)
+                    }
+
+                    "SONG" -> {
+                        // Logic phát bài hát từ lịch sử hơi phức tạp vì cần Song Object đầy đủ.
+                        // Tạm thời có thể mở màn hình Search với tên bài hát đó
+                        binding.etSearch.setText(item.title)
+                    }
+
+                    "ARTIST" -> openArtistDetail(item.id)
+                    "ALBUM" -> openAlbumDetail(item.id)
+                }
             },
-            onRemoveClick = { query ->
-                searchViewModel.removeFromRecentSearches(query)
+            onRemoveClick = { item ->
+                searchViewModel.removeFromHistory(item)
             }
         )
         binding.rvRecentSearches.apply {
@@ -169,10 +187,10 @@ class SearchFragment : BaseFragment() {
 
             // Observe recent searches
             launch {
-                searchViewModel.recentSearches.collect { recentSearches ->
-                    recentSearchesAdapter.submitList(recentSearches)
+                searchViewModel.searchHistory.collect { historyList ->
+                    recentSearchesAdapter.submitList(historyList)
                     binding.recentSearchesContainer.isVisible =
-                        recentSearches.isNotEmpty() && searchViewModel.searchQuery.value.isBlank()
+                        historyList.isNotEmpty() && searchViewModel.searchQuery.value.isBlank()
                 }
             }
         }

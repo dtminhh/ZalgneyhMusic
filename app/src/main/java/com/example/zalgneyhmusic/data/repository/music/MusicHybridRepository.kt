@@ -12,6 +12,7 @@ import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -224,6 +225,31 @@ class MusicHybridRepository @Inject constructor(
                 }
 
             emit(Resource.Success(results))
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }
+
+    override fun searchEverything(query: String): Flow<Resource<SearchResults>> = flow {
+        emit(Resource.Loading)
+        try {
+            // Gọi API Search mới
+            val response = apiService.search(query)
+
+            if (response.isSuccessful && response.body()?.success == true) {
+                val data = response.body()?.data
+
+                // Map từ DTO sang Domain
+                val results = SearchResults(
+                    songs = data?.songs?.map { it.toDomain() } ?: emptyList(),
+                    artists = data?.artists?.map { it.toDomain() } ?: emptyList(),
+                    albums = data?.albums?.map { it.toDomain() } ?: emptyList()
+                )
+                emit(Resource.Success(results))
+            } else {
+                // Fallback: Nếu API lỗi thì trả về rỗng hoặc tìm local (nếu có cache)
+                emit(Resource.Failure(Exception("Search failed")))
+            }
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
