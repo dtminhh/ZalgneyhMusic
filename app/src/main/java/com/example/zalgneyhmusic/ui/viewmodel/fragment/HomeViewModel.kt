@@ -69,7 +69,7 @@ class HomeViewModel @Inject constructor(
     /** Loads top 5 featured songs from repository */
     private fun loadFeaturedSongs() {
         viewModelScope.launch {
-            musicRepository.getTopSongs(LIMIT_FEATURED_SONGS).collect { resource ->
+            musicRepository.getTopSongs().collect { resource ->
                 _featuredSongs.value = resource
             }
         }
@@ -123,6 +123,5 @@ class HomeViewModel @Inject constructor(
 
     companion object {
         const val LIMIT_LOAD_DATA_VALUE = 10
-        const val LIMIT_FEATURED_SONGS = 5
     }
 }

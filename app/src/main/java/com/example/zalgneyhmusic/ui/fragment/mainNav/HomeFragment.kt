@@ -56,8 +56,20 @@ class HomeFragment : BaseFragment() {
      */
     private fun setupRecyclerView() {
         homeAdapter = HomeParentAdapter(
-            onSongClick = { song, _ ->
-                mediaActionHandler.onSongClick(song)
+            onSongClick = { song, sectionType ->
+                val playlist = when (sectionType) {
+                    SectionType.FEATURED_SONGS ->
+                        (viewModel.featuredSongs.value as? Resource.Success)?.result
+
+                    SectionType.RECENTLY_HEARD ->
+                        (viewModel.recentlyHeard.value as? Resource.Success)?.result
+
+                    SectionType.SUGGESTIONS ->
+                        (viewModel.suggestions.value as? Resource.Success)?.result
+
+                    else -> null
+                } ?: listOf(song)
+                mediaActionHandler.onSongClick(song, playlist)
             },
             onArtistClick = { artist ->
                 openArtistDetail(artist.id)
