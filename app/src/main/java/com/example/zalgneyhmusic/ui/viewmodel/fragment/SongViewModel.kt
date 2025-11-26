@@ -39,7 +39,7 @@ class SongViewModel @Inject constructor(
         viewModelScope.launch {
             _featureSongs.value = Resource.Loading
             // Feature songs: reuse top songs (limit 20 for this screen)
-            musicRepository.getTopSongs(limit = 20).collect { resource ->
+            musicRepository.getTopSongs(limit = 100).collect { resource ->
                 _featureSongs.value = resource
             }
         }
@@ -48,7 +48,7 @@ class SongViewModel @Inject constructor(
     fun loadRecentSongs() {
         viewModelScope.launch {
             _recentSongs.value = Resource.Loading
-            musicRepository.getRecentSongs(limit = 20).collect { resource ->
+            musicRepository.getRecentSongs(limit = 100).collect { resource ->
                 _recentSongs.value = resource
             }
         }
@@ -57,7 +57,7 @@ class SongViewModel @Inject constructor(
     fun loadNewSongs() {
         viewModelScope.launch {
             _newSongs.value = Resource.Loading
-            musicRepository.getNewSongs(limit = 20).collect { resource ->
+            musicRepository.getNewSongs(limit = 100).collect { resource ->
                 _newSongs.value = resource
             }
         }

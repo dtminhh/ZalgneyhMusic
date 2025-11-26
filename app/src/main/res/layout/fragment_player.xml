@@ -151,7 +151,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:background="@color/white"
+            android:background="@color/material_on_surface_stroke"
             android:contentDescription="@string/play_pause"
             android:src="@drawable/quick_play_icon" />
 

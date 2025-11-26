@@ -38,7 +38,7 @@ interface ZalgneyhApiService {
     @GET("songs")
     suspend fun getAllSongs(
         @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 50
     ): Response<ApiResponse<List<SongDTO>>>
 
     /**
@@ -46,7 +46,7 @@ interface ZalgneyhApiService {
      */
     @GET("songs/trending")
     suspend fun getTrendingSongs(
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 50
     ): Response<ApiResponse<List<SongDTO>>>
 
     /**
@@ -54,7 +54,7 @@ interface ZalgneyhApiService {
      */
     @GET("songs/new")
     suspend fun getNewSongs(
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 50
     ): Response<ApiResponse<List<SongDTO>>>
 
     /**
@@ -73,7 +73,7 @@ interface ZalgneyhApiService {
     @GET("artists")
     suspend fun getArtists(
         @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 50
     ): Response<ApiResponse<List<ArtistDTO>>>
 
     /**
@@ -101,7 +101,7 @@ interface ZalgneyhApiService {
     @GET("albums")
     suspend fun getAlbums(
         @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 50
     ): Response<ApiResponse<List<AlbumDTO>>>
 
     /**
