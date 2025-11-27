@@ -56,6 +56,7 @@ class SearchFragment : BaseFragment() {
         // Songs Adapter
         songsAdapter = SearchSongsAdapter(
             onSongClick = { song ->
+                searchViewModel.addSongToHistory(song)
                 mediaActionHandler.onSongClick(song, songsAdapter.currentList)
             }
         )
@@ -67,6 +68,7 @@ class SearchFragment : BaseFragment() {
         // Artists Adapter
         artistsAdapter = SearchArtistsAdapter(
             onArtistClick = { artist ->
+                searchViewModel.addArtistToHistory(artist)
                 openArtistDetail(artist.id)
             }
         )
@@ -78,6 +80,7 @@ class SearchFragment : BaseFragment() {
         // Albums Adapter
         albumsAdapter = SearchAlbumsAdapter(
             onAlbumClick = { album ->
+                searchViewModel.addAlbumToHistory(album)
                 openAlbumDetail(album.id)
             }
         )
@@ -88,12 +91,23 @@ class SearchFragment : BaseFragment() {
 
         // Recent Searches Adapter
         recentSearchesAdapter = RecentSearchesAdapter(
-            onSearchClick = { query ->
-                binding.etSearch.setText(query)
-                binding.etSearch.setSelection(query.length)
+            onItemClick = { item ->
+                when (item.type) {
+                    "QUERY" -> {
+                        binding.etSearch.setText(item.title)
+                        binding.etSearch.setSelection(item.title.length)
+                    }
+
+                    "SONG" -> {
+                        binding.etSearch.setText(item.title)
+                    }
+
+                    "ARTIST" -> openArtistDetail(item.id)
+                    "ALBUM" -> openAlbumDetail(item.id)
+                }
             },
-            onRemoveClick = { query ->
-                searchViewModel.removeFromRecentSearches(query)
+            onRemoveClick = { item ->
+                searchViewModel.removeFromHistory(item)
             }
         )
         binding.rvRecentSearches.apply {
@@ -115,6 +129,23 @@ class SearchFragment : BaseFragment() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+        binding.etSearch.setOnEditorActionListener { v, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = v.text.toString()
+                if (query.isNotBlank()) {
+
+                    // Add the entered keyword to the search history
+                    searchViewModel.addKeywordToHistory(query)
+
+                    // Hide the keyboard after submitting the search
+                    val imm = requireContext()
+                        .getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
+                            as android.view.inputmethod.InputMethodManager
+                    imm.hideSoftInputFromWindow(v.windowToken, 0)
+                }
+                true
+            } else false
+        }
 
         // Clear search button
         binding.btnClearSearch.setOnClickListener {
@@ -169,10 +200,24 @@ class SearchFragment : BaseFragment() {
 
             // Observe recent searches
             launch {
-                searchViewModel.recentSearches.collect { recentSearches ->
-                    recentSearchesAdapter.submitList(recentSearches)
-                    binding.recentSearchesContainer.isVisible =
-                        recentSearches.isNotEmpty() && searchViewModel.searchQuery.value.isBlank()
+                searchViewModel.searchHistory.collect { historyList ->
+                    recentSearchesAdapter.submitList(historyList)
+                    // 2. Check UI conditions
+                    val isQueryBlank = searchViewModel.searchQuery.value.isBlank()
+                    val hasHistory = historyList.isNotEmpty()
+
+                    // 3. Update UI based on the latest state
+                    if (isQueryBlank) {
+                        if (hasHistory) {
+                            // History exists → Show list, hide empty state
+                            binding.recentSearchesContainer.isVisible = true
+                            binding.emptyState.isVisible = false
+                        } else {
+                            // No history → Hide list, show empty state
+                            binding.recentSearchesContainer.isVisible = false
+                            binding.emptyState.isVisible = true
+                        }
+                    }
                 }
             }
         }
@@ -181,10 +226,10 @@ class SearchFragment : BaseFragment() {
     private fun updateUIState(query: String) {
         when {
             query.isBlank() -> {
+                val hasHistory = recentSearchesAdapter.currentList.isNotEmpty()
                 // Show empty state or recent searches
-                binding.emptyState.isVisible = searchViewModel.recentSearches.value.isEmpty()
-                binding.recentSearchesContainer.isVisible =
-                    searchViewModel.recentSearches.value.isNotEmpty()
+                binding.emptyState.isVisible = !hasHistory
+                binding.recentSearchesContainer.isVisible = hasHistory
                 binding.searchResultsContainer.isVisible = false
             }
 

@@ -4,6 +4,7 @@ import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.Song
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -31,4 +32,6 @@ interface MusicRepository {
     fun getAllAlbums(): Flow<Resource<List<Album>>>
     fun getRecentAlbums(limit: Int = 10): Flow<Resource<List<Album>>>
     suspend fun getAlbumById(id: String): Resource<Album>
+
+    fun searchEverything(query: String): Flow<Resource<SearchResults>>
 }

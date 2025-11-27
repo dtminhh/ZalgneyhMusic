@@ -12,6 +12,7 @@ import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -38,6 +39,10 @@ class MusicHybridRepository @Inject constructor(
 
     // ==================== SONGS ====================
 
+    /**
+     * Fetch all songs from API (page 1, limit 100), cache them in local DB.
+     * If API fails, fallback to cached songs.
+     */
     override fun getAllSongs(): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
 
@@ -74,6 +79,12 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch top trending songs from API, cache them.
+     * Fallback: sort cached songs by plays descending.
+     *
+     * @param limit Number of top songs to fetch
+     */
     override fun getTopSongs(limit: Int): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
 
@@ -111,6 +122,12 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch recent songs from API sorted by creation date.
+     * Fallback: use cached songs sorted by creation date.
+     *
+     * @param limit Number of recent songs
+     */
     override fun getRecentSongs(limit: Int): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
 
@@ -149,6 +166,12 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch new songs from API (backend-defined new), cache them.
+     * Fallback: sort cached songs by createdAt descending.
+     *
+     * @param limit Number of new songs
+     */
     override fun getNewSongs(limit: Int): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
 
@@ -158,7 +181,6 @@ class MusicHybridRepository @Inject constructor(
                 val songDTOs = response.body()?.data ?: emptyList()
                 val songs = songDTOs.map { it.toDomain() }
 
-                // Cập nhật cache
                 songDao.insertAll(songs.map { SongEntity.fromDomain(it) })
 
                 Log.d(TAG, "getNewSongs: Fetched ${songs.size} new songs")
@@ -169,7 +191,6 @@ class MusicHybridRepository @Inject constructor(
             Log.e(TAG, "getNewSongs: API error", e)
         }
 
-        // Fallback: dùng cache, coi createdAt là "mới"
         try {
             val cached = songDao.getAllSongsSync()
                 .map { it.toDomain() }
@@ -185,6 +206,12 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Get a single song by ID. Try API first, fallback to cached song if API fails.
+     *
+     * @param id Song ID
+     * @return Resource<Song>
+     */
     override suspend fun getSongById(id: String): Resource<Song> {
         return try {
             val response = apiService.getSongById(id)
@@ -211,6 +238,11 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Search songs locally by title or artist name.
+     *
+     * @param query Search string
+     */
     override fun searchSongs(query: String): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
 
@@ -229,8 +261,40 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Hybrid search: fetch Songs, Artists, and Albums from API based on query.
+     *
+     * @param query Search string
+     * @return SearchResults containing songs, artists, albums
+     */
+    override fun searchEverything(query: String): Flow<Resource<SearchResults>> = flow {
+        emit(Resource.Loading)
+        try {
+            val response = apiService.search(query)
+
+            if (response.isSuccessful && response.body()?.success == true) {
+                val data = response.body()?.data
+
+                val results = SearchResults(
+                    songs = data?.songs?.map { it.toDomain() } ?: emptyList(),
+                    artists = data?.artists?.map { it.toDomain() } ?: emptyList(),
+                    albums = data?.albums?.map { it.toDomain() } ?: emptyList()
+                )
+                emit(Resource.Success(results))
+            } else {
+                emit(Resource.Failure(Exception("Search failed")))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }
+
     // ==================== ARTISTS ====================
 
+    /**
+     * Fetch all artists from API and cache them.
+     * Fallback: use cached artists.
+     */
     override fun getAllArtists(): Flow<Resource<List<Artist>>> = flow {
         emit(Resource.Loading)
 
@@ -265,6 +329,12 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch top artists sorted by followers.
+     * Fallback: use cached artists sorted by followers.
+     *
+     * @param limit Number of top artists
+     */
     override fun getTopArtists(limit: Int): Flow<Resource<List<Artist>>> = flow {
         emit(Resource.Loading)
         try {
@@ -300,6 +370,11 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch artist by ID, try API first, fallback to cache.
+     *
+     * @param id Artist ID
+     */
     override suspend fun getArtistById(id: String): Resource<Artist> {
         return try {
             val response = apiService.getArtistById(id)
@@ -323,6 +398,11 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch songs of a specific artist from API.
+     *
+     * @param artistId Artist ID
+     */
     override suspend fun getSongsByArtist(artistId: String): Resource<List<Song>> {
         return try {
             val response = apiService.getArtistSongs(artistId)
@@ -337,6 +417,11 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch albums of a specific artist from API.
+     *
+     * @param artistId Artist ID
+     */
     override suspend fun getAlbumsByArtist(artistId: String): Resource<List<Album>> {
         return try {
             val response = apiService.getAlbumsByArtist(artistId)
@@ -353,6 +438,10 @@ class MusicHybridRepository @Inject constructor(
 
     // ==================== ALBUMS ====================
 
+    /**
+     * Fetch all albums from API and cache them.
+     * Fallback: use cached albums.
+     */
     override fun getAllAlbums(): Flow<Resource<List<Album>>> = flow {
         emit(Resource.Loading)
 
@@ -387,6 +476,12 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch recent albums sorted by releaseYear.
+     * Fallback: use cached albums sorted by releaseYear.
+     *
+     * @param limit Number of recent albums
+     */
     override fun getRecentAlbums(limit: Int): Flow<Resource<List<Album>>> = flow {
         emit(Resource.Loading)
 
@@ -423,6 +518,11 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Fetch album by ID, try API first, fallback to cache.
+     *
+     * @param id Album ID
+     */
     override suspend fun getAlbumById(id: String): Resource<Album> {
         return try {
             val response = apiService.getAlbumById(id)
