@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.BottomSheetMoreOptionsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -47,13 +46,7 @@ class MoreOptionsBottomSheet<T : MoreOptionsAction> : BottomSheetDialogFragment(
         binding.apply {
             txtItemTitle.text = itemTitle
             txtItemSubtitle.text = itemSubtitle
-
-            Glide.with(this@MoreOptionsBottomSheet)
-                .load(itemImageUrl)
-                .placeholder(R.drawable.ic_music_note)
-                .error(R.drawable.ic_music_note)
-                .centerCrop()
-                .into(imgItemThumbnail)
+            ImageUtils.loadImage(imgItemThumbnail, itemImageUrl)
 
             rvOptions.layoutManager = LinearLayoutManager(context)
             rvOptions.adapter = MoreOptionsAdapter(actions) { action ->

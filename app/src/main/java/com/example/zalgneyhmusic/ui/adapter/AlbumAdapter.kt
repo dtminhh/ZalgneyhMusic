@@ -1,11 +1,11 @@
 package com.example.zalgneyhmusic.ui.adapter
 
+import ImageUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.databinding.ItemAlbumBinding
@@ -43,15 +43,9 @@ class AlbumAdapter(
             binding.apply {
                 txtAlbumTitle.text = album.title
                 txtArtistName.text = album.artist.name  // ✅ Display artist name
-                txtTrackCount.text = itemView.context.getString(R.string.track_count, album.totalTracks)
-
-                // Load album cover using unified image property
-                val imageToLoad = album.image
-                Glide.with(imgAlbumCover.context)
-                    .load(imageToLoad)
-                    .placeholder(R.drawable.ic_album_placeholder)
-                    .centerCrop()
-                    .into(imgAlbumCover)
+                txtTrackCount.text =
+                    itemView.context.getString(R.string.track_count, album.totalTracks)
+                ImageUtils.loadImage(imgAlbumCover, album.image)
 
                 root.setOnClickListener { onAlbumClick(album) }
                 root.setOnLongClickListener { onAlbumLongClick?.invoke(album) ?: false }

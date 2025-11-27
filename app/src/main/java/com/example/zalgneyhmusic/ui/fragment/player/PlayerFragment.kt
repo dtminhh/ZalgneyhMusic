@@ -1,5 +1,6 @@
 package com.example.zalgneyhmusic.ui.fragment.player
 
+import ImageUtils
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.FragmentPlayerBinding
 import com.example.zalgneyhmusic.player.RepeatMode
@@ -107,11 +107,7 @@ class PlayerFragment : Fragment() {
                         binding.tvArtistName.text = it.artist.name
 
                         // Load album art
-                        Glide.with(requireContext())
-                            .load(it.imageUrl)
-                            .placeholder(R.drawable.ic_music_note)
-                            .error(R.drawable.ic_music_note)
-                            .into(binding.imgAlbumArt)
+                        ImageUtils.loadImage(binding.imgAlbumArt, it.imageUrl)
                     }
                 }
             }

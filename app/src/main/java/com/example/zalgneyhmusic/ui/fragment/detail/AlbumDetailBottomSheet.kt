@@ -1,5 +1,6 @@
 package com.example.zalgneyhmusic.ui.fragment.detail
 
+import ImageUtils
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
@@ -116,14 +116,7 @@ class AlbumDetailBottomSheet : BaseBottomSheetDialogFragment() {
             txtAlbumTitleDetail.text = album.title
             txtArtistNameDetailAlbum.text = album.artist.name
             txtAlbumInfo.text = "${album.releaseYear ?: "Unknown"} • ${album.totalTracks} bài hát"
-
-            // Use the 'image' attribute wisely (prioritize coverImage then imageUrl)
-            Glide.with(root)
-                .load(album.image)
-                .placeholder(R.drawable.ic_album_placeholder)
-                .error(R.drawable.ic_album_placeholder)
-                .centerCrop()
-                .into(imgAlbumCoverDetail)
+            ImageUtils.loadImage(imgAlbumCoverDetail, album.imageUrl)
         }
     }
 

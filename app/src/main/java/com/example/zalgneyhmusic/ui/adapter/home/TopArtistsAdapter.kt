@@ -1,11 +1,10 @@
 package com.example.zalgneyhmusic.ui.adapter.home
 
+import ImageUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.databinding.HomeItemTopArtistsBinding
 import com.example.zalgneyhmusic.ui.adapter.BaseDiffItemCallback
@@ -44,13 +43,8 @@ class TopArtistsAdapter(
         fun bind(artist: Artist) {
             binding.apply {
                 txtArtistName.text = artist.name
+                ImageUtils.loadImage(imgArtistAva, artist.imageUrl)
 
-                Glide.with(itemView.context)
-                    .load(artist.imageUrl)
-                    .placeholder(R.drawable.ic_launcher_background)
-                    .error(R.drawable.ic_launcher_background)
-                    .circleCrop()
-                    .into(imgArtistAva)
                 root.setOnClickListener {
                     onItemClick(artist)
                 }
