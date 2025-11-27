@@ -2,17 +2,19 @@ package com.example.zalgneyhmusic.ui.fragment.player
 
 import ImageUtils
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams
 import android.widget.SeekBar
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.FragmentPlayerBinding
 import com.example.zalgneyhmusic.player.RepeatMode
+import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -22,11 +24,17 @@ import kotlinx.coroutines.launch
  * Display album art, song info, controls (play/pause, next, previous, shuffle, repeat)
  */
 @AndroidEntryPoint
-class PlayerFragment : Fragment() {
+class PlayerFragment : BaseFragment() {
 
     private lateinit var binding: FragmentPlayerBinding
     private val viewModel: PlayerViewModel by viewModels()
     private var isUserSeeking = false
+
+    private fun updateFavoriteIcon(isFavorite: Boolean) {
+        val icon = if (isFavorite) R.drawable.ic_favorite_on else R.drawable.ic_favorite
+        binding.btnFavorite.setImageResource(icon)
+        binding.btnFavorite.imageAlpha = if (isFavorite) 255 else 153
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,6 +55,18 @@ class PlayerFragment : Fragment() {
         // Close button
         binding.btnClose.setOnClickListener {
             findNavController().navigateUp()
+        }
+
+        binding.btnQueue.setOnClickListener {
+            QueueBottomSheet.newInstance().show(childFragmentManager, "queue_bottom_sheet")
+        }
+
+        binding.btnFavorite.setOnClickListener {
+            val currentSong = viewModel.currentSong.value
+            if (currentSong != null) {
+                mediaActionHandler.toggleFavorite(currentSong)
+            }
+
         }
 
         // Play/Pause
@@ -108,6 +128,29 @@ class PlayerFragment : Fragment() {
 
                         // Load album art
                         ImageUtils.loadImage(binding.imgAlbumArt, it.imageUrl)
+
+                        // Bind lyrics or fallback text
+                        if (it.lyrics.isNullOrBlank()) {
+                            binding.lyricsContainer.visibility = View.VISIBLE
+                            binding.tvLyricsPreview.text = getString(R.string.no_lyrics_found)
+
+                            // Center the fallback text vertically and horizontally
+                            val params = binding.tvLyricsPreview.layoutParams
+                            params.height = LayoutParams.MATCH_PARENT
+                            binding.tvLyricsPreview.layoutParams = params
+                            binding.tvLyricsPreview.gravity = Gravity.CENTER
+                            binding.tvLyricsPreview.textAlignment = View.TEXT_ALIGNMENT_CENTER
+                        } else {
+                            binding.lyricsContainer.visibility = View.VISIBLE
+                            binding.tvLyricsPreview.text = it.lyrics
+
+                            // Restore default layout params and left alignment for normal lyrics
+                            val params = binding.tvLyricsPreview.layoutParams
+                            params.height = LayoutParams.WRAP_CONTENT
+                            binding.tvLyricsPreview.layoutParams = params
+                            binding.tvLyricsPreview.gravity = Gravity.START
+                            binding.tvLyricsPreview.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
+                        }
                     }
                 }
             }
@@ -121,6 +164,33 @@ class PlayerFragment : Fragment() {
                 }
             }
 
+            // Observe favorite toggle state
+            launch {
+                viewModel.isCurrentSongFavorite.collect { isFavorite ->
+                    updateFavoriteIcon(isFavorite)
+                }
+            }
+
+            // Observe shuffle state
+            launch {
+                viewModel.shuffleMode.collect { isShuffleOn ->
+                    binding.btnShuffle.imageAlpha = if (isShuffleOn) 255 else 128
+                    binding.btnShuffle.isSelected = isShuffleOn
+                }
+            }
+
+            // Observe repeat state
+            launch {
+                viewModel.repeatMode.collect { mode ->
+                    binding.btnRepeat.imageAlpha = if (mode == RepeatMode.NONE) 128 else 255
+                    binding.btnRepeat.contentDescription = when (mode) {
+                        RepeatMode.ONE -> getString(R.string.repeat) + " (one)"
+                        RepeatMode.ALL -> getString(R.string.repeat) + " (all)"
+                        RepeatMode.NONE -> getString(R.string.repeat)
+                    }
+                }
+            }
+
             // Observe position
             launch {
                 viewModel.currentPosition.collect { position ->
@@ -131,42 +201,8 @@ class PlayerFragment : Fragment() {
                             binding.seekBar.progress = progress
                         }
                         binding.tvCurrentTime.text = viewModel.formatTime(position)
-                    }
-                }
-            }
+                        binding.tvDuration.text = viewModel.formatTime(duration)
 
-            // Observe duration
-            launch {
-                viewModel.duration.collect { duration ->
-                    binding.tvDuration.text = viewModel.formatTime(duration)
-                }
-            }
-
-            // Observe shuffle mode
-            launch {
-                viewModel.shuffleMode.collect { isShuffleOn ->
-                    binding.btnShuffle.alpha = if (isShuffleOn) 1.0f else 0.5f
-                }
-            }
-
-            // Observe repeat mode
-            launch {
-                viewModel.repeatMode.collect { repeatMode ->
-                    when (repeatMode) {
-                        RepeatMode.NONE -> {
-                            binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
-                            binding.btnRepeat.alpha = 0.5f
-                        }
-
-                        RepeatMode.ONE -> {
-                            binding.btnRepeat.setImageResource(R.drawable.ic_repeat_one)
-                            binding.btnRepeat.alpha = 1.0f
-                        }
-
-                        RepeatMode.ALL -> {
-                            binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
-                            binding.btnRepeat.alpha = 1.0f
-                        }
                     }
                 }
             }

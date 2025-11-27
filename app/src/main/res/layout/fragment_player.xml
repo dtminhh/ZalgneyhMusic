@@ -9,8 +9,8 @@
     <!-- Album Art -->
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imgAlbumArt"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="8dp"
         android:scaleType="centerCrop"
@@ -20,7 +20,7 @@
         app:layout_constraintTop_toBottomOf="@+id/btnClose"
         app:layout_constraintWidth_percent="0.8"
         app:shapeAppearanceOverlay="@style/RoundedCorner16Style"
-        tools:src="@drawable/ic_launcher_background" />
+        tools:src="@mipmap/ic_launcher" />
 
     <!-- Song Title -->
     <TextView
@@ -28,7 +28,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="24dp"
         android:ellipsize="marquee"
         android:focusable="true"
@@ -65,7 +64,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -115,7 +113,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
         android:gravity="center"
         android:orientation="horizontal"
@@ -178,11 +175,42 @@
 
     </LinearLayout>
 
+    <!-- Lyrics box (always scrollable) -->
+    <ScrollView
+        android:id="@+id/lyricsContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/bg_lyrics_box"
+        android:fillViewport="true"
+        android:padding="10dp"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="insideOverlay"
+        android:overScrollMode="ifContentScrolls"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/controlButtons">
+
+        <TextView
+            android:id="@+id/tvLyricsPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="none"
+            android:gravity="start"
+            android:textAlignment="textStart"
+            android:textColor="@color/black_opa_50"
+            android:textSize="14sp"
+            tools:text="Sample lyric line 1\nSample lyric line 2\nSample lyric line 3\nSample lyric line 4\nSample lyric line 5" />
+    </ScrollView>
+
     <!-- Close Button -->
     <ImageButton
         android:id="@+id/btnClose"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_margin="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/close"
@@ -191,4 +219,28 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="@color/black" />
 
+    <ImageButton
+        android:id="@+id/btnFavorite"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/favorite"
+        android:src="@drawable/ic_favorite"
+        app:layout_constraintBottom_toBottomOf="@+id/btnClose"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnClose" />
+
+    <ImageButton
+        android:id="@+id/btnQueue"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/queue"
+        android:src="@drawable/ic_queue_music"
+        app:layout_constraintBottom_toBottomOf="@+id/btnFavorite"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnFavorite"
+        app:tint="@color/black" />
 </androidx.constraintlayout.widget.ConstraintLayout>

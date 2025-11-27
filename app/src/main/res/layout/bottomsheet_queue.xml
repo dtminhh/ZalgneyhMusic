@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvQueueTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/queue"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingBottom="8dp" />
+
+    <!-- Now playing section -->
+    <TextView
+        android:id="@+id/tvNowPlayingLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/queue_now_playing"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerNowPlaying"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- Divider between now playing and upcoming -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@android:color/darker_gray" />
+
+    <!-- Upcoming section (next + later) -->
+    <TextView
+        android:id="@+id/tvUpNextLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/queue_up_next"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:paddingBottom="4dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerUpNext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- Divider between immediate next and later songs -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@android:color/darker_gray" />
+
+    <TextView
+        android:id="@+id/tvLaterLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/queue_later"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:paddingBottom="4dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerLater"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

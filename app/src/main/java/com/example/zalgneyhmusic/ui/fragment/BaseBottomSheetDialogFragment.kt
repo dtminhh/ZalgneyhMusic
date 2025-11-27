@@ -5,6 +5,8 @@ import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.data.session.UserManager
+import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.example.zalgneyhmusic.ui.handler.MediaActionHandler
 import com.example.zalgneyhmusic.ui.navigation.DetailNavigator
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
@@ -18,6 +20,12 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
     @Inject
     lateinit var musicRepository: MusicRepository
 
+    @Inject
+    lateinit var userManager: UserManager
+
+    @Inject
+    lateinit var apiService: ZalgneyhApiService
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mediaActionHandler = MediaActionHandler(
@@ -26,7 +34,8 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
             playerViewModel,
             activity as? DetailNavigator,
             musicRepository = musicRepository,
-            scope = viewLifecycleOwner.lifecycleScope
+            scope = viewLifecycleOwner.lifecycleScope,
+            userManager = userManager
         )
     }
 }

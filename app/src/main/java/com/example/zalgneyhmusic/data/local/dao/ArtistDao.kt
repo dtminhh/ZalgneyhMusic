@@ -16,14 +16,14 @@ interface ArtistDao {
     @Query("SELECT * FROM artists ORDER BY name ASC")
     fun getAllArtists(): Flow<List<ArtistEntity>>
 
-    // Synchronous version for fallback
+    // Synchronous version used as a fallback when Flow is not appropriate
     @Query("SELECT * FROM artists ORDER BY name ASC")
     fun getAllArtistsSync(): List<ArtistEntity>
 
     @Query("SELECT * FROM artists WHERE id = :id")
     suspend fun getArtistById(id: String): ArtistEntity?
 
-    // Synchronous version
+    // Synchronous variant
     @Query("SELECT * FROM artists WHERE id = :id")
     fun getArtistByIdSync(id: String): ArtistEntity?
 
@@ -36,7 +36,7 @@ interface ArtistDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertArtists(artists: List<ArtistEntity>)
 
-    // Aliases for consistency
+    // Aliases for API consistency
     suspend fun insert(artist: ArtistEntity) = insertArtist(artist)
     suspend fun insertAll(artists: List<ArtistEntity>) = insertArtists(artists)
 
@@ -46,6 +46,6 @@ interface ArtistDao {
     @Query("DELETE FROM artists")
     suspend fun deleteAllArtists()
 
-    // Alias
+    // Alias for clearing all artists
     suspend fun deleteAll() = deleteAllArtists()
 }

@@ -1,10 +1,12 @@
 package com.example.zalgneyhmusic.ui.utils
 
 import android.content.Context
+import android.net.Uri
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 
 /**
  * Utility object for handling application storage and cache operations.
@@ -79,5 +81,28 @@ object StorageHelper {
      */
     fun formatSize(context: Context, size: Long): String {
         return android.text.format.Formatter.formatFileSize(context, size)
+    }
+
+    fun uriToFile(context: Context, uri: Uri): File? {
+        return try {
+            val contentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+
+            // Tạo file tạm thời với tên ngẫu nhiên
+            val tempFile = File.createTempFile("temp_upload_image", ".jpg", context.cacheDir)
+            val outputStream = FileOutputStream(tempFile)
+
+            // Copy dữ liệu từ Uri sang File
+            inputStream.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            tempFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }

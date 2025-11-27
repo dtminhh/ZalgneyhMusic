@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.data.session.UserManager
+import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.example.zalgneyhmusic.ui.handler.MediaActionHandler
 import com.example.zalgneyhmusic.ui.navigation.DetailNavigator
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
@@ -25,6 +27,12 @@ abstract class BaseFragment : Fragment() {
     @Inject
     lateinit var musicRepository: MusicRepository
 
+    @Inject
+    lateinit var userManager: UserManager
+
+    @Inject
+    lateinit var apiService: ZalgneyhApiService
+
     // Handler logic Play/Menu
     protected lateinit var mediaActionHandler: MediaActionHandler
 
@@ -39,7 +47,8 @@ abstract class BaseFragment : Fragment() {
             // Get Navigator so Handler can switch screens (when selecting "Go to Artist" from the menu)
             navigator = activity as? DetailNavigator,
             musicRepository = musicRepository,
-            scope = viewLifecycleOwner.lifecycleScope
+            scope = viewLifecycleOwner.lifecycleScope,
+            userManager = userManager
         )
     }
 }

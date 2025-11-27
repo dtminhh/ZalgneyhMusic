@@ -6,7 +6,9 @@ import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
 import com.example.zalgneyhmusic.data.repository.auth.AuthRepository
 import com.example.zalgneyhmusic.data.repository.auth.AuthRepositoryImpl
+import com.example.zalgneyhmusic.data.repository.music.MusicHybridRepository
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.player.MusicPlayer
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
@@ -82,13 +84,16 @@ class AppModule {
     @Singleton
     fun provideMusicRepository(
         database: MusicDatabase,
-        apiService: com.example.zalgneyhmusic.service.ZalgneyhApiService
+        apiService: com.example.zalgneyhmusic.service.ZalgneyhApiService,
+        @ApplicationContext context: Context
     ): MusicRepository {
-        return com.example.zalgneyhmusic.data.repository.music.MusicHybridRepository(
+        return MusicHybridRepository(
             apiService = apiService,
             songDao = database.songDao(),
             artistDao = database.artistDao(),
-            albumDao = database.albumDao()
+            albumDao = database.albumDao(),
+            firebaseAuth = provideFirebaseAuth(),
+            userManager = UserManager(context)
         )
     }
 

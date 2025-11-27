@@ -15,6 +15,7 @@ object MoreOptionsManager {
     fun showForSong(
         fragmentManager: FragmentManager,
         song: Song,
+        isFavorite: Boolean,
         onActionClick: (MoreOptionsAction.SongAction) -> Unit
     ) {
         MoreOptionsBottomSheet.forSong(
@@ -25,6 +26,11 @@ object MoreOptionsManager {
                 MoreOptionsAction.SongAction.PlayNext,
                 MoreOptionsAction.SongAction.AddToQueue,
                 MoreOptionsAction.SongAction.AddToPlaylist,
+                if (isFavorite) {
+                    MoreOptionsAction.SongAction.RemoveFromFavorites
+                } else {
+                    MoreOptionsAction.SongAction.AddToFavorite
+                },
                 MoreOptionsAction.SongAction.GoToArtist,
                 MoreOptionsAction.SongAction.GoToAlbum,
                 MoreOptionsAction.SongAction.Share
@@ -36,6 +42,7 @@ object MoreOptionsManager {
     fun showForArtist(
         fragmentManager: FragmentManager,
         artist: Artist,
+        isFollowed: Boolean,
         onActionClick: (MoreOptionsAction.ArtistAction) -> Unit
     ) {
         MoreOptionsBottomSheet.forArtist(
@@ -43,7 +50,11 @@ object MoreOptionsManager {
             subtitle = "${artist.followers} followers",
             imageUrl = artist.imageUrl,
             actions = listOf(
-                MoreOptionsAction.ArtistAction.Follow,
+                if (isFollowed) {
+                    MoreOptionsAction.ArtistAction.Unfollow
+                } else {
+                    MoreOptionsAction.ArtistAction.Follow
+                },
                 MoreOptionsAction.ArtistAction.PlayAllSongs,
                 MoreOptionsAction.ArtistAction.Share
             ),

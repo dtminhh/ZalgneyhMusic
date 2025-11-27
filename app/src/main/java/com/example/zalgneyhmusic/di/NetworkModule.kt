@@ -4,8 +4,6 @@ import com.example.zalgneyhmusic.data.model.api.AlbumDeserializer
 import com.example.zalgneyhmusic.data.model.api.AlbumDTO
 import com.example.zalgneyhmusic.data.model.api.ArtistDTO
 import com.example.zalgneyhmusic.data.model.api.ArtistDeserializer
-import com.example.zalgneyhmusic.data.model.api.PlaylistDTO
-import com.example.zalgneyhmusic.data.model.api.PlaylistDeserializer
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -48,7 +46,6 @@ object NetworkModule {
             // Register deserializer for AlbumDTO (not domain Album)
             .registerTypeAdapter(AlbumDTO::class.java, AlbumDeserializer())
             // Register deserializer for PlaylistDTO (not domain Playlist)
-            .registerTypeAdapter(PlaylistDTO::class.java, PlaylistDeserializer())
             .registerTypeAdapter(ArtistDTO::class.java, ArtistDeserializer())
             .create()
     }

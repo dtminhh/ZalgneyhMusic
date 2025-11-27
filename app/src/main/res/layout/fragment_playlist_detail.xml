@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".ui.fragment.detail.PlaylistDetailBottomSheet">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="24dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgPlaylistCoverDetail"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginHorizontal="64dp"
+                android:scaleType="centerCrop"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/imageButton"
+                app:shapeAppearanceOverlay="@style/RoundedCorner16Style"
+                tools:src="@drawable/ic_album_placeholder" />
+
+            <TextView
+                android:id="@+id/txtPlaylistTitleDetail"
+                style="@style/SignTitleFormat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:textSize="24sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/imgPlaylistCoverDetail"
+                tools:text="My Favorite Playlist" />
+
+            <TextView
+                android:id="@+id/txtPlaylistOwner"
+                style="@style/SubTitleFormat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@id/txtPlaylistTitleDetail"
+                app:layout_constraintEnd_toEndOf="@id/txtPlaylistTitleDetail"
+                app:layout_constraintTop_toBottomOf="@id/txtPlaylistTitleDetail"
+                tools:text="By username" />
+
+            <TextView
+                android:id="@+id/txtPlaylistInfo"
+                style="@style/SubTitleFormat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                app:layout_constraintStart_toStartOf="@id/txtPlaylistTitleDetail"
+                app:layout_constraintEnd_toEndOf="@id/txtPlaylistTitleDetail"
+                app:layout_constraintTop_toBottomOf="@id/txtPlaylistOwner"
+                tools:text="12 songs" />
+
+            <TextView
+                android:id="@+id/txtTrackListHeading"
+                style="@style/SignTitleFormat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="32dp"
+                android:text="@string/track_list"
+                android:textSize="20sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtPlaylistInfo" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPlaylistSongs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@id/txtTrackListHeading"
+                tools:itemCount="10"
+                tools:listitem="@layout/item_search_song" />
+
+            <ImageButton
+                android:id="@+id/imgMoreOpt"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@color/bottom_nav_icon_selector"
+                android:src="@drawable/mini_more_option_button"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -105,6 +105,7 @@
     <string name="mo_go_to_album">Đến album</string>
     <string name="mo_share">Chia sẻ</string>
     <string name="mo_follow">Theo dõi</string>
+    <string name="mo_unfollow">Bỏ theo dõi</string>
     <string name="mo_play_all_songs">Phát tất cả bài hát</string>
     <string name="mo_play_all">Phát tất cả</string>
     <string name="mo_add_all_to_playlist">Thêm tất cả vào danh sách phát</string>
@@ -146,6 +147,23 @@
     <string name="image_cache_glide">Cache ảnh (Glide)</string>
     <string name="music_cache_amp_system"><![CDATA[Dữ liệu nhạc & hệ thống]]></string>
     <string name="clean_now">Dọn dẹp ngay</string>
-    <string name="cleaning">Đang dọn...</string>
+    <string name="cleaning">Đang dọn…</string>
     <string name="cleaned">Đã sạch sẽ</string>
+
+    <string name="create_new_playlist">Tạo danh sách phát mới</string>
+    <string name="create">Tạo</string>
+
+    <string name="favorite">Yêu thích</string>
+    <string name="un_favorite">Bỏ yêu thích</string>
+    <string name="follower">%1$d người theo dõi</string>
+    <string name="followed_artists">Nghệ sĩ đã theo dõi</string>
+    <string name="no_lyrics_found">Chưa có lời cho bài hát này</string>
+    <string name="queue_now_playing">Đang phát</string>
+    <string name="queue_up_next">Phát tiếp theo</string>
+    <string name="queue_later">Sẽ phát sau</string>
+
+    <plurals name="numberOfSongs">
+        <item quantity="one">%d bài hát</item>
+        <item quantity="other">%d bài hát</item>
+    </plurals>
 </resources>

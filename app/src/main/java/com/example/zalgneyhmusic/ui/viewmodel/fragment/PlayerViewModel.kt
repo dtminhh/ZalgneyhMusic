@@ -2,15 +2,21 @@ package com.example.zalgneyhmusic.ui.viewmodel.fragment
 
 import androidx.lifecycle.viewModelScope
 import com.example.zalgneyhmusic.data.model.domain.Song
+import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.player.MusicPlayer
 import com.example.zalgneyhmusic.player.RepeatMode
 import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -19,7 +25,9 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val musicPlayer: MusicPlayer
+    private val musicPlayer: MusicPlayer,
+    private val userManager: UserManager,
+    private val musicRepository: MusicRepository
 ) : BaseViewModel() {
 
     companion object {
@@ -35,11 +43,29 @@ class PlayerViewModel @Inject constructor(
     val duration: StateFlow<Int> = musicPlayer.duration
     val shuffleMode: StateFlow<Boolean> = musicPlayer.shuffleMode
     val repeatMode: StateFlow<RepeatMode> = musicPlayer.repeatMode
+    val playlist: StateFlow<List<Song>> = musicPlayer.playlist
 
     private var positionUpdateJob: Job? = null
 
+    val isCurrentSongFavorite: StateFlow<Boolean> = combine(
+        musicPlayer.currentSong,
+        userManager.favoriteSongIds
+    ) { song, favIds ->
+        if (song == null) false else favIds.contains(song.id)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+
     init {
         startPositionUpdates()
+        refreshFavorites()
+    }
+
+    private fun refreshFavorites() {
+        viewModelScope.launch {
+            // Nếu chưa có dữ liệu thì gọi API lấy về
+            if (userManager.favoriteSongIds.value.isEmpty()) {
+                musicRepository.getMyPlaylists()
+            }
+        }
     }
 
     /**
@@ -133,7 +159,7 @@ class PlayerViewModel @Inject constructor(
         val totalSeconds = milliseconds / MILLIS_TO_SECONDS
         val minutes = totalSeconds / SECONDS_TO_MINUTES
         val seconds = totalSeconds % SECONDS_TO_MINUTES
-        return String.format("%02d:%02d", minutes, seconds)
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
     }
 
     override fun onCleared() {
@@ -143,4 +169,3 @@ class PlayerViewModel @Inject constructor(
         // and may be used elsewhere
     }
 }
-

@@ -16,10 +16,10 @@ import com.example.zalgneyhmusic.ui.viewmodel.fragment.ArtistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * Top Country Artists Fragment
+ * Followed artists tab
  */
 @AndroidEntryPoint
-class TopCountryArtists : BaseFragment() {
+class FollowedArtists : BaseFragment() {
 
     private var _binding: FragmentArtistListBinding? = null
     private val binding get() = _binding!!
@@ -41,10 +41,11 @@ class TopCountryArtists : BaseFragment() {
         setupUI()
         setupRecyclerView()
         observeArtists()
+        artistViewModel.loadFollowedArtists()
     }
 
     private fun setupUI() {
-        binding.txtSectionTitle.text = getString(R.string.top_artist_in_your_country)
+        binding.txtSectionTitle.text = getString(R.string.followed_artists)
     }
 
     private fun setupRecyclerView() {
@@ -64,7 +65,7 @@ class TopCountryArtists : BaseFragment() {
     }
 
     private fun observeArtists() {
-        artistViewModel.topCountryArtists.observe(viewLifecycleOwner) { resource ->
+        artistViewModel.followedArtists.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE

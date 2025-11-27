@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * ViewModel for Artists screen
- * Uses MusicRepository to fetch artists from API/Cache (Hybrid)
+ * ViewModel for the Artists screen.
+ * Uses MusicRepository to load artists from remote API and local cache.
  */
 @HiltViewModel
 class ArtistViewModel @Inject constructor(
@@ -26,7 +26,9 @@ class ArtistViewModel @Inject constructor(
     val topWorldArtists: LiveData<Resource<List<Artist>>> = _topWorldArtists
 
     private val _topCountryArtists = MutableLiveData<Resource<List<Artist>>>()
-    val topCountryArtists: LiveData<Resource<List<Artist>>> = _topCountryArtists
+
+    private val _followedArtists = MutableLiveData<Resource<List<Artist>>>()
+    val followedArtists: LiveData<Resource<List<Artist>>> = _followedArtists
 
     private val _artistDetail = MutableLiveData<Resource<Artist>>()
     val artistDetail: LiveData<Resource<Artist>> = _artistDetail
@@ -55,7 +57,7 @@ class ArtistViewModel @Inject constructor(
         viewModelScope.launch {
             _topCountryArtists.value = Resource.Loading
             musicRepository.getAllArtists().collect { resource ->
-                // Take first 10 for country section
+                // Limit to a small subset for the country section
                 when (resource) {
                     is Resource.Success -> _topCountryArtists.value =
                         Resource.Success(resource.result.take(10))
@@ -67,12 +69,19 @@ class ArtistViewModel @Inject constructor(
         }
     }
 
+    fun loadFollowedArtists() {
+        viewModelScope.launch {
+            _followedArtists.value = Resource.Loading
+            _followedArtists.value = musicRepository.getFollowedArtists()
+        }
+    }
+
     fun loadArtistDetail(id: String) {
         viewModelScope.launch {
             _artistDetail.value = Resource.Loading
             _artistDetail.value = musicRepository.getArtistById(id)
 
-            // Load Album
+            // Load albums
             _artistAlbums.value = Resource.Loading
             _artistAlbums.value = musicRepository.getAlbumsByArtist(id)
 

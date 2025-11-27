@@ -31,10 +31,10 @@ class ArtistsFragment : BaseNavFragment() {
     }
 
     override fun setupTabLayoutAndViewPager() {
-        val tabs = listOf("Top World Artists", "Top Your Country Artists")
+        val tabs = listOf("Top World Artists", "Followed Artists")
         val fragments = listOf(
             { TopWorldArtists() },
-            { TopCountryArtists() }
+            { FollowedArtists() }
         )
 
         setupTabsAndFragments(

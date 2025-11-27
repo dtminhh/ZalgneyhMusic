@@ -65,27 +65,25 @@ class MusicPlayer @Inject constructor(
     }
 
     fun addSongToNext(song: Song) {
-        // 1. Lấy list hiện tại (từ StateFlow)
+        // Get current playlist snapshot from StateFlow
         val currentList = _playlist.value.toMutableList()
         if (currentList.isEmpty()) {
             setPlaylist(listOf(song))
             return
         }
 
-        // 2. get current player index
+        // Determine current and next insertion index
         val currentIdx = _currentIndex.value
-
-        // 3. caculate insert index
         val insertIndex = currentIdx + 1
 
-        // 4. insert
+        // Insert song after the currently playing item (or append if out of bounds)
         if (insertIndex <= currentList.size) {
             currentList.add(insertIndex, song)
         } else {
             currentList.add(song)
         }
 
-        // 5. Update StateFlow -> UI will update automatically
+        // Update StateFlow so that UI can react to the new playlist
         _playlist.value = currentList
     }
 

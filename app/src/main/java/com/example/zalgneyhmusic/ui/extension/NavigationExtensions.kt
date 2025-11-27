@@ -28,3 +28,15 @@ fun Fragment.openAlbumDetail(albumId: String) {
         Toast.makeText(context, "Lỗi: Activity không hỗ trợ điều hướng", Toast.LENGTH_SHORT).show()
     }
 }
+
+/**
+ * Open Playlist details screen
+ */
+fun Fragment.openPlaylistDetail(playlistId: String) {
+    val navigator = activity as? DetailNavigator
+    if (navigator != null) {
+        navigator.navigatorToDetailScreen(DetailType.Playlist(playlistId))
+    } else {
+        Toast.makeText(context, "Lỗi: Activity không hỗ trợ điều hướng", Toast.LENGTH_SHORT).show()
+    }
+}

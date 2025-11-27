@@ -40,6 +40,8 @@
     <string name="artist">Artist</string>
     <string name="playlist">Playlist</string>
     <string name="see_more">See more</string>
+    <string name="create_new_playlist">Create New Playlist</string>
+    <string name="create">Create</string>
 
     <!-- Music Player Strings -->
     <string name="play">Play</string>
@@ -52,6 +54,9 @@
     <string name="close">Close</string>
     <string name="playing_now">Playing Now</string>
     <string name="queue">Queue</string>
+    <string name="queue_now_playing">Now playing</string>
+    <string name="queue_up_next">Up next</string>
+    <string name="queue_later">Later</string>
     <string name="lyrics">Lyrics</string>
 
     <!-- Search Strings -->
@@ -113,6 +118,7 @@
     <string name="mo_go_to_album">Go to album</string>
     <string name="mo_share">Share</string>
     <string name="mo_follow">Follow</string>
+    <string name="mo_unfollow">unfollow</string>
     <string name="mo_play_all_songs">Play all songs</string>
     <string name="mo_play_all">Play all</string>
     <string name="mo_add_all_to_playlist">Add all to playlist</string>
@@ -158,6 +164,17 @@
     <string name="image_cache_glide">Image cache (Glide)</string>
     <string name="music_cache_amp_system"><![CDATA[music cache & system]]></string>
     <string name="clean_now">Clean now</string>
-    <string name="cleaning">Cleaning...</string>
+    <string name="cleaning">Cleaning…</string>
     <string name="cleaned">Cleaned</string>
+    <string name="favorite">Favorite</string>
+    <string name="un_favorite">Remove from favorite</string>
+    <string name="follower">%1$d follower</string>
+    <string name="followed_artists">Followed artists</string>
+    <string name="no_lyrics_found">This song hasn\'t lyrics yet</string>
+
+    <plurals name="numberOfSongs">
+        <item quantity="one">%d song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
+
 </resources>
