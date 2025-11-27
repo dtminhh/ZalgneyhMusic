@@ -5,6 +5,7 @@ import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.Song
+import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -190,5 +191,9 @@ class MusicLocalRepository @Inject constructor(
         } catch (e: Exception) {
             Resource.Failure(e)
         }
+    }
+
+    override fun searchEverything(query: String): Flow<Resource<SearchResults>> {
+        TODO("Not yet implemented")
     }
 }

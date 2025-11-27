@@ -4,6 +4,7 @@ import com.example.zalgneyhmusic.data.model.api.AlbumDTO
 import com.example.zalgneyhmusic.data.model.api.ApiResponse
 import com.example.zalgneyhmusic.data.model.api.ArtistDTO
 import com.example.zalgneyhmusic.data.model.api.PlaylistDTO
+import com.example.zalgneyhmusic.data.model.api.SearchResponseDTO
 import com.example.zalgneyhmusic.data.model.api.SongDTO
 import com.example.zalgneyhmusic.data.model.api.UserDTO
 import retrofit2.Response
@@ -138,6 +139,9 @@ interface ZalgneyhApiService {
     suspend fun getPlaylistById(
         @Path("id") id: String
     ): Response<ApiResponse<PlaylistDTO>>
+
+    @GET("search")
+    suspend fun search(@Query("q") query: String): Response<ApiResponse<SearchResponseDTO>>
 
     // ==================== HEALTH CHECK ====================
 
