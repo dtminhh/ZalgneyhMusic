@@ -1,5 +1,6 @@
 package com.example.zalgneyhmusic.ui.account
 
+import ImageUtils
 import android.app.AlertDialog
 import android.app.Dialog
 import android.graphics.Color
@@ -11,20 +12,19 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.SideSheetAccountSettingsBinding
 import com.example.zalgneyhmusic.ui.utils.StorageHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import androidx.core.graphics.drawable.toDrawable
 
 /**
  * Beautiful Material Design Side Sheet for Account & Settings
@@ -81,12 +81,7 @@ class AccountSettingsSideSheet : DialogFragment() {
             txtUserEmail.text = viewModel.getUserEmail()
 
             // Load avatar
-            Glide.with(this@AccountSettingsSideSheet)
-                .load(viewModel.getUserPhotoUrl())
-                .placeholder(R.mipmap.ic_launcher_round)
-                .error(R.mipmap.ic_launcher_round)
-                .centerCrop()
-                .into(imgUserAvatar)
+            ImageUtils.loadImageRounded(imgUserAvatar, viewModel.getUserPhotoUrl())
 
             // Setup RecyclerView
             adapter = AccountSettingsAdapter { action ->

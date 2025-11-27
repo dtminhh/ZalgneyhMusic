@@ -1,12 +1,12 @@
 package com.example.zalgneyhmusic.ui.fragment.detail
 
+import ImageUtils
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Artist
@@ -96,13 +96,8 @@ class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
             txtArtistNameDetail.text = artist.name
             txtFollowersCount.text = "${artist.followers} người theo dõi"
 
-            // Load ảnh
-            Glide.with(root)
-                .load(artist.imageUrl)
-                .placeholder(R.drawable.ic_person)
-                .error(R.drawable.ic_person)
-                .centerCrop()
-                .into(imgArtistAvatarDetail)
+            // Load thumbnail
+            ImageUtils.loadImage(imgArtistAvatarDetail, artist.imageUrl)
         }
     }
 

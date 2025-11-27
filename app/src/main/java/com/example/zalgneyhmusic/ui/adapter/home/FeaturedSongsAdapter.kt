@@ -1,12 +1,11 @@
 package com.example.zalgneyhmusic.ui.adapter.home
 
+import ImageUtils
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.databinding.HomeItemFeatureSongBinding
 import com.example.zalgneyhmusic.ui.adapter.BaseDiffItemCallback
@@ -49,12 +48,7 @@ class FeaturedSongsAdapter(
                 tvTitle.text = song.title
                 tvArtist.text = song.artist.name
                 tvDuration.text = formatDuration(song.duration)
-
-                Glide.with(itemView.context)
-                    .load(song.imageUrl)
-                    .placeholder(R.drawable.ic_launcher_background)
-                    .error(R.drawable.ic_launcher_background)
-                    .into(ivThumbnail)
+                ImageUtils.loadImage(ivThumbnail, song.imageUrl)
 
                 root.setOnClickListener {
                     onItemClick(song)

@@ -1,12 +1,11 @@
 package com.example.zalgneyhmusic.ui.adapter.search
 
+import ImageUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.databinding.ItemSearchArtistBinding
 
@@ -37,13 +36,7 @@ class SearchArtistsAdapter(
         fun bind(artist: Artist) {
             binding.apply {
                 tvArtistName.text = artist.name
-
-                Glide.with(itemView.context)
-                    .load(artist.imageUrl)
-                    .placeholder(R.drawable.ic_person)
-                    .error(R.drawable.ic_person)
-                    .circleCrop()
-                    .into(imgArtistAvatar)
+                ImageUtils.loadImage(imgArtistAvatar, artist.imageUrl)
 
                 root.setOnClickListener {
                     onArtistClick(artist)

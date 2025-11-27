@@ -1,10 +1,10 @@
 package com.example.zalgneyhmusic.ui.fragment.player
 
+import ImageUtils
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.FragmentMainBinding
 import com.example.zalgneyhmusic.ui.fragment.MainFragment
@@ -27,7 +27,7 @@ fun MainFragment.setupMiniPlayerExt(binding: FragmentMainBinding) {
             // Navigate to full player screen
             try {
                 findNavController().navigate(R.id.action_mainFragment_to_playerFragment)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Handle navigation error silently
             }
         }
@@ -59,11 +59,7 @@ fun MainFragment.setupMiniPlayerExt(binding: FragmentMainBinding) {
                         tvMiniArtistName.text = song.artist.name
 
                         // Load album art
-                        Glide.with(this@setupMiniPlayerExt)
-                            .load(song.imageUrl)
-                            .placeholder(R.drawable.ic_music_note)
-                            .error(R.drawable.ic_music_note)
-                            .into(imgMiniAlbumArt)
+                        ImageUtils.loadImage(imgMiniAlbumArt, song.imageUrl)
                     } else {
                         // Hide mini player if no song
                         miniPlayerContainer.visibility = View.GONE

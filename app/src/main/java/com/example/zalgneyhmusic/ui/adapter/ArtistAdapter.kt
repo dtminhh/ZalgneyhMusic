@@ -1,11 +1,11 @@
 package com.example.zalgneyhmusic.ui.adapter
 
+import ImageUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.databinding.ItemArtistBinding
@@ -42,13 +42,7 @@ class ArtistAdapter(
                 // Set artist info
                 txtArtistName.text = artist.name
                 txtArtistInfo.text = itemView.context.getString(R.string.see_more)
-
-                // Load avatar
-                Glide.with(imgArtistAvatar.context)
-                    .load(artist.imageUrl)
-                    .placeholder(R.drawable.ic_album_placeholder)
-                    .centerCrop()
-                    .into(imgArtistAvatar)
+                ImageUtils.loadImage(imgArtistAvatar, artist.imageUrl)
 
                 // Click listeners
                 root.setOnClickListener {
