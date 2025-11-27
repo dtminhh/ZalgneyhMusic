@@ -52,10 +52,6 @@ class SearchViewModel @Inject constructor(
     val searchHistory = database.searchHistoryDao().getHistory()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // Recent searches
-    private val _recentSearches = MutableStateFlow<List<String>>(emptyList())
-    val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
-
     init {
         observeSearchQuery()
     }
@@ -93,20 +89,26 @@ class SearchViewModel @Inject constructor(
         _isSearching.value = true
 
         viewModelScope.launch {
-            // Gọi API tìm kiếm tổng hợp (Cần implement trong Repository)
-            // API này sẽ trả về cả Songs, Artists, Albums dựa trên 'searchString' ở Backend
+            // Call the combined search API (implemented in the Repository)
+            // This endpoint returns Songs, Artists, and Albums based on the query
             musicRepository.searchEverything(query).collect { resource ->
                 _isSearching.value = false
 
-                when(resource) {
+                when (resource) {
                     is Resource.Success -> {
+                        // Update UI with the search results returned from the backend
                         _searchResults.value = resource.result
                     }
+
                     is Resource.Failure -> {
-                        // Handle error (show toast/log)
-                        _searchResults.value = SearchResults() // Clear on error
+                        // Handle errors (toast/log/etc.)
+                        // Reset the result list when an error occurs
+                        _searchResults.value = SearchResults()
                     }
-                    else -> {}
+
+                    else -> {
+                        // Ignore Loading or Idle states if not needed
+                    }
                 }
             }
         }
@@ -129,37 +131,63 @@ class SearchViewModel @Inject constructor(
     }
 
     fun addSongToHistory(song: Song) = viewModelScope.launch(Dispatchers.IO) {
+
+        // Convert a Song object into a searchable history entry
         val entity = SearchHistoryEntity(
             id = song.id,
             title = song.title,
-            subtitle = song.artist.name,
-            imageUrl = song.imageUrl,
+            subtitle = song.artist.name,   // Artist name displayed below the title
+            imageUrl = song.imageUrl,      // Song thumbnail
             type = "SONG"
         )
+
+        // Save the entry to the history database
         database.searchHistoryDao().insert(entity)
     }
 
-    // Gọi hàm này khi User CLICK vào một Nghệ sĩ
+    // Called when the user clicks on an Artist item
     fun addArtistToHistory(artist: Artist) = viewModelScope.launch(Dispatchers.IO) {
+
+        // Convert an Artist object into a searchable history entry
         val entity = SearchHistoryEntity(
             id = artist.id,
             title = artist.name,
-            subtitle = "Nghệ sĩ", // Hoặc số followers
+            subtitle = "Artist",            // You can replace this with follower count if needed
             imageUrl = artist.imageUrl,
             type = "ARTIST"
         )
+
+        // Save the entry to the history database
         database.searchHistoryDao().insert(entity)
     }
 
-    // Gọi hàm này khi User CLICK vào một Album
+    // Called when the user clicks on an Album item
     fun addAlbumToHistory(album: Album) = viewModelScope.launch(Dispatchers.IO) {
+
+        // Convert an Album object into a searchable history entry
         val entity = SearchHistoryEntity(
             id = album.id,
             title = album.title,
-            subtitle = album.artist.name,
-            imageUrl = album.image,
+            subtitle = album.artist.name,  // Album’s artist
+            imageUrl = album.image,        // Album thumbnail
             type = "ALBUM"
         )
+
+        // Save the entry to the history database
+        database.searchHistoryDao().insert(entity)
+    }
+
+    fun addKeywordToHistory(query: String) = viewModelScope.launch(Dispatchers.IO) {
+
+        // Create a history entity where the keyword itself is used as the unique ID
+        val entity = SearchHistoryEntity(
+            id = query.trim(),      // Use trimmed keyword as the ID
+            title = query.trim(),   // Displayed text in the history list
+            type = "QUERY"          // Mark this entry as a text-based search query
+            // subtitle and image are intentionally left null
+        )
+
+        // Insert the history entry into the database
         database.searchHistoryDao().insert(entity)
     }
 
@@ -167,7 +195,9 @@ class SearchViewModel @Inject constructor(
      * Clear recent searches
      */
     fun clearRecentSearches() {
-        _recentSearches.value = emptyList()
+        searchHistory.value.forEach { item ->
+            removeFromHistory(item)
+        }
     }
 
     fun removeFromHistory(item: SearchHistoryEntity) = viewModelScope.launch(Dispatchers.IO) {

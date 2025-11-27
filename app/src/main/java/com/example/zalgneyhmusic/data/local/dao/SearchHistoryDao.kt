@@ -9,19 +9,22 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SearchHistoryDao {
-    // Insert (nếu trùng ID thì thay thế -> cập nhật timestamp mới nhất)
+
+    // Insert a history entry.
+    // If an entry with the same ID already exists, replace it (refreshing its timestamp).
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: SearchHistoryEntity)
 
-    // Lấy danh sách, sắp xếp mới nhất lên đầu
+    // Retrieve history items ordered by newest first.
+    // Limited to the most recent 20 entries.
     @Query("SELECT * FROM search_history ORDER BY timestamp DESC LIMIT 20")
     fun getHistory(): Flow<List<SearchHistoryEntity>>
 
-    // Xóa 1 item
+    // Delete a single history entry by its ID.
     @Query("DELETE FROM search_history WHERE id = :id")
     suspend fun delete(id: String)
 
-    // Xóa tất cả
+    // Clear all search history entries.
     @Query("DELETE FROM search_history")
     suspend fun clearAll()
 }

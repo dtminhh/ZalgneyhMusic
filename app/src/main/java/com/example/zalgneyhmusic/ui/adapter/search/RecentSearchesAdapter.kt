@@ -1,5 +1,6 @@
 package com.example.zalgneyhmusic.ui.adapter.search
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.local.entity.SearchHistoryEntity
 import com.example.zalgneyhmusic.databinding.ItemRecentSearchBinding
+import com.google.android.material.color.MaterialColors
 
 class RecentSearchesAdapter(
     private val onItemClick: (SearchHistoryEntity) -> Unit,
@@ -34,7 +36,6 @@ class RecentSearchesAdapter(
             binding.apply {
                 txtContent.text = item.title
 
-                // Hiển thị subtitle (nếu có)
                 if (!item.subtitle.isNullOrEmpty()) {
                     txtSubtitle.text = item.subtitle
                     txtSubtitle.visibility = View.VISIBLE
@@ -42,18 +43,33 @@ class RecentSearchesAdapter(
                     txtSubtitle.visibility = View.GONE
                 }
 
-                // Xử lý hình ảnh icon
                 if (item.type == "QUERY") {
-                    // Nếu là từ khóa tìm kiếm -> Hiện icon kính lúp mặc định
-                    imgIcon.setImageResource(R.drawable.ic_history) // Hoặc ic_search
-                    imgIcon.clearColorFilter()
+                    // 1. ICON MODE (Text Search)
+                    imgIcon.setImageResource(R.drawable.ic_history)
+
+                    // Restore tint color from theme attributes
+                    val tintColor = MaterialColors.getColor(
+                        root,
+                        com.google.android.material.R.attr.colorOnSurfaceVariant
+                    )
+                    imgIcon.imageTintList = ColorStateList.valueOf(tintColor)
+
+                    // Use compact scaling for a cleaner icon appearance
+                    imgIcon.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
+
                 } else {
-                    // Nếu là Bài hát/Artist -> Load ảnh từ URL
+                    // 2. IMAGE MODE (Song / Artist / Album)
+
+                    // Important: remove any tint to preserve original image colors
+                    imgIcon.imageTintList = null
+
+                    // Scale image to fill the shape (circle/square)
+                    imgIcon.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+
                     Glide.with(root)
                         .load(item.imageUrl)
                         .placeholder(R.drawable.ic_music_note)
                         .error(R.drawable.ic_music_note)
-                        .circleCrop() // Hoặc rounded corners tùy design
                         .into(imgIcon)
                 }
 
@@ -66,7 +82,11 @@ class RecentSearchesAdapter(
     class DiffCallback : DiffUtil.ItemCallback<SearchHistoryEntity>() {
         override fun areItemsTheSame(oldItem: SearchHistoryEntity, newItem: SearchHistoryEntity) =
             oldItem.id == newItem.id
-        override fun areContentsTheSame(oldItem: SearchHistoryEntity, newItem: SearchHistoryEntity) =
+
+        override fun areContentsTheSame(
+            oldItem: SearchHistoryEntity,
+            newItem: SearchHistoryEntity
+        ) =
             oldItem == newItem
     }
 }
