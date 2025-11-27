@@ -40,6 +40,8 @@
     <string name="artist">Artist</string>
     <string name="playlist">Playlist</string>
     <string name="see_more">See more</string>
+    <string name="create_new_playlist">Create New Playlist</string>
+    <string name="create">Create</string>
 
     <!-- Music Player Strings -->
     <string name="play">Play</string>
@@ -158,6 +160,9 @@
     <string name="image_cache_glide">Image cache (Glide)</string>
     <string name="music_cache_amp_system"><![CDATA[music cache & system]]></string>
     <string name="clean_now">Clean now</string>
-    <string name="cleaning">Cleaning...</string>
+    <string name="cleaning">Cleaning…</string>
     <string name="cleaned">Cleaned</string>
+    <string name="favorite">Favorite</string>
+    <string name="un_favorite">Remove from favorite</string>
+
 </resources>

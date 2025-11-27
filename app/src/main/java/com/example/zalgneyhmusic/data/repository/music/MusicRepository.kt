@@ -3,6 +3,7 @@ package com.example.zalgneyhmusic.data.repository.music
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
+import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
 import kotlinx.coroutines.flow.Flow
@@ -20,11 +21,12 @@ interface MusicRepository {
     suspend fun getSongById(id: String): Resource<Song>
     fun searchSongs(query: String): Flow<Resource<List<Song>>>
 
+    suspend fun toggleFavorite(playlistId: String, songId: String): Resource<Boolean>
+
     // Artists
     fun getAllArtists(): Flow<Resource<List<Artist>>>
     fun getTopArtists(limit: Int = 10): Flow<Resource<List<Artist>>>
     suspend fun getArtistById(id: String): Resource<Artist>
-
     suspend fun getSongsByArtist(artistId: String): Resource<List<Song>>
     suspend fun getAlbumsByArtist(artistId: String): Resource<List<Album>>
 
@@ -32,6 +34,10 @@ interface MusicRepository {
     fun getAllAlbums(): Flow<Resource<List<Album>>>
     fun getRecentAlbums(limit: Int = 10): Flow<Resource<List<Album>>>
     suspend fun getAlbumById(id: String): Resource<Album>
+
+    suspend fun createPlaylist(name: String): Resource<Playlist>
+    suspend fun getMyPlaylists(): Resource<List<Playlist>>
+    suspend fun addSongToPlaylist(playlistId: String, songId: String): Resource<Any>
 
     fun searchEverything(query: String): Flow<Resource<SearchResults>>
 }

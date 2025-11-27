@@ -2,13 +2,17 @@ package com.example.zalgneyhmusic.ui.viewmodel.fragment
 
 import androidx.lifecycle.viewModelScope
 import com.example.zalgneyhmusic.data.model.domain.Song
+import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.player.MusicPlayer
 import com.example.zalgneyhmusic.player.RepeatMode
 import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,7 +23,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val musicPlayer: MusicPlayer
+    private val musicPlayer: MusicPlayer,
+    userManager: UserManager // Inject
 ) : BaseViewModel() {
 
     companion object {
@@ -37,6 +42,13 @@ class PlayerViewModel @Inject constructor(
     val repeatMode: StateFlow<RepeatMode> = musicPlayer.repeatMode
 
     private var positionUpdateJob: Job? = null
+
+    val isCurrentSongFavorite: StateFlow<Boolean> = combine(
+        musicPlayer.currentSong,
+        userManager.favoriteSongIds
+    ) { song, favIds ->
+        if (song == null) false else favIds.contains(song.id)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     init {
         startPositionUpdates()

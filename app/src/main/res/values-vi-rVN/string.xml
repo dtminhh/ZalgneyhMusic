@@ -146,6 +146,12 @@
     <string name="image_cache_glide">Cache ảnh (Glide)</string>
     <string name="music_cache_amp_system"><![CDATA[Dữ liệu nhạc & hệ thống]]></string>
     <string name="clean_now">Dọn dẹp ngay</string>
-    <string name="cleaning">Đang dọn...</string>
+    <string name="cleaning">Đang dọn…</string>
     <string name="cleaned">Đã sạch sẽ</string>
+
+    <string name="create_new_playlist">Tạo danh sách phát mới</string>
+    <string name="create">Tạo</string>
+
+    <string name="favorite">Yêu thích</string>
+    <string name="un_favorite">Bỏ yêu thích</string>
 </resources>

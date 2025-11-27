@@ -15,6 +15,7 @@ object MoreOptionsManager {
     fun showForSong(
         fragmentManager: FragmentManager,
         song: Song,
+        isFavorite: Boolean,
         onActionClick: (MoreOptionsAction.SongAction) -> Unit
     ) {
         MoreOptionsBottomSheet.forSong(
@@ -25,6 +26,11 @@ object MoreOptionsManager {
                 MoreOptionsAction.SongAction.PlayNext,
                 MoreOptionsAction.SongAction.AddToQueue,
                 MoreOptionsAction.SongAction.AddToPlaylist,
+                if (isFavorite) {
+                    MoreOptionsAction.SongAction.RemoveFromFavorites
+                } else {
+                    MoreOptionsAction.SongAction.AddToFavorite
+                },
                 MoreOptionsAction.SongAction.GoToArtist,
                 MoreOptionsAction.SongAction.GoToAlbum,
                 MoreOptionsAction.SongAction.Share
