@@ -20,7 +20,7 @@
         app:layout_constraintTop_toBottomOf="@+id/btnClose"
         app:layout_constraintWidth_percent="0.8"
         app:shapeAppearanceOverlay="@style/RoundedCorner16Style"
-        tools:src="@drawable/ic_launcher_background" />
+        tools:src="@mipmap/ic_launcher" />
 
     <!-- Song Title -->
     <TextView
@@ -190,5 +190,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="@color/black" />
+
+    <ImageButton
+        android:id="@+id/btnFavorite"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/favorite"
+        android:src="@drawable/ic_favorite"
+        app:layout_constraintBottom_toBottomOf="@+id/btnClose"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnClose" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

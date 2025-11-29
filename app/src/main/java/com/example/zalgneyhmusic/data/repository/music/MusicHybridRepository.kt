@@ -10,11 +10,17 @@ import com.example.zalgneyhmusic.data.local.entity.ArtistEntity
 import com.example.zalgneyhmusic.data.local.entity.SongEntity
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
+import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.data.model.domain.Song
+import com.example.zalgneyhmusic.data.model.utils.await
+import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -30,7 +36,9 @@ class MusicHybridRepository @Inject constructor(
     private val apiService: ZalgneyhApiService,
     private val songDao: SongDao,
     private val artistDao: ArtistDao,
-    private val albumDao: AlbumDao
+    private val albumDao: AlbumDao,
+    private val firebaseAuth: FirebaseAuth,
+    private val userManager: UserManager
 ) : MusicRepository {
 
     companion object {
@@ -258,6 +266,39 @@ class MusicHybridRepository @Inject constructor(
             emit(Resource.Success(results))
         } catch (e: Exception) {
             emit(Resource.Failure(e))
+        }
+    }
+
+    override suspend fun toggleFavorite(playlistId: String, songId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            // 1. Lấy User & Token
+            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Vui lòng đăng nhập"))
+            val token = "Bearer ${user.getIdToken(false).await().token}"
+
+            // 2. Gọi API
+            val response = apiService.toggleSongInPlaylist(
+                token,
+                playlistId,
+                mapOf("songId" to songId)
+            )
+
+            // 3. Xử lý kết quả
+            if (response.isSuccessful && response.body()?.success == true) {
+                // Parse kết quả isAdded từ server
+                val dataMap = response.body()!!.data as? Map<*, *>
+                val isAdded = dataMap?.get("isAdded") as? Boolean ?: false
+                // [MỚI] Cập nhật ngay lập tức vào UserManager (Optimistic update)
+                if (isAdded) {
+                    userManager.addFavoriteSong(songId)
+                } else {
+                    userManager.removeFavoriteSong(songId)
+                }
+                Resource.Success(isAdded)
+            } else {
+                Resource.Failure(Exception("Lỗi kết nối server"))
+            }
+        } catch (e: Exception) {
+            Resource.Failure(e)
         }
     }
 
@@ -543,6 +584,77 @@ class MusicHybridRepository @Inject constructor(
             val cached = albumDao.getAlbumByIdSync(id)?.toDomain()
             cached?.let { Resource.Success(it) }
                 ?: Resource.Failure(e)
+        }
+    }
+
+    override suspend fun createPlaylist(name: String): Resource<Playlist> =
+        withContext(Dispatchers.IO) {
+            try {
+                // 1. Lấy User & Token tương tự
+                val user = firebaseAuth.currentUser
+                    ?: return@withContext Resource.Failure(Exception("Chưa đăng nhập"))
+                val tokenResult = user.getIdToken(false).await()
+                val token = "Bearer ${tokenResult.token}"
+                val response = apiService.createPlaylist(token, mapOf("name" to name))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    Resource.Success(response.body()!!.data!!.toDomain())
+                } else {
+                    Resource.Failure(Exception("Create playlist failed"))
+                }
+            } catch (e: Exception) {
+                Resource.Failure(e)
+            }
+        }
+
+    override suspend fun getMyPlaylists(): Resource<List<Playlist>> = withContext(Dispatchers.IO) {
+        try {
+            val user = firebaseAuth.currentUser
+            if (user == null) {
+                return@withContext Resource.Failure(Exception("Chưa đăng nhập"))
+            }
+            // 2. Lấy Token (forceRefresh = false để tận dụng cache cho nhanh)
+            val tokenResult = user.getIdToken(false).await()
+            val token = "Bearer ${tokenResult.token}"
+
+            val response = apiService.getMyPlaylists(token)
+            if (response.isSuccessful && response.body()?.success == true) {
+                val playlists = response.body()!!.data!!.map { it.toDomain() }
+                val user = userManager.currentUser
+                if (user?.favoritePlaylistId != null) {
+                    val favPlaylist = playlists.find { it.id == user.favoritePlaylistId }
+                    if (favPlaylist != null) {
+                        // Lưu danh sách ID bài hát vào Session để dùng toàn app
+                        userManager.setFavoriteSongIds(favPlaylist.songs.map { it })
+                    }
+                }
+                Resource.Success(playlists)
+            } else {
+                Resource.Failure(Exception("Get playlists failed"))
+            }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun addSongToPlaylist(
+        playlistId: String,
+        songId: String
+    ): Resource<Any> = withContext(Dispatchers.IO) {
+        try {
+            val user = firebaseAuth.currentUser
+                ?: return@withContext Resource.Failure(Exception("Chưa đăng nhập"))
+            val tokenResult = user.getIdToken(false).await()
+            val token = "Bearer ${tokenResult.token}"
+            val response =
+                apiService.addSongToPlaylist(token, playlistId, mapOf("songId" to songId))
+            if (response.isSuccessful && response.body()?.success == true) {
+                val playlists = response.body()!!.data!!
+                Resource.Success(playlists)
+            } else {
+                Resource.Failure(Exception("Get playlists failed"))
+            }
+        } catch (e: Exception) {
+            Resource.Failure(e)
         }
     }
 }

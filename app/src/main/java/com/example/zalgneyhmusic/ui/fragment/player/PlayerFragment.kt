@@ -6,13 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.databinding.FragmentPlayerBinding
 import com.example.zalgneyhmusic.player.RepeatMode
+import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
  * Display album art, song info, controls (play/pause, next, previous, shuffle, repeat)
  */
 @AndroidEntryPoint
-class PlayerFragment : Fragment() {
+class PlayerFragment : BaseFragment() {
 
     private lateinit var binding: FragmentPlayerBinding
     private val viewModel: PlayerViewModel by viewModels()
@@ -43,10 +43,24 @@ class PlayerFragment : Fragment() {
         observePlayerState()
     }
 
+    private fun updateFavoriteIcon(isFavorite: Boolean) {
+        val icon = if (isFavorite) R.drawable.ic_favorite_on else R.drawable.ic_favorite
+        binding.btnFavorite.setImageResource(icon)
+    }
+
     private fun setupUI() {
         // Close button
         binding.btnClose.setOnClickListener {
             findNavController().navigateUp()
+        }
+
+        binding.btnFavorite.setOnClickListener {
+            val currentSong = viewModel.currentSong.value
+            if (currentSong != null) {
+                mediaActionHandler.toggleFavorite(currentSong)
+                updateFavoriteIcon(true)
+            }
+
         }
 
         // Play/Pause
@@ -168,6 +182,11 @@ class PlayerFragment : Fragment() {
                             binding.btnRepeat.alpha = 1.0f
                         }
                     }
+                }
+            }
+            launch {
+                viewModel.isCurrentSongFavorite.collect { isFav ->
+                    updateFavoriteIcon(isFav)
                 }
             }
         }

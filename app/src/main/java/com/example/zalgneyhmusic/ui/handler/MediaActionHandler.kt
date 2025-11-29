@@ -11,10 +11,12 @@ import com.example.zalgneyhmusic.data.model.domain.DetailType
 import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsAction
 import com.example.zalgneyhmusic.ui.moreoptions.MoreOptionsManager
 import com.example.zalgneyhmusic.ui.navigation.DetailNavigator
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,12 +32,14 @@ class MediaActionHandler(
     private val playerViewModel: PlayerViewModel,
     private val navigator: DetailNavigator?,
     private val musicRepository: MusicRepository,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val userManager: UserManager,
 ) {
 
     // ==================== SONG ====================
     fun onSongMenuClick(song: Song) {
-        MoreOptionsManager.showForSong(fragmentManager, song) { action ->
+        val isFav = userManager.isSongFavorite(song.id)
+        MoreOptionsManager.showForSong(fragmentManager, song, isFav) { action ->
             handleSongAction(action, song)
         }
     }
@@ -59,8 +63,14 @@ class MediaActionHandler(
             }
 
             is MoreOptionsAction.SongAction.AddToPlaylist -> {
-                // Show Add to playlist dialog
+                showAddToPlaylistDialog(song)
             }
+
+            is MoreOptionsAction.SongAction.AddToFavorite -> {
+                toggleFavorite(song)
+            }
+
+            is MoreOptionsAction.SongAction.RemoveFromFavorites -> toggleFavorite(song)
 
             is MoreOptionsAction.SongAction.GoToArtist -> {
                 navigator?.navigatorToDetailScreen(DetailType.Artist(song.artist.id))
@@ -77,6 +87,109 @@ class MediaActionHandler(
                     song.title,
                     "Nghe bài hát ${song.title} của ${song.artist.name} tại Zalgneyh Music!"
                 )
+            }
+        }
+    }
+
+    // Hàm hiển thị dialog chọn playlist
+    private fun showAddToPlaylistDialog(song: Song) {
+        scope.launch {
+            // 1. Lấy danh sách playlist của tôi
+            val result = musicRepository.getMyPlaylists()
+            if (result is Resource.Success) {
+                val playlists = result.result
+                withContext(Dispatchers.Main) {
+                    showSelectPlaylistDialog(playlists) { selectedPlaylist ->
+                        addSongToPlaylist(selectedPlaylist.id, song.id)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showSelectPlaylistDialog(
+        playlists: List<Playlist>,
+        onPlaylistSelected: (Playlist) -> Unit
+    ) {
+        if (playlists.isEmpty()) {
+            Toast.makeText(context, "Bạn chưa có playlist nào", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 1. Tạo mảng tên playlist để hiển thị
+        val playlistNames = playlists.map { it.name }.toTypedArray()
+
+        // 2. Tạo Dialog
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Thêm vào Playlist")
+            .setItems(playlistNames) { dialog, which ->
+                // 'which' là vị trí index người dùng chọn
+                val selectedPlaylist = playlists[which]
+
+                // Gọi callback xử lý tiếp (thêm bài hát)
+                onPlaylistSelected(selectedPlaylist)
+
+                dialog.dismiss()
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
+    private fun addSongToPlaylist(playlistId: String, songId: String) {
+        scope.launch {
+            val result = musicRepository.addSongToPlaylist(playlistId, songId)
+
+            withContext(Dispatchers.Main) {
+                if (result is Resource.Success) {
+                    Toast.makeText(context, "Đã thêm vào playlist!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Lỗi thêm vào playlist", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun toggleFavorite(song: Song) {
+        // 1. Lấy ID Playlist "Favorites" từ UserManager
+        val favId = userManager.favoritePlaylistId
+
+        if (favId.isNullOrEmpty()) {
+            Toast.makeText(
+                context,
+                "Không tìm thấy playlist Yêu thích. Hãy thử đăng xuất và đăng nhập lại.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        scope.launch {
+            // 2. Gọi Repository (Repository tự lo Token)
+            val result = musicRepository.toggleFavorite(favId, song.id)
+
+            withContext(Dispatchers.Main) {
+                when (result) {
+                    is Resource.Success -> {
+                        val isAdded = result.result
+                        // Hiện thông báo tương ứng
+                        if (isAdded) {
+                            Toast.makeText(context, "Đã thêm vào Yêu thích ❤️", Toast.LENGTH_SHORT)
+                                .show()
+                        } else {
+                            Toast.makeText(context, "Đã xóa khỏi Yêu thích 💔", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+
+                    is Resource.Failure -> {
+                        Toast.makeText(
+                            context,
+                            "Lỗi: ${result.exception.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    else -> {}
+                }
             }
         }
     }
@@ -168,8 +281,7 @@ class MediaActionHandler(
     private fun handleArtistAction(action: MoreOptionsAction.ArtistAction, artist: Artist) {
         when (action) {
             is MoreOptionsAction.ArtistAction.Follow -> {
-                // viewModel.followArtist(artist.id)
-                Toast.makeText(context, "Followed ${artist.name}", Toast.LENGTH_SHORT).show()
+                TODO()
             }
 
             is MoreOptionsAction.ArtistAction.PlayAllSongs -> {

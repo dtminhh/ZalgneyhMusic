@@ -5,111 +5,91 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Playlist
+import com.example.zalgneyhmusic.data.repository.auth.AuthRepository
+import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-/**
- * ViewModel for Playlists screen
- */
 @HiltViewModel
 class PlaylistViewModel @Inject constructor(
-    // TODO: Inject PlaylistRepository when available
+    private val musicRepository: MusicRepository, // [MỚI] Inject Repository
+    private val userManager: UserManager ,
+    private val authRepository: AuthRepository// [MỚI] Để check User
 ) : BaseViewModel() {
 
-    companion object {
-        private const val DEMO_DATA_DELAY_MS = 1000L
-    }
-
-    private val _playlists = MutableLiveData<Resource<List<Playlist>>>()
-    val playlists: LiveData<Resource<List<Playlist>>> = _playlists
-
+    // LiveData chứa danh sách Playlist của User
     private val _userPlaylists = MutableLiveData<Resource<List<Playlist>>>()
     val userPlaylists: LiveData<Resource<List<Playlist>>> = _userPlaylists
 
+    // LiveData trạng thái tạo Playlist (để UI biết khi nào tạo xong)
+    private val _createPlaylistState = MutableLiveData<Resource<Playlist>?>(null)
+    val createPlaylistState: LiveData<Resource<Playlist>?> = _createPlaylistState
+
     init {
-        loadPlaylists()
-        loadUserPlaylists()
+        loadMyPlaylists()
     }
 
-    fun loadPlaylists() {
-        viewModelScope.launch {
-            _playlists.value = Resource.Loading
-
-            try {
-                delay(DEMO_DATA_DELAY_MS)
-                val demoPlaylists = getDemoPlaylists()
-                _playlists.value = Resource.Success(demoPlaylists)
-            } catch (e: Exception) {
-                _playlists.value = Resource.Failure(e)
-            }
-        }
-    }
-
-    fun loadUserPlaylists() {
+    /**
+     * Tải danh sách Playlist cá nhân từ Server
+     */
+    fun loadMyPlaylists() {
         viewModelScope.launch {
             _userPlaylists.value = Resource.Loading
 
-            try {
-                delay(DEMO_DATA_DELAY_MS)
-                val userPlaylists = getDemoPlaylists().filter { it.createdBy != "Admin" }
-                _userPlaylists.value = Resource.Success(userPlaylists)
-            } catch (e: Exception) {
-                _userPlaylists.value = Resource.Failure(e)
+            // BƯỚC 1: Kiểm tra User trong RAM (UserManager)
+            var currentUser = userManager.currentUser
+
+            // BƯỚC 2: Nếu RAM rỗng, kiểm tra xem Firebase có đang đăng nhập không (Trường hợp mở lại app)
+            if (currentUser == null) {
+                val firebaseUser = authRepository.currentUser
+                if (firebaseUser != null) {
+                    // Có Firebase User -> Gọi Sync để lấy lại thông tin User từ Backend
+                    val syncResult = authRepository.syncUserToBackEnd()
+
+                    if (syncResult is Resource.Success) {
+                        // Sync thành công -> Lưu lại vào RAM
+                        currentUser = syncResult.result
+                        userManager.saveUserSession(currentUser)
+                    }
+                }
+            }
+
+            // BƯỚC 3: Xử lý dựa trên kết quả cuối cùng
+            if (currentUser != null) {
+                // Đã có User (từ RAM hoặc mới Sync xong) -> Lấy Playlist
+                val result = musicRepository.getMyPlaylists()
+                _userPlaylists.value = result
+            } else {
+                // Vẫn không có User -> Bắt buộc đăng nhập
+                _userPlaylists.value = Resource.Failure(Exception("Vui lòng đăng nhập để xem Playlist"))
             }
         }
     }
 
-    private fun getDemoPlaylists(): List<Playlist> {
-        return listOf(
-            Playlist(
-                id = "1",
-                name = "Today's Top Hits",
-                description = "Ed Sheeran is on top of the Hottest 50!",
-                imageUrl = "https://i.scdn.co/image/ab67706f00000003c6ffc45abae6a4f1a0b27ec2",
-                songs = listOf("s1", "s2", "s3", "s4", "s5"),
-                isPublic = true,
-                createdBy = "Spotify"
-            ),
-            Playlist(
-                id = "2",
-                name = "RapCaviar",
-                description = "New music from Drake, Travis Scott, and more.",
-                imageUrl = "https://i.scdn.co/image/ab67706f00000003fc89c91fa34f4f09a68d5c5f",
-                songs = listOf("s6", "s7", "s8"),
-                isPublic = true,
-                createdBy = "Spotify"
-            ),
-            Playlist(
-                id = "3",
-                name = "All Out 2000s",
-                description = "The biggest songs of the 2000s.",
-                imageUrl = "https://i.scdn.co/image/ab67706f00000003e4eadd417a05b2546d866934",
-                songs = listOf("s9", "s10", "s11", "s12"),
-                isPublic = true,
-                createdBy = "Spotify"
-            ),
-            Playlist(
-                id = "4",
-                name = "Rock Classics",
-                description = "Rock legends & epic songs.",
-                imageUrl = "https://i.scdn.co/image/ab67706f000000039249369e44ae14515dd7fc37",
-                songs = listOf("s13", "s14", "s15"),
-                isPublic = true,
-                createdBy = "Spotify"
-            ),
-            Playlist(
-                id = "5",
-                name = "My Favorites",
-                description = "My personal collection",
-                imageUrl = "https://i.scdn.co/image/ab67706c0000da841841a3de0e5846647d7e8b24",
-                songs = listOf("s1", "s5", "s10"),
-                isPublic = false,
-                createdBy = "Me"
-            )
-        )
+    /**
+     * Tạo Playlist mới
+     */
+    fun createPlaylist(name: String) {
+        if (userManager.currentUser == null) return
+
+        viewModelScope.launch {
+            _createPlaylistState.value = Resource.Loading
+            val result = musicRepository.createPlaylist(name)
+
+            if (result is Resource.Success) {
+                // Tạo thành công -> Reload lại danh sách ngay lập tức
+                loadMyPlaylists()
+                _createPlaylistState.value = result
+            } else {
+                _createPlaylistState.value = result
+            }
+        }
+    }
+
+    fun resetCreateState() {
+        _createPlaylistState.value = null
     }
 }
-

@@ -1,9 +1,11 @@
 package com.example.zalgneyhmusic.ui.fragment.mainNav.playlist
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,6 +41,38 @@ class PlaylistsFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         observePlaylists()
+        // Quan sát trạng thái tạo playlist
+        observeCreateState()
+        binding.btnCreatePlaylist.setOnClickListener {
+            showCreatePlaylistDialog()
+        }
+    }
+
+    private fun observeCreateState() {
+        viewModel.createPlaylistState.observe(viewLifecycleOwner) { resource ->
+            if (resource is Resource.Success) {
+                Toast.makeText(context, "Tạo playlist thành công!", Toast.LENGTH_SHORT).show()
+                viewModel.resetCreateState()
+            } else if (resource is Resource.Failure) {
+                Toast.makeText(context, "Lỗi: ${resource.exception.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // Dialog nhập tên (Code của bạn đã ổn, chỉ cần gọi đúng hàm viewModel)
+    private fun showCreatePlaylistDialog() {
+        val input = EditText(context)
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.create_new_playlist)) // Nên dùng string resource
+            .setView(input)
+            .setPositiveButton(getString(R.string.create)) { _, _ ->
+                val name = input.text.toString()
+                if (name.isNotBlank()) {
+                    viewModel.createPlaylist(name) // Gọi hàm tạo
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     private fun setupRecyclerView() {
@@ -70,7 +104,7 @@ class PlaylistsFragment : BaseFragment() {
      * Observe playlists LiveData
      */
     private fun observePlaylists() {
-        viewModel.playlists.observe(viewLifecycleOwner) { resource ->
+        viewModel.userPlaylists.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
