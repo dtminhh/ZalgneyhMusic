@@ -5,111 +5,126 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Playlist
+import com.example.zalgneyhmusic.data.repository.auth.AuthRepository
+import com.example.zalgneyhmusic.data.repository.music.MusicRepository
+import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-/**
- * ViewModel for Playlists screen
- */
 @HiltViewModel
 class PlaylistViewModel @Inject constructor(
-    // TODO: Inject PlaylistRepository when available
+    private val musicRepository: MusicRepository,
+    private val userManager: UserManager,
+    private val authRepository: AuthRepository
 ) : BaseViewModel() {
 
-    companion object {
-        private const val DEMO_DATA_DELAY_MS = 1000L
-    }
-
-    private val _playlists = MutableLiveData<Resource<List<Playlist>>>()
-    val playlists: LiveData<Resource<List<Playlist>>> = _playlists
-
+    // Holds the current user's playlists
     private val _userPlaylists = MutableLiveData<Resource<List<Playlist>>>()
     val userPlaylists: LiveData<Resource<List<Playlist>>> = _userPlaylists
 
+    // Tracks playlist creation state so UI knows when creation is finished
+    private val _createPlaylistState = MutableLiveData<Resource<Playlist>?>(null)
+    val createPlaylistState: LiveData<Resource<Playlist>?> = _createPlaylistState
+
+    private val _actionState = MutableLiveData<Resource<String>>()
+
     init {
-        loadPlaylists()
-        loadUserPlaylists()
+        loadMyPlaylists()
     }
 
-    fun loadPlaylists() {
-        viewModelScope.launch {
-            _playlists.value = Resource.Loading
-
-            try {
-                delay(DEMO_DATA_DELAY_MS)
-                val demoPlaylists = getDemoPlaylists()
-                _playlists.value = Resource.Success(demoPlaylists)
-            } catch (e: Exception) {
-                _playlists.value = Resource.Failure(e)
-            }
-        }
-    }
-
-    fun loadUserPlaylists() {
+    /**
+     * Loads the user's personal playlists from the backend.
+     */
+    fun loadMyPlaylists() {
         viewModelScope.launch {
             _userPlaylists.value = Resource.Loading
 
-            try {
-                delay(DEMO_DATA_DELAY_MS)
-                val userPlaylists = getDemoPlaylists().filter { it.createdBy != "Admin" }
-                _userPlaylists.value = Resource.Success(userPlaylists)
-            } catch (e: Exception) {
-                _userPlaylists.value = Resource.Failure(e)
+            // Step 1: Try to read the user from in-memory session (UserManager)
+            var currentUser = userManager.currentUser
+
+            // Step 2: If missing, check if Firebase has an active session (app reopened case)
+            if (currentUser == null) {
+                val firebaseUser = authRepository.currentUser
+                if (firebaseUser != null) {
+                    // Firebase user exists -> sync account data from backend
+                    val syncResult = authRepository.syncUserToBackEnd()
+
+                    if (syncResult is Resource.Success) {
+                        // Persist synced user in memory for subsequent calls
+                        currentUser = syncResult.result
+                        userManager.saveUserSession(currentUser)
+                    }
+                }
+            }
+
+            // Step 3: Continue based on the final resolved user
+            if (currentUser != null) {
+                // User is available (from RAM or freshly synced) -> load playlists
+                val result = musicRepository.getMyPlaylists()
+                _userPlaylists.value = result
+            } else {
+                // Still no user -> force login before accessing playlists
+                _userPlaylists.value = Resource.Failure(Exception("Please sign in to view playlists"))
             }
         }
     }
 
-    private fun getDemoPlaylists(): List<Playlist> {
-        return listOf(
-            Playlist(
-                id = "1",
-                name = "Today's Top Hits",
-                description = "Ed Sheeran is on top of the Hottest 50!",
-                imageUrl = "https://i.scdn.co/image/ab67706f00000003c6ffc45abae6a4f1a0b27ec2",
-                songs = listOf("s1", "s2", "s3", "s4", "s5"),
-                isPublic = true,
-                createdBy = "Spotify"
-            ),
-            Playlist(
-                id = "2",
-                name = "RapCaviar",
-                description = "New music from Drake, Travis Scott, and more.",
-                imageUrl = "https://i.scdn.co/image/ab67706f00000003fc89c91fa34f4f09a68d5c5f",
-                songs = listOf("s6", "s7", "s8"),
-                isPublic = true,
-                createdBy = "Spotify"
-            ),
-            Playlist(
-                id = "3",
-                name = "All Out 2000s",
-                description = "The biggest songs of the 2000s.",
-                imageUrl = "https://i.scdn.co/image/ab67706f00000003e4eadd417a05b2546d866934",
-                songs = listOf("s9", "s10", "s11", "s12"),
-                isPublic = true,
-                createdBy = "Spotify"
-            ),
-            Playlist(
-                id = "4",
-                name = "Rock Classics",
-                description = "Rock legends & epic songs.",
-                imageUrl = "https://i.scdn.co/image/ab67706f000000039249369e44ae14515dd7fc37",
-                songs = listOf("s13", "s14", "s15"),
-                isPublic = true,
-                createdBy = "Spotify"
-            ),
-            Playlist(
-                id = "5",
-                name = "My Favorites",
-                description = "My personal collection",
-                imageUrl = "https://i.scdn.co/image/ab67706c0000da841841a3de0e5846647d7e8b24",
-                songs = listOf("s1", "s5", "s10"),
-                isPublic = false,
-                createdBy = "Me"
-            )
-        )
+    /**
+     * Creates a new playlist for the current user.
+     */
+    fun createPlaylist(name: String) {
+        if (userManager.currentUser == null) return
+
+        viewModelScope.launch {
+            _createPlaylistState.value = Resource.Loading
+            val result = musicRepository.createPlaylist(name)
+
+            if (result is Resource.Success) {
+                // Refresh playlists immediately after successful creation
+                loadMyPlaylists()
+                _createPlaylistState.value = result
+            } else {
+                _createPlaylistState.value = result
+            }
+        }
+    }
+
+    @Suppress("unused")
+    fun isFavoritePlaylist(playlistId: String): Boolean {
+        return userManager.favoritePlaylistId == playlistId
+    }
+
+    @Suppress("unused")
+    fun deletePlaylist(id: String) {
+        viewModelScope.launch {
+            _actionState.value = Resource.Loading
+            val result = musicRepository.deletePlaylist(id)
+            if (result is Resource.Success) {
+                _actionState.value = Resource.Success("Playlist deleted")
+                // Reload list to reflect deletion in UI
+                loadMyPlaylists()
+            } else if (result is Resource.Failure) {
+                _actionState.value = Resource.Failure(result.exception)
+            }
+        }
+    }
+
+    fun updatePlaylist(id: String, newName: String, newImage: java.io.File?) {
+        viewModelScope.launch {
+            _actionState.value = Resource.Loading
+            val result = musicRepository.updatePlaylist(id, newName, newImage)
+            if (result is Resource.Success) {
+                _actionState.value = Resource.Success("Playlist updated successfully")
+                loadMyPlaylists()
+            } else if (result is Resource.Failure) {
+                _actionState.value = Resource.Failure(result.exception)
+            }
+        }
+    }
+
+    fun resetCreateState() {
+        _createPlaylistState.value = null
     }
 }
-

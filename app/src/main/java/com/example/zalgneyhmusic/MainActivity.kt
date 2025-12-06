@@ -1,8 +1,11 @@
 package com.example.zalgneyhmusic
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.example.zalgneyhmusic.ui.viewmodel.MainViewModel
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.zalgneyhmusic.data.model.domain.DetailType
@@ -25,9 +28,11 @@ import dagger.hilt.android.AndroidEntryPoint
  */
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), DetailNavigator {
+    private val mainViewModel: MainViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        Log.d("MainActivity", "Activating ViewModel: $mainViewModel")
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -37,7 +42,7 @@ class MainActivity : AppCompatActivity(), DetailNavigator {
     }
 
     override fun navigatorToDetailScreen(type: DetailType) {
-        val bottomSheet: BottomSheetDialogFragment = when(type){
+        val bottomSheet: BottomSheetDialogFragment = when (type) {
             is DetailType.Artist -> {
                 ArtistDetailBottomSheet.newInstance(type.id)
             }
@@ -45,7 +50,8 @@ class MainActivity : AppCompatActivity(), DetailNavigator {
                 AlbumDetailBottomSheet.newInstance(type.id)
             }
             is DetailType.Playlist -> {
-                throw NotImplementedError("Playlist detail bottom sheet is not implemented yet")            }
+                com.example.zalgneyhmusic.ui.fragment.detail.PlaylistDetailBottomSheet.newInstance(type.id)
+            }
         }
         bottomSheet.show(supportFragmentManager, "DETAIL_SHEET_TAG")
     }

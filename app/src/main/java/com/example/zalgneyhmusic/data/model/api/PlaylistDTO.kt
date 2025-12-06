@@ -17,10 +17,8 @@ data class PlaylistDTO(
     @SerializedName("description")
     val description: String? = null,
 
-    // Backend may send songs as array of song IDs or array of song objects.
-    // A custom deserializer will map it to this list of IDs.
     @SerializedName("songs")
-    val songIds: List<String> = emptyList(),
+    val songs: List<SongDTO> = emptyList(),
 
     @SerializedName("imageUrl")
     val imageUrl: String? = null,
@@ -42,7 +40,7 @@ data class PlaylistDTO(
         name = name,
         description = description,
         imageUrl = imageUrl ?: "",
-        songs = songIds,
+        songs = songs.map { it.toDomain() },
         isPublic = isPublic,
         createdBy = createdBy ?: "Admin",
         createdAt = createdAt,

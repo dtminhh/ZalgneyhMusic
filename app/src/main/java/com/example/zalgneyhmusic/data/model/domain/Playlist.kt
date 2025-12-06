@@ -9,7 +9,7 @@ data class Playlist(
     val name: String,
     val description: String? = null,
     val imageUrl: String,
-    val songs: List<String> = emptyList(), // List song IDs
+    val songs: List<Song> = emptyList(),
     val isPublic: Boolean = true,
     val createdBy: String = "Admin",
     val createdAt: String? = null,

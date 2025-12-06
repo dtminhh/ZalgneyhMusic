@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
@@ -19,6 +21,7 @@ import com.example.zalgneyhmusic.ui.utils.setupFullHeightBottomSheet
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.ArtistViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
@@ -28,6 +31,8 @@ class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
     private val binding get() = _binding!!
     private lateinit var albumAdapter: AlbumAdapter
     private lateinit var songAdapter: SongAdapter
+
+    private var currentArtist: Artist? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,21 +51,36 @@ class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerViews()
+        setupListeners()
         artistId?.let { id ->
             viewModel.loadArtistDetail(id)
+            observeFollowStatus(id)
         }
         observeData()
+
     }
 
+    private fun setupListeners() {
+        binding.btnClose.setOnClickListener {
+            dismiss()
+        }
+        binding.btnFollow.setOnClickListener {
+            currentArtist?.let { artist ->
+                mediaActionHandler.toggleFollowArtist(artist)
+            }
+        }
+    }
+
+
     private fun observeData() {
-        // 1. Artist Info
+        // Artist profile
         viewModel.artistDetail.observe(viewLifecycleOwner) { resource ->
             if (resource is Resource.Success) {
                 bindArtistData(resource.result)
             }
         }
 
-        // 2. Albums List
+        // Albums list
         viewModel.artistAlbums.observe(viewLifecycleOwner) { resource ->
             if (resource is Resource.Success) {
                 val albums = resource.result
@@ -75,7 +95,7 @@ class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
             }
         }
 
-        // 3. Songs List
+        // Popular songs list
         viewModel.artistSongs.observe(viewLifecycleOwner) { resource ->
             if (resource is Resource.Success) {
                 val songs = resource.result
@@ -91,12 +111,40 @@ class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
         }
     }
 
+    private fun observeFollowStatus(artistId: String) {
+        lifecycleScope.launch {
+            userManager.followedArtistIds.collect { followedIds ->
+                val isFollowed = followedIds.contains(artistId)
+                updateFollowButton(isFollowed)
+            }
+        }
+    }
+
+    private fun updateFollowButton(isFollowed: Boolean) {
+        if (isFollowed) {
+            binding.btnFollow.text = getString(R.string.mo_unfollow)
+            binding.btnFollow.background = ResourcesCompat.getDrawable(
+                resources,
+                R.drawable.bg_play_button,
+                null
+            )
+        } else {
+            binding.btnFollow.text = getString(R.string.mo_follow)
+            binding.btnFollow.background = ResourcesCompat.getDrawable(
+                resources,
+                R.drawable.parent_item_shape_background,
+                null
+            )
+        }
+    }
+
     private fun bindArtistData(artist: Artist) {
+        this.currentArtist = artist
         binding.apply {
             txtArtistNameDetail.text = artist.name
-            txtFollowersCount.text = "${artist.followers} người theo dõi"
+            txtFollowersCount.text = getString(R.string.follower, artist.followers)
 
-            // Load thumbnail
+            // Load artist thumbnail
             ImageUtils.loadImage(imgArtistAvatarDetail, artist.imageUrl)
         }
     }
@@ -112,7 +160,7 @@ class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
     }
 
     private fun setupRecyclerViews() {
-        // 1. Setup Album RecyclerView (Horizontal)
+        // Album RecyclerView (horizontal)
         albumAdapter = AlbumAdapter(
             onAlbumClick = { album ->
                 openAlbumDetail(album.id)
@@ -123,7 +171,7 @@ class ArtistDetailBottomSheet : BaseBottomSheetDialogFragment() {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
 
-        // 2. Setup Song RecyclerView (Vertical)
+        // Song RecyclerView (vertical)
         songAdapter = SongAdapter(
             onSongClick = { song ->
                 mediaActionHandler.onSongClick(song, songAdapter.currentList)

@@ -4,11 +4,13 @@ import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
+import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -105,6 +107,7 @@ class MusicLocalRepository @Inject constructor(
         }
     }
 
+
     // Artists
     override fun getAllArtists(): Flow<Resource<List<Artist>>> = flow {
         emit(Resource.Loading)
@@ -145,14 +148,6 @@ class MusicLocalRepository @Inject constructor(
         }
     }
 
-    override suspend fun getSongsByArtist(artistId: String): Resource<List<Song>> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getAlbumsByArtist(artistId: String): Resource<List<Album>> {
-        TODO("Not yet implemented")
-    }
-
     // Albums
     override fun getAllAlbums(): Flow<Resource<List<Album>>> = flow {
         emit(Resource.Loading)
@@ -191,6 +186,56 @@ class MusicLocalRepository @Inject constructor(
         } catch (e: Exception) {
             Resource.Failure(e)
         }
+    }
+
+    override suspend fun getSongsByArtist(artistId: String): Resource<List<Song>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getAlbumsByArtist(artistId: String): Resource<List<Album>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getFollowedArtists(): Resource<List<Artist>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun toggleFollowArtist(artistId: String): Resource<Boolean> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun toggleFavorite(
+        playlistId: String,
+        songId: String
+    ): Resource<Boolean> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun createPlaylist(name: String): Resource<Playlist> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getMyPlaylists(): Resource<List<Playlist>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun addSongToPlaylist(
+        playlistId: String,
+        songId: String
+    ): Resource<Any> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deletePlaylist(id: String): Resource<Boolean> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun updatePlaylist(
+        id: String,
+        name: String,
+        imageFile: File?
+    ): Resource<Playlist> {
+        TODO("Not yet implemented")
     }
 
     override fun searchEverything(query: String): Flow<Resource<SearchResults>> {

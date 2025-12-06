@@ -8,9 +8,14 @@ import com.example.zalgneyhmusic.data.model.api.SearchResponseDTO
 import com.example.zalgneyhmusic.data.model.api.SongDTO
 import com.example.zalgneyhmusic.data.model.api.UserDTO
 import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -29,6 +34,13 @@ interface ZalgneyhApiService {
      */
     @POST("auth/sync")
     suspend fun syncUser(@Header("Authorization") token: String): Response<ApiResponse<UserDTO>>
+
+    // User APIs
+    @POST("users/follow")
+    suspend fun toggleFollow(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String>
+    ): Response<ApiResponse<Any>> // body: {"artistId": "..."}
 
     // ==================== SONGS API ====================
 
@@ -66,6 +78,13 @@ interface ZalgneyhApiService {
         @Path("id") id: String
     ): Response<ApiResponse<SongDTO>>
 
+    @POST("playlists/{id}/songs/toggle")
+    suspend fun toggleSongInPlaylist(
+        @Header("Authorization") token: String,
+        @Path("id") playlistId: String,
+        @Body body: Map<String, String> // body: {"songId": "..."}
+    ): Response<ApiResponse<Any>>
+
     // ==================== ARTISTS API ====================
 
     /**
@@ -93,6 +112,11 @@ interface ZalgneyhApiService {
     suspend fun getArtistSongs(
         @Path("id") artistId: String
     ): Response<ApiResponse<List<SongDTO>>>
+
+    @GET("users/artists")
+    suspend fun getFollowedArtists(
+        @Header("Authorization") token: String,
+    ): Response<ApiResponse<List<ArtistDTO>>>
 
     // ==================== ALBUMS API ====================
 
@@ -142,6 +166,41 @@ interface ZalgneyhApiService {
 
     @GET("search")
     suspend fun search(@Query("q") query: String): Response<ApiResponse<SearchResponseDTO>>
+
+    @POST("playlists")
+    suspend fun createPlaylist(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String>
+    ): Response<ApiResponse<PlaylistDTO>>
+
+    @GET("playlists/my")
+    suspend fun getMyPlaylists(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<List<PlaylistDTO>>>
+
+    @POST("playlists/{id}/songs")
+    suspend fun addSongToPlaylist(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Body body: Map<String, String>
+    ): Response<ApiResponse<Any>>
+
+    @DELETE("playlists/{id}")
+    suspend fun deletePlaylist(
+        @Header("Authorization") token: String,
+        @Path("id") id: String
+    ): Response<ApiResponse<Any>>
+
+    // Cập nhật Playlist (Dùng Multipart để gửi cả text và file ảnh)
+    @Multipart
+    @PUT("playlists/{id}")
+    suspend fun updatePlaylist(
+        @Header("Authorization") token: String,
+        @Path("id") id: String,
+        @Part("name") name: okhttp3.RequestBody,
+        @Part("description") description: okhttp3.RequestBody?,
+        @Part image: okhttp3.MultipartBody.Part?
+    ): Response<ApiResponse<com.example.zalgneyhmusic.data.model.api.PlaylistDTO>>
 
     // ==================== HEALTH CHECK ====================
 

@@ -7,6 +7,7 @@ import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.example.zalgneyhmusic.data.session.UserManager
 import javax.inject.Inject
 
 /**
@@ -20,7 +21,8 @@ import javax.inject.Inject
  */
 class AuthRepositoryImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val apiService: ZalgneyhApiService
+    private val apiService: ZalgneyhApiService,
+    private val userManager: UserManager
 ) : AuthRepository {
 
     /**
@@ -132,5 +134,6 @@ class AuthRepositoryImpl @Inject constructor(
      */
     override fun logout() {
         firebaseAuth.signOut()
+        userManager.clearSession()
     }
 }
