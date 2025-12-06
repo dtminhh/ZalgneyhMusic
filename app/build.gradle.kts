@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.play.services.auth)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
     ksp(libs.hilt.android.compiler)
     implementation(platform(libs.firebase.bom))
     implementation(libs.google.firebase.auth)

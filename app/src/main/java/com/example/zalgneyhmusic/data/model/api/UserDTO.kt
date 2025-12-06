@@ -12,7 +12,7 @@ data class UserDTO(
     @SerializedName("email") val email: String,
     @SerializedName("displayName") val displayName: String?,
     @SerializedName("role") val role: String,
-    @SerializedName("favoritePlaylist") val favoritePlaylist: String? // Backend trả về ID playlist
+    @SerializedName("favoritePlaylist") val favoritePlaylist: String? // Backend returns playlist ID
 ) {
     fun toDomain() = User(
         id = id,

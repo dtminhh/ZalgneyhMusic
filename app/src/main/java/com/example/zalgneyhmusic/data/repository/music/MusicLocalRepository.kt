@@ -70,7 +70,7 @@ class MusicLocalRepository @Inject constructor(
     override fun getNewSongs(limit: Int): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
         try {
-            // Tạm thời sử dụng cùng nguồn với recentSongs (createdAt DESC)
+            // Temporarily uses same source as recent songs (sorted by createdAt DESC)
             songDao.getRecentSongs(limit).map { entities ->
                 entities.map { it.toDomain() }
             }.collect { songs ->
@@ -105,6 +105,14 @@ class MusicLocalRepository @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
+    }
+
+    override suspend fun addToRecentlyPlayed(song: Song) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getListeningHistory(): Flow<List<Song>> {
+        TODO("Not yet implemented")
     }
 
 

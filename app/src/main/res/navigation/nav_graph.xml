@@ -43,4 +43,10 @@
         android:id="@+id/searchFragment"
         android:name="com.example.zalgneyhmusic.ui.fragment.search.SearchFragment"
         android:label="SearchFragment" />
+
+    <fragment
+        android:id="@+id/recentSongsFragment"
+        android:name="com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.RecentSongsFragment"
+        android:label="Recent Songs"
+        tools:layout="@layout/fragment_song_list" />
 </navigation>

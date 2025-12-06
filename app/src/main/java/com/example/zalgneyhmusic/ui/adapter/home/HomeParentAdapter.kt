@@ -23,7 +23,8 @@ class HomeParentAdapter(
     private val onAlbumClick: (Album) -> Unit,
     private val onSongMoreClick: ((Song) -> Unit)? = null,
     private val onArtistMoreClick: ((Artist) -> Unit)? = null,
-    private val onAlbumMoreClick: ((Album) -> Unit)? = null
+    private val onAlbumMoreClick: ((Album) -> Unit)? = null,
+    private val onSeeMoreClick: (SectionType) -> Unit
 ) : RecyclerView.Adapter<HomeParentAdapter.HomeParentViewHolder>() {
 
     private val sections = mutableListOf<HomeSection<*>>()
@@ -80,6 +81,9 @@ class HomeParentAdapter(
         @Suppress("UNCHECKED_CAST")
         fun bind(section: HomeSection<*>) {
             binding.tvSectionTitle.text = section.title
+            binding.tvSeeMore.setOnClickListener {
+                onSeeMoreClick(section.sectionType)
+            }
 
             // Setup child RecyclerView based on section type
             // Type casting is safe here because SectionType enum guarantees correct types

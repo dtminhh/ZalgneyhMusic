@@ -96,8 +96,9 @@ class HomeViewModel @Inject constructor(
     /** Loads 10 recently played songs from repository */
     private fun loadRecentlyHeard() {
         viewModelScope.launch {
-            musicRepository.getRecentSongs(LIMIT_LOAD_DATA_VALUE).collect { resource ->
-                _recentlyHeard.value = resource
+            musicRepository.getListeningHistory().collect { songs ->
+                val previewList = songs.take(LIMIT_LOAD_DATA_VALUE)
+                _recentlyHeard.value = Resource.Success(previewList)
             }
         }
     }
@@ -105,7 +106,7 @@ class HomeViewModel @Inject constructor(
     /** Loads personalized song suggestions based on user preferences */
     private fun loadSuggestions() {
         viewModelScope.launch {
-            // TODO: Implement personalized recommendations algorithm
+            // Currently loads all songs as suggestions (algorithm can be improved later)
             musicRepository.getAllSongs().collect { resource ->
                 _suggestions.value = resource
             }

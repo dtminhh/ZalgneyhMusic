@@ -50,16 +50,25 @@ class PlayerViewModel @Inject constructor(
 
     init {
         refreshFavorites()
+        observeCurrentSong()
     }
 
-    /**
-     * Refreshes favorite songs list from API if not already loaded.
-     */
     private fun refreshFavorites() {
         viewModelScope.launch {
-            // Fetch from API if no data available yet
+            // Nếu chưa có dữ liệu thì gọi API lấy về
             if (userManager.favoriteSongIds.value.isEmpty()) {
                 musicRepository.getMyPlaylists()
+            }
+        }
+    }
+
+    private fun observeCurrentSong() {
+        viewModelScope.launch {
+            musicPlayer.currentSong.collect { song ->
+                if (song != null) {
+                    // Lưu vào lịch sử khi bài hát thay đổi
+                    musicRepository.addToRecentlyPlayed(song)
+                }
             }
         }
     }
@@ -121,19 +130,16 @@ class PlayerViewModel @Inject constructor(
     }
 
     /**
-     * Adds a song to play next in queue (right after current song).
-     *
-     * @param song Song to add to next position
-     */
+     * add song to next
+     * */
     fun addSongToNext(song: Song) {
         musicPlayer.addSongToNext(song)
     }
 
+
     /**
-     * Adds a song to the end of the current queue.
-     *
-     * @param song Song to add to queue
-     */
+     * add song to player list
+     * */
     fun addSongToQueue(song: Song) {
         musicPlayer.addSongToQueue(song)
     }
@@ -150,7 +156,5 @@ class PlayerViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        // Note: Don't release musicPlayer here as it's a Singleton
-        // and may be used elsewhere
     }
 }
