@@ -98,7 +98,6 @@ class HomeFragment : BaseFragment() {
                             e.printStackTrace()
                         }
                     }
-                    // Can add logic for other sections if needed
                     else -> {}
                 }
             }

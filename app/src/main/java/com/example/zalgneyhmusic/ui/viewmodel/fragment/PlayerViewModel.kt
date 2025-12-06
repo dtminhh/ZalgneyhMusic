@@ -8,13 +8,10 @@ import com.example.zalgneyhmusic.player.MusicPlayer
 import com.example.zalgneyhmusic.player.RepeatMode
 import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
@@ -31,7 +28,6 @@ class PlayerViewModel @Inject constructor(
 ) : BaseViewModel() {
 
     companion object {
-        private const val POSITION_UPDATE_INTERVAL_MS = 1000L
         private const val MILLIS_TO_SECONDS = 1000
         private const val SECONDS_TO_MINUTES = 60
     }
@@ -45,8 +41,6 @@ class PlayerViewModel @Inject constructor(
     val repeatMode: StateFlow<RepeatMode> = musicPlayer.repeatMode
     val playlist: StateFlow<List<Song>> = musicPlayer.playlist
 
-    private var positionUpdateJob: Job? = null
-
     val isCurrentSongFavorite: StateFlow<Boolean> = combine(
         musicPlayer.currentSong,
         userManager.favoriteSongIds
@@ -55,19 +49,26 @@ class PlayerViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     init {
-        startPositionUpdates()
         refreshFavorites()
         observeCurrentSong()
     }
 
-    /**
-     * Loads favorite songs from API if not already cached.
-     */
     private fun refreshFavorites() {
         viewModelScope.launch {
-            // Load data from API if not already available
+            // Nếu chưa có dữ liệu thì gọi API lấy về
             if (userManager.favoriteSongIds.value.isEmpty()) {
                 musicRepository.getMyPlaylists()
+            }
+        }
+    }
+
+    private fun observeCurrentSong() {
+        viewModelScope.launch {
+            musicPlayer.currentSong.collect { song ->
+                if (song != null) {
+                    // Lưu vào lịch sử khi bài hát thay đổi
+                    musicRepository.addToRecentlyPlayed(song)
+                }
             }
         }
     }
@@ -144,30 +145,6 @@ class PlayerViewModel @Inject constructor(
     }
 
     /**
-     * Start updating position every second
-     */
-    private fun startPositionUpdates() {
-        positionUpdateJob?.cancel()
-        positionUpdateJob = viewModelScope.launch {
-            while (isActive) {
-                musicPlayer.updatePosition()
-                delay(POSITION_UPDATE_INTERVAL_MS)
-            }
-        }
-    }
-
-    private fun observeCurrentSong() {
-        viewModelScope.launch {
-            musicPlayer.currentSong.collect { song ->
-                if (song != null) {
-                    // Save to listening history when song changes
-                    musicRepository.addToRecentlyPlayed(song)
-                }
-            }
-        }
-    }
-
-    /**
      * Formats milliseconds to MM:SS format
      */
     fun formatTime(milliseconds: Int): String {
@@ -179,8 +156,5 @@ class PlayerViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        positionUpdateJob?.cancel()
-        // Note: Don't release musicPlayer here as it's a Singleton
-        // and may be used elsewhere
     }
 }

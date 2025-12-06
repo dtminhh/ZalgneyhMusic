@@ -66,8 +66,6 @@ class RecentSongsFragment : BaseFragment() {
 
             if (songs.isNullOrEmpty()) {
                 binding.rvSongs.visibility = View.GONE
-                // Optional: Display "No listening history" text if needed
-                // binding.txtEmpty.visibility = View.VISIBLE
             } else {
                 binding.rvSongs.visibility = View.VISIBLE
                 songAdapter.submitList(songs)
