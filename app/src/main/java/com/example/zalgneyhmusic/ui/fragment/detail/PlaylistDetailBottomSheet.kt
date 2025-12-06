@@ -42,7 +42,7 @@ class PlaylistDetailBottomSheet : BaseBottomSheetDialogFragment() {
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 selectedImageUri = it
-                // Cập nhật ảnh preview dùng binding
+                // Update image preview using binding
                 editBinding?.imageView?.setImageURI(it)
             }
         }

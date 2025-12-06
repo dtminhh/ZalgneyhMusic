@@ -34,7 +34,7 @@ class PlaylistsFragment : BaseFragment() {
     private val viewModel: PlaylistViewModel by viewModels()
     private lateinit var playlistAdapter: PlaylistAdapter
 
-    // Biến hỗ trợ chọn ảnh
+    // Image picker support variables
     private var selectedImageUri: android.net.Uri? = null
     private var currentDialogBinding: DialogCreatePlaylistBinding? = null
     private val pickImageLauncher =
@@ -187,7 +187,7 @@ class PlaylistsFragment : BaseFragment() {
         dialogBinding.btnCreate.setOnClickListener {
             val newName = dialogBinding.etPlaylistName.text.toString().trim()
             if (newName.isNotBlank()) {
-                // Convert Uri sang File để upload
+                // Convert Uri to File for upload
                 val imageFile = selectedImageUri?.let { StorageHelper.uriToFile(requireContext(), it) }
                 viewModel.updatePlaylist(playlist.id, newName, imageFile)
                 dialog.dismiss()

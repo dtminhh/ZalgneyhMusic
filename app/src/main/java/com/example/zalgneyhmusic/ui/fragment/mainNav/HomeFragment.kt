@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
@@ -85,6 +86,21 @@ class HomeFragment : BaseFragment() {
             },
             onAlbumMoreClick = { album ->
                 mediaActionHandler.onAlbumMenuClick(album)
+            },
+            onSeeMoreClick = { sectionType ->
+                when (sectionType) {
+                    SectionType.RECENTLY_HEARD -> {
+                        // Navigate to RecentSongsFragment
+                        // Ensure recentSongsFragment id is defined in nav_graph.xml
+                        try {
+                            findNavController().navigate(R.id.recentSongsFragment)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                    // Can add logic for other sections if needed
+                    else -> {}
+                }
             }
         )
 

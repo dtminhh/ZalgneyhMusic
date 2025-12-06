@@ -93,7 +93,8 @@ class AppModule {
             artistDao = database.artistDao(),
             albumDao = database.albumDao(),
             firebaseAuth = provideFirebaseAuth(),
-            userManager = UserManager(context)
+            userManager = UserManager(context),
+            database = database
         )
     }
 

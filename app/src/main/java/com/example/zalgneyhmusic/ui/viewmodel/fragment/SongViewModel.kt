@@ -2,6 +2,7 @@ package com.example.zalgneyhmusic.ui.viewmodel.fragment
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Song
@@ -23,15 +24,14 @@ class SongViewModel @Inject constructor(
     private val _featureSongs = MutableLiveData<Resource<List<Song>>>()
     val featureSongs: LiveData<Resource<List<Song>>> = _featureSongs
 
-    private val _recentSongs = MutableLiveData<Resource<List<Song>>>()
-    val recentSongs: LiveData<Resource<List<Song>>> = _recentSongs
+    val historySongs = musicRepository.getListeningHistory()
+        .asLiveData()
 
     private val _newSongs = MutableLiveData<Resource<List<Song>>>()
     val newSongs: LiveData<Resource<List<Song>>> = _newSongs
 
     init {
         loadFeatureSongs()
-        loadRecentSongs()
         loadNewSongs()
     }
 
@@ -41,15 +41,6 @@ class SongViewModel @Inject constructor(
             // Feature songs: reuse top songs (limit 20 for this screen)
             musicRepository.getTopSongs(limit = 100).collect { resource ->
                 _featureSongs.value = resource
-            }
-        }
-    }
-
-    fun loadRecentSongs() {
-        viewModelScope.launch {
-            _recentSongs.value = Resource.Loading
-            musicRepository.getRecentSongs(limit = 100).collect { resource ->
-                _recentSongs.value = resource
             }
         }
     }

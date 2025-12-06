@@ -6,8 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
 import com.example.zalgneyhmusic.ui.fragment.BaseFragment
@@ -61,28 +59,18 @@ class RecentSongsFragment : BaseFragment() {
     }
 
     private fun observeSongs() {
-        songViewModel.recentSongs.observe(viewLifecycleOwner) { resource ->
-            when (resource) {
-                is Resource.Loading -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.rvSongs.visibility = View.GONE
-                    binding.txtError.visibility = View.GONE
-                }
+        songViewModel.historySongs.observe(viewLifecycleOwner) { songs ->
+            // Local DB data has no network loading state
+            binding.progressBar.visibility = View.GONE
+            binding.txtError.visibility = View.GONE
 
-                is Resource.Success -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.rvSongs.visibility = View.VISIBLE
-                    binding.txtError.visibility = View.GONE
-                    songAdapter.submitList(resource.result)
-                }
-
-                is Resource.Failure -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.rvSongs.visibility = View.GONE
-                    binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text =
-                        resource.exception.message ?: getString(R.string.unknown_error)
-                }
+            if (songs.isNullOrEmpty()) {
+                binding.rvSongs.visibility = View.GONE
+                // Optional: Display "No listening history" text if needed
+                // binding.txtEmpty.visibility = View.VISIBLE
+            } else {
+                binding.rvSongs.visibility = View.VISIBLE
+                songAdapter.submitList(songs)
             }
         }
     }

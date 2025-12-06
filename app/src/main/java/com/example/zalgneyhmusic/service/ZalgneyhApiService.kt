@@ -194,7 +194,7 @@ interface ZalgneyhApiService {
         @Path("id") id: String
     ): Response<ApiResponse<Any>>
 
-    // Cập nhật Playlist (Dùng Multipart để gửi cả text và file ảnh)
+    // Update Playlist (Uses Multipart to send both text and image file)
     @Multipart
     @PUT("playlists/{id}")
     suspend fun updatePlaylist(

@@ -2,11 +2,13 @@ package com.example.zalgneyhmusic.data.repository.music
 
 import android.util.Log
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.local.dao.AlbumDao
 import com.example.zalgneyhmusic.data.local.dao.ArtistDao
 import com.example.zalgneyhmusic.data.local.dao.SongDao
 import com.example.zalgneyhmusic.data.local.entity.AlbumEntity
 import com.example.zalgneyhmusic.data.local.entity.ArtistEntity
+import com.example.zalgneyhmusic.data.local.entity.RecentlyPlayedEntity
 import com.example.zalgneyhmusic.data.local.entity.SongEntity
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
@@ -20,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -41,8 +44,11 @@ class MusicHybridRepository @Inject constructor(
     private val artistDao: ArtistDao,
     private val albumDao: AlbumDao,
     private val firebaseAuth: FirebaseAuth,
-    private val userManager: UserManager
+    private val userManager: UserManager,
+    database: MusicDatabase,
 ) : MusicRepository {
+
+    private val recentlyPlayedDao = database.recentlyPlayedDao()
 
     companion object {
         private const val TAG = "MusicHybridRepository"
@@ -270,6 +276,27 @@ class MusicHybridRepository @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
+    }
+
+    override suspend fun addToRecentlyPlayed(song: Song) {
+        withContext(Dispatchers.IO) {
+            try {
+                // 1. Ensure SongEntity exists in songs table first (to prevent JOIN errors)
+                songDao.insert(SongEntity.fromDomain(song))
+
+                // 2. Save to listening history table
+                recentlyPlayedDao.insert(RecentlyPlayedEntity(songId = song.id))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override fun getListeningHistory(): Flow<List<Song>> {
+        return recentlyPlayedDao.getRecentlyPlayedSongs()
+            .map { entities ->
+                entities.map { it.toDomain() }
+            }
     }
 
     /**

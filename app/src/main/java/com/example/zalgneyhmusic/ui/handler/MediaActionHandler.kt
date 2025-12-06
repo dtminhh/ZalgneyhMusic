@@ -39,10 +39,10 @@ class MediaActionHandler(
 
     // ==================== SONG ====================
     fun onSongMenuClick(song: Song) {
-        // Lấy trạng thái từ UserManager (lúc này đã có dữ liệu từ Cache nên luôn đúng)
+        // Get status from UserManager (cached data is always up-to-date)
         val isFav = userManager.isSongFavorite(song.id)
 
-        // Log để kiểm tra
+        // Debug log
         android.util.Log.d("DEBUG_FAV", "Menu for ${song.title}, isFav: $isFav")
 
         MoreOptionsManager.showForSong(fragmentManager, song, isFav) { action ->
