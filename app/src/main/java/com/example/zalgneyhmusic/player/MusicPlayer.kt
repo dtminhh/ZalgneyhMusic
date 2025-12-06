@@ -1,46 +1,47 @@
 package com.example.zalgneyhmusic.player
 
+import android.content.ComponentName
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
-import android.media.AudioManager
-import android.media.MediaPlayer
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Build
-import android.util.Log
+import android.os.IBinder
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import com.example.zalgneyhmusic.data.model.domain.Song
+import com.example.zalgneyhmusic.service.MusicService
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Music Player Manager - Manage music playback with MediaPlayer
- * Supports: play, pause, seek, next, previous, shuffle, repeat
+ * Music Player Manager - Updated to work with MusicService (ExoPlayer)
+ * Acts as a client to the MusicService
  */
 @Singleton
 class MusicPlayer @Inject constructor(
-    context: Context
+    @ApplicationContext private val context: Context,
+    private val exoPlayer: ExoPlayer // Inject shared ExoPlayer instance
 ) {
-    companion object {
-        private const val RESTART_SONG_THRESHOLD_MS = 3000
-        private const val DUCK_VOLUME = 0.3f
-        private const val NORMAL_VOLUME = 1.0f
-    }
+    private var musicService: MusicService? = null
+    private var isBound = false
 
-    private var mediaPlayer: MediaPlayer? = null
-    private var audioManager: AudioManager? = null
-    private var audioFocusRequest: AudioFocusRequest? = null
-
-    // Track if MediaPlayer is prepared
-    private var isPrepared = false
-
+    // StateFlows for UI observation
     private val _playlist = MutableStateFlow<List<Song>>(emptyList())
     val playlist: StateFlow<List<Song>> = _playlist.asStateFlow()
 
     private val _currentIndex = MutableStateFlow<Int>(-1)
 
-    // Player states
     private val _currentSong = MutableStateFlow<Song?>(null)
     val currentSong: StateFlow<Song?> = _currentSong.asStateFlow()
 
@@ -59,32 +60,173 @@ class MusicPlayer @Inject constructor(
     private val _repeatMode = MutableStateFlow(RepeatMode.NONE)
     val repeatMode: StateFlow<RepeatMode> = _repeatMode.asStateFlow()
 
-    init {
-        audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        initializeAudioFocus()
-    }
+    // Job for updating seekbar progress
+    private var progressJob: Job? = null
+    private val scope = CoroutineScope(Dispatchers.Main)
 
-    fun addSongToNext(song: Song) {
-        // Get current playlist snapshot from StateFlow
-        val currentList = _playlist.value.toMutableList()
-        if (currentList.isEmpty()) {
-            setPlaylist(listOf(song))
-            return
+    // Service connection
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as MusicService.MusicBinder
+            musicService = binder.getService()
+            isBound = true
+            syncState() // Sync state when reconnected
         }
 
-        // Determine current and next insertion index
+        override fun onServiceDisconnected(name: ComponentName?) {
+            musicService = null
+            isBound = false
+        }
+    }
+
+    init {
+        bindService()
+        setupExoPlayerListeners()
+    }
+
+    private fun bindService() {
+        val intent = Intent(context, MusicService::class.java)
+        // Start service so it runs in background even when UI unbinds
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
+        }
+        // Bind to call functions
+        context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+    }
+
+    /**
+     * Listen to events from ExoPlayer to update UI.
+     * (Since ExoPlayer is Singleton, we can listen directly instead of via Service callback)
+     */
+    private fun setupExoPlayerListeners() {
+        exoPlayer.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_READY) {
+                    _duration.value = exoPlayer.duration.toInt()
+                    updateCurrentSongInfo()
+                }
+                updatePlayingState()
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                _isPlaying.value = isPlaying
+                updatePlayingState()
+            }
+
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                updateCurrentSongInfo()
+            }
+        })
+    }
+
+    // --- Synchronization Logic ---
+
+    private fun updateCurrentSongInfo() {
+        val currentIdx = exoPlayer.currentMediaItemIndex
+        val currentList = _playlist.value
+
+        if (currentIdx in currentList.indices) {
+            _currentIndex.value = currentIdx
+            _currentSong.value = currentList[currentIdx]
+        }
+    }
+
+    private fun updatePlayingState() {
+        if (exoPlayer.isPlaying) {
+            startProgressUpdate()
+        } else {
+            stopProgressUpdate()
+        }
+    }
+
+    private fun syncState() {
+        _isPlaying.value = exoPlayer.isPlaying
+        _duration.value = exoPlayer.duration.coerceAtLeast(0).toInt()
+        _currentPosition.value = exoPlayer.currentPosition.toInt()
+        updateCurrentSongInfo()
+    }
+
+    private fun startProgressUpdate() {
+        if (progressJob?.isActive == true) return
+        progressJob = scope.launch {
+            while (isActive) {
+                _currentPosition.value = exoPlayer.currentPosition.toInt()
+                delay(500) // Update every 0.5s
+            }
+        }
+    }
+
+    private fun stopProgressUpdate() {
+        progressJob?.cancel()
+        _currentPosition.value = exoPlayer.currentPosition.toInt()
+    }
+
+    // --- Public Methods (Call to MusicService) ---
+
+    fun setPlaylist(songs: List<Song>, startIndex: Int = 0) {
+        if (songs.isEmpty()) return
+
+        // Update local state immediately
+        _playlist.value = songs
+
+        // Call Service to play music & show notification
+        musicService?.setPlaylist(songs, startIndex)
+    }
+
+    fun play() {
+        musicService?.play()
+    }
+
+    fun pause() {
+        musicService?.pause()
+    }
+
+    fun togglePlayPause() {
+        if (exoPlayer.isPlaying) pause() else play()
+    }
+
+    fun next() {
+        musicService?.playNext()
+    }
+
+    fun previous() {
+        musicService?.playPrevious()
+    }
+
+    fun seekTo(position: Int) {
+        musicService?.seekTo(position.toLong())
+        _currentPosition.value = position
+    }
+
+    // --- Queue Management (Directly handle on ExoPlayer & Local List) ---
+
+    fun addSongToNext(song: Song) {
+        // Update internal list
+        val currentList = _playlist.value.toMutableList()
         val currentIdx = _currentIndex.value
         val insertIndex = currentIdx + 1
 
-        // Insert song after the currently playing item (or append if out of bounds)
         if (insertIndex <= currentList.size) {
             currentList.add(insertIndex, song)
         } else {
             currentList.add(song)
         }
-
-        // Update StateFlow so that UI can react to the new playlist
         _playlist.value = currentList
+
+        // Update ExoPlayer (Add to actual queue)
+        val mediaItem = MediaItem.Builder()
+            .setUri(song.url)
+            .setMediaId(song.id)
+            .setTag(song)
+            .build()
+
+        if (insertIndex <= exoPlayer.mediaItemCount) {
+            exoPlayer.addMediaItem(insertIndex, mediaItem)
+        } else {
+            exoPlayer.addMediaItem(mediaItem)
+        }
     }
 
     fun addSongToQueue(song: Song) {
@@ -92,336 +234,38 @@ class MusicPlayer @Inject constructor(
         currentList.add(song)
         _playlist.value = currentList
 
-        // If nothing is playing, play a new song immediately.
-        if (_currentSong.value == null) {
-            playSongAtIndex(0)
+        val mediaItem = MediaItem.Builder()
+            .setUri(song.url)
+            .setMediaId(song.id)
+            .setTag(song)
+            .build()
+
+        exoPlayer.addMediaItem(mediaItem)
+
+        // If not playing anything, play this song immediately
+        if (exoPlayer.playbackState == Player.STATE_IDLE || exoPlayer.mediaItemCount == 1) {
+            exoPlayer.prepare()
+            exoPlayer.play()
         }
     }
 
-    private fun initializeAudioFocus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val audioAttributes = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-
-            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                .setAudioAttributes(audioAttributes)
-                .setOnAudioFocusChangeListener { focusChange ->
-                    handleAudioFocusChange(focusChange)
-                }
-                .build()
-        }
-    }
-
-    private fun handleAudioFocusChange(focusChange: Int) {
-        when (focusChange) {
-            AudioManager.AUDIOFOCUS_LOSS -> {
-                pause()
-            }
-
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                pause()
-            }
-
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                mediaPlayer?.setVolume(DUCK_VOLUME, DUCK_VOLUME)
-            }
-
-            AudioManager.AUDIOFOCUS_GAIN -> {
-                mediaPlayer?.setVolume(NORMAL_VOLUME, NORMAL_VOLUME)
-            }
-        }
-    }
-
-    private fun requestAudioFocus(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest?.let { request ->
-                audioManager?.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-            } ?: false
-        } else {
-            @Suppress("DEPRECATION")
-            audioManager?.requestAudioFocus(
-                { handleAudioFocusChange(it) },
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN
-            ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-        }
-    }
-
-    /**
-     * Set playlist and play first song
-     */
-    fun setPlaylist(songs: List<Song>, startIndex: Int = 0) {
-        if (songs.isEmpty()) {
-            Log.w("MusicPlayer", "Cannot set empty playlist")
-            return
-        }
-        _playlist.value = songs
-        _currentIndex.value = startIndex.coerceIn(0, songs.size - 1)
-        playSongAtIndex(_currentIndex.value)
-    }
-
-    /**
-     * Play song at index
-     */
-    private fun playSongAtIndex(index: Int) {
-        val currentList = _playlist.value
-        if (index < 0 || index >= currentList.size) {
-            Log.w("MusicPlayer", "Invalid index: $index")
-            return
-        }
-
-        _currentIndex.value = index
-        val song = currentList[index]
-        _currentSong.value = song
-
-        try {
-            releaseMediaPlayer()
-            isPrepared = false
-
-            mediaPlayer = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-
-                try {
-                    setDataSource(song.url)
-                    prepareAsync()
-                } catch (e: Exception) {
-                    Log.e("MusicPlayer", "Error setting data source: ${song.url}", e)
-                    return
-                }
-
-                setOnPreparedListener { mp ->
-                    isPrepared = true
-                    _duration.value = mp.duration
-                    Log.d("MusicPlayer", "Song prepared: ${song.title}, duration: ${mp.duration}")
-                    play()
-                }
-
-                setOnCompletionListener {
-                    onSongComplete()
-                }
-
-                setOnErrorListener { _, what, extra ->
-                    Log.e(
-                        "MusicPlayer",
-                        "MediaPlayer error: what=$what, extra=$extra, song=${song.url}"
-                    )
-                    isPrepared = false
-                    next()
-                    true
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("MusicPlayer", "Error playing song: ${song.title}", e)
-            isPrepared = false
-        }
-    }
-
-    /**
-     * Play/Resume
-     */
-    fun play() {
-        val currentList = _playlist.value
-        try {
-            mediaPlayer?.let { mp ->
-                if (!isPrepared) {
-                    Log.w("MusicPlayer", "MediaPlayer not prepared yet")
-                    return
-                }
-
-                if (mp.isPlaying) {
-                    Log.d("MusicPlayer", "Already playing")
-                    return
-                }
-
-                if (requestAudioFocus()) {
-                    mp.start()
-                    _isPlaying.value = true
-                    Log.d("MusicPlayer", "Playback started")
-                } else {
-                    Log.w("MusicPlayer", "Failed to get audio focus")
-                }
-            } ?: run {
-                Log.w("MusicPlayer", "MediaPlayer is null, cannot play")
-                // If we have a playlist but no MediaPlayer, try to start playing
-                if (currentList.isNotEmpty() && _currentIndex.value >= 0) {
-                    playSongAtIndex(_currentIndex.value)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("MusicPlayer", "Error in play()", e)
-            _isPlaying.value = false
-        }
-    }
-
-    /**
-     * Pause
-     */
-    fun pause() {
-        try {
-            mediaPlayer?.let { mp ->
-                if (mp.isPlaying) {
-                    mp.pause()
-                    _isPlaying.value = false
-                    Log.d("MusicPlayer", "Playback paused")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("MusicPlayer", "Error in pause()", e)
-            _isPlaying.value = false
-        }
-    }
-
-    /**
-     * Toggle play/pause
-     */
-    fun togglePlayPause() {
-        if (_isPlaying.value) {
-            pause()
-        } else {
-            play()
-        }
-    }
-
-    /**
-     * Next song
-     */
-    fun next() {
-        val currentList = _playlist.value
-        val currentIdx = _currentIndex.value
-        val nextIndex = when {
-            _shuffleMode.value -> {
-                (0 until currentList.size).random()
-            }
-
-            currentIdx + 1 < currentList.size -> {
-                currentIdx + 1
-            }
-
-            else -> 0 // Loop to first song
-        }
-        playSongAtIndex(nextIndex)
-    }
-
-    /**
-     * Previous song
-     */
-    fun previous() {
-        val currentList = _playlist.value
-        val currentIdx = _currentIndex.value
-        // If playing more than threshold, restart current song
-        if ((mediaPlayer?.currentPosition ?: 0) > RESTART_SONG_THRESHOLD_MS) {
-            seekTo(0)
-        } else {
-            val prevIndex = if (currentIdx - 1 >= 0) {
-                currentIdx - 1
-            } else {
-                currentList.size - 1
-            }
-            playSongAtIndex(prevIndex)
-        }
-    }
-
-    /**
-     * Seek to position (milliseconds)
-     */
-    fun seekTo(position: Int) {
-        try {
-            mediaPlayer?.let { mp ->
-                if (isPrepared) {
-                    mp.seekTo(position)
-                    _currentPosition.value = position
-                    Log.d("MusicPlayer", "Seeked to: $position")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("MusicPlayer", "Error in seekTo()", e)
-        }
-    }
-
-    /**
-     * Toggle shuffle mode
-     */
     fun toggleShuffle() {
         _shuffleMode.value = !_shuffleMode.value
+        exoPlayer.shuffleModeEnabled = _shuffleMode.value
     }
 
-    /**
-     * Toggle repeat mode: NONE -> ONE -> ALL -> NONE
-     */
     fun toggleRepeat() {
         _repeatMode.value = when (_repeatMode.value) {
             RepeatMode.NONE -> RepeatMode.ONE
             RepeatMode.ONE -> RepeatMode.ALL
             RepeatMode.ALL -> RepeatMode.NONE
         }
-    }
 
-    /**
-     * Handles playback completion
-     */
-    private fun onSongComplete() {
-        val currentList = _playlist.value
-        val currentIdx = _currentIndex.value
-        when (_repeatMode.value) {
-            RepeatMode.ONE -> {
-                seekTo(0)
-                play()
-            }
-
-            RepeatMode.ALL -> {
-                next()
-            }
-
-            RepeatMode.NONE -> {
-                if (currentIdx + 1 < currentList.size) {
-                    next()
-                } else {
-                    pause()
-                    _currentPosition.value = 0
-                }
-            }
-        }
-    }
-
-    /**
-     * Update current position
-     */
-    fun updatePosition() {
-        try {
-            mediaPlayer?.let { mp ->
-                if (isPrepared && mp.isPlaying) {
-                    _currentPosition.value = mp.currentPosition
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("MusicPlayer", "Error updating position", e)
-        }
-    }
-
-    /**
-     * Release resources
-     */
-    private fun releaseMediaPlayer() {
-        try {
-            mediaPlayer?.apply {
-                if (isPlaying) {
-                    stop()
-                }
-                reset()
-                release()
-            }
-        } catch (e: Exception) {
-            Log.e("MusicPlayer", "Error releasing MediaPlayer", e)
-        } finally {
-            mediaPlayer = null
-            isPrepared = false
+        // Map to ExoPlayer repeat mode
+        exoPlayer.repeatMode = when (_repeatMode.value) {
+            RepeatMode.NONE -> Player.REPEAT_MODE_OFF
+            RepeatMode.ONE -> Player.REPEAT_MODE_ONE
+            RepeatMode.ALL -> Player.REPEAT_MODE_ALL
         }
     }
 }
@@ -430,7 +274,7 @@ class MusicPlayer @Inject constructor(
  * Repeat modes
  */
 enum class RepeatMode {
-    NONE,   // non-repeat
+    NONE,   // No repeat
     ONE,    // Repeat current song
-    ALL     // Repeat in playlist
+    ALL     // Repeat entire playlist
 }

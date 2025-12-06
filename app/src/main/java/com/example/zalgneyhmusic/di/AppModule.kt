@@ -102,7 +102,10 @@ class AppModule {
      */
     @Provides
     @Singleton
-    fun provideMusicPlayer(@ApplicationContext context: Context): MusicPlayer {
-        return MusicPlayer(context)
+    fun provideMusicPlayer(
+        @ApplicationContext context: Context,
+        exoPlayer: androidx.media3.exoplayer.ExoPlayer
+    ): MusicPlayer {
+        return MusicPlayer(context, exoPlayer)
     }
 }
