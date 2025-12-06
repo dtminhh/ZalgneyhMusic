@@ -272,25 +272,33 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Toggle favorite status of a song in a playlist.
+     *
+     * @param playlistId Playlist ID (usually favorites playlist)
+     * @param songId Song ID to toggle
+     * @return Resource<Boolean> - true if added, false if removed
+     */
     override suspend fun toggleFavorite(playlistId: String, songId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
         try {
-            // 1. Lấy User & Token
-            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Vui lòng đăng nhập"))
+            // Get authenticated user and token
+            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Please login"))
             val token = "Bearer ${user.getIdToken(false).await().token}"
 
-            // 2. Gọi API
+            // Call API to toggle song in playlist
             val response = apiService.toggleSongInPlaylist(
                 token,
                 playlistId,
                 mapOf("songId" to songId)
             )
 
-            // 3. Xử lý kết quả
+            // Process response
             if (response.isSuccessful && response.body()?.success == true) {
-                // Parse kết quả isAdded từ server
+                // Parse isAdded result from server
                 val dataMap = response.body()!!.data as? Map<*, *>
                 val isAdded = dataMap?.get("isAdded") as? Boolean ?: false
-                // [MỚI] Cập nhật ngay lập tức vào UserManager (Optimistic update)
+
+                // Update UserManager immediately (optimistic update)
                 if (isAdded) {
                     userManager.addFavoriteSong(songId)
                 } else {
@@ -298,7 +306,7 @@ class MusicHybridRepository @Inject constructor(
                 }
                 Resource.Success(isAdded)
             } else {
-                Resource.Failure(Exception("Lỗi kết nối server"))
+                Resource.Failure(Exception("Server connection error"))
             }
         } catch (e: Exception) {
             Resource.Failure(e)
@@ -480,27 +488,40 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Get list of artists that the current user is following.
+     *
+     * @return Resource<List<Artist>> - List of followed artists
+     */
     override suspend fun getFollowedArtists(): Resource<List<Artist>> = withContext(Dispatchers.IO) {
         try {
             val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Login required"))
             val token = "Bearer ${user.getIdToken(false).await().token}"
 
-            // Gọi API (Backend đã có route /api/users/artists)
+            // Call API (Backend has route /api/users/artists)
             val response = apiService.getFollowedArtists(token)
 
             if (response.isSuccessful && response.body()?.success == true) {
                 val artists = response.body()!!.data!!.map { it.toDomain() }
 
-                // [QUAN TRỌNG] Lưu danh sách ID vào UserManager
+                // Save artist IDs to UserManager
                 userManager.setFollowedArtistIds(artists.map { it.id })
 
                 Resource.Success(artists)
             } else {
                 Resource.Failure(Exception("Failed to load artists"))
             }
-        } catch (e: Exception) { Resource.Failure(e) }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
     }
 
+    /**
+     * Toggle follow status for an artist.
+     *
+     * @param artistId Artist ID to follow/unfollow
+     * @return Resource<Boolean> - true if following, false if unfollowed
+     */
     override suspend fun toggleFollowArtist(artistId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
         try {
             val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Login required"))
@@ -509,11 +530,11 @@ class MusicHybridRepository @Inject constructor(
             val response = apiService.toggleFollow(token, mapOf("artistId" to artistId))
 
             if (response.isSuccessful && response.body()?.success == true) {
-                // Parse kết quả từ backend { isFollowing: true/false }
+                // Parse result from backend { isFollowing: true/false }
                 val data = response.body()!!.data as? Map<*, *>
                 val isFollowing = data?.get("isFollowing") as? Boolean ?: false
 
-                // Cập nhật UserManager để chắc chắn đồng bộ
+                // Update UserManager to ensure sync
                 if (isFollowing) userManager.followArtist(artistId)
                 else userManager.unfollowArtist(artistId)
 
@@ -521,7 +542,9 @@ class MusicHybridRepository @Inject constructor(
             } else {
                 Resource.Failure(Exception("Failed"))
             }
-        } catch (e: Exception) { Resource.Failure(e) }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
     }
 
     // ==================== ALBUMS ====================
@@ -634,32 +657,56 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
-    override suspend fun createPlaylist(name: String): Resource<Playlist> =
+    /**
+     * Create a new playlist with optional image.
+     *
+     * @param name Playlist name
+     * @param description Playlist description (optional)
+     * @param imageFile Image file for playlist cover (optional)
+     * @return Resource<Playlist> - Created playlist
+     */
+    override suspend fun createPlaylist(name: String, description: String?, imageFile: java.io.File?): Resource<Playlist> =
         withContext(Dispatchers.IO) {
             try {
-                // 1. Lấy User & Token tương tự
                 val user = firebaseAuth.currentUser
-                    ?: return@withContext Resource.Failure(Exception("Chưa đăng nhập"))
-                val tokenResult = user.getIdToken(false).await()
-                val token = "Bearer ${tokenResult.token}"
-                val response = apiService.createPlaylist(token, mapOf("name" to name))
+                    ?: return@withContext Resource.Failure(Exception("Login required"))
+                val token = "Bearer ${user.getIdToken(false).await().token}"
+
+                // Create data parts
+                val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
+                val descPart = description?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                val imagePart = imageFile?.let {
+                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                    okhttp3.MultipartBody.Part.createFormData("image", it.name, requestFile)
+                }
+
+                // Call API
+                val response = apiService.createPlaylist(token, namePart, descPart, imagePart)
+
                 if (response.isSuccessful && response.body()?.success == true) {
                     Resource.Success(response.body()!!.data!!.toDomain())
                 } else {
-                    Resource.Failure(Exception("Create playlist failed"))
+                    Resource.Failure(Exception("Create playlist failed: ${response.message()}"))
                 }
             } catch (e: Exception) {
                 Resource.Failure(e)
             }
         }
 
+    /**
+     * Get all playlists of the current user.
+     * Also updates favorite song IDs if favorite playlist exists.
+     *
+     * @return Resource<List<Playlist>> - User's playlists
+     */
     override suspend fun getMyPlaylists(): Resource<List<Playlist>> = withContext(Dispatchers.IO) {
         try {
             val user = firebaseAuth.currentUser
             if (user == null) {
-                return@withContext Resource.Failure(Exception("Chưa đăng nhập"))
+                return@withContext Resource.Failure(Exception("Login required"))
             }
-            // 2. Lấy Token (forceRefresh = false để tận dụng cache cho nhanh)
+            // Get token (forceRefresh = false to use cache for speed)
             val tokenResult = user.getIdToken(false).await()
             val token = "Bearer ${tokenResult.token}"
 
@@ -667,23 +714,17 @@ class MusicHybridRepository @Inject constructor(
             if (response.isSuccessful && response.body()?.success == true) {
                 val playlists = response.body()!!.data!!.map { it.toDomain() }
 
-                // Đổi tên biến local để tránh nhầm lẫn với biến 'user' của Firebase ở trên
+                // Use local variable name to avoid confusion with Firebase 'user' variable above
                 val currentAppUser = userManager.currentUser
 
                 if (currentAppUser?.favoritePlaylistId != null) {
                     val favPlaylist = playlists.find { it.id == currentAppUser.favoritePlaylistId }
                     if (favPlaylist != null) {
-                        // --- SỬA Ở ĐÂY ---
-                        // Trước đây: val ids = favPlaylist.songs.map { it } (vì songs là List<String>)
-                        // Bây giờ: songs là List<Song>, nên phải map lấy .id
+                        // Extract song IDs from favorite playlist
+                        // songs is now List<Song>, so we need to map .id
                         val ids = favPlaylist.songs.map { it.id }
-
-                        android.util.Log.d("DEBUG_FAV", "Repo found Favorites: $ids")
-
-                        // Lưu danh sách ID bài hát vào Session
+                        // Save song IDs to session
                         userManager.setFavoriteSongIds(ids)
-                    } else {
-                        android.util.Log.e("DEBUG_FAV", "Repo: User has NO favorite playlist in list returned")
                     }
                 }
                 Resource.Success(playlists)
@@ -695,13 +736,20 @@ class MusicHybridRepository @Inject constructor(
         }
     }
 
+    /**
+     * Add a song to a playlist.
+     *
+     * @param playlistId Playlist ID
+     * @param songId Song ID to add
+     * @return Resource<Any> - API response data
+     */
     override suspend fun addSongToPlaylist(
         playlistId: String,
         songId: String
     ): Resource<Any> = withContext(Dispatchers.IO) {
         try {
             val user = firebaseAuth.currentUser
-                ?: return@withContext Resource.Failure(Exception("Chưa đăng nhập"))
+                ?: return@withContext Resource.Failure(Exception("Login required"))
             val tokenResult = user.getIdToken(false).await()
             val token = "Bearer ${tokenResult.token}"
             val response =
@@ -710,44 +758,62 @@ class MusicHybridRepository @Inject constructor(
                 val playlists = response.body()!!.data!!
                 Resource.Success(playlists)
             } else {
-                Resource.Failure(Exception("Get playlists failed"))
+                Resource.Failure(Exception("Add song to playlist failed"))
             }
         } catch (e: Exception) {
             Resource.Failure(e)
         }
     }
 
+    /**
+     * Delete a playlist by ID.
+     *
+     * @param id Playlist ID to delete
+     * @return Resource<Boolean> - true if successful
+     */
     override suspend fun deletePlaylist(id: String): Resource<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Chưa đăng nhập"))
+            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Login required"))
             val token = "Bearer ${user.getIdToken(false).await().token}"
             val response = apiService.deletePlaylist(token, id)
             if (response.isSuccessful && response.body()?.success == true) {
                 Resource.Success(true)
             } else {
-                Resource.Failure(Exception("Xóa thất bại: ${response.message()}"))
+                Resource.Failure(Exception("Delete failed: ${response.message()}"))
             }
-        } catch (e: Exception) { Resource.Failure(e) }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
     }
 
+    /**
+     * Update a playlist's name and/or image.
+     *
+     * @param id Playlist ID to update
+     * @param name New playlist name
+     * @param imageFile New image file (optional)
+     * @return Resource<Playlist> - Updated playlist
+     */
     override suspend fun updatePlaylist(id: String, name: String, imageFile: java.io.File?): Resource<Playlist> = withContext(Dispatchers.IO) {
         try {
-            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Chưa đăng nhập"))
+            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Login required"))
             val token = "Bearer ${user.getIdToken(false).await().token}"
 
             val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
-            // Tạo part cho ảnh nếu có
+            // Create image part if provided
             val imagePart = imageFile?.let {
                 val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
                 okhttp3.MultipartBody.Part.createFormData("image", it.name, requestFile)
             }
 
-            val response = apiService.updatePlaylist(token, id, namePart, null, imagePart) // Description tạm null
+            val response = apiService.updatePlaylist(token, id, namePart, null, imagePart) // Description temporarily null
             if (response.isSuccessful && response.body()?.success == true) {
                 Resource.Success(response.body()!!.data!!.toDomain())
             } else {
-                Resource.Failure(Exception("Cập nhật thất bại"))
+                Resource.Failure(Exception("Update failed"))
             }
-        } catch (e: Exception) { Resource.Failure(e) }
+        } catch (e: Exception) {
+            Resource.Failure(e)
+        }
     }
 }

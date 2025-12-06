@@ -83,16 +83,23 @@ object StorageHelper {
         return android.text.format.Formatter.formatFileSize(context, size)
     }
 
+    /**
+     * Converts a content URI to a temporary File.
+     *
+     * @param context Application context
+     * @param uri Content URI to convert
+     * @return Temporary file or null if conversion fails
+     */
     fun uriToFile(context: Context, uri: Uri): File? {
         return try {
             val contentResolver = context.contentResolver
             val inputStream = contentResolver.openInputStream(uri) ?: return null
 
-            // Tạo file tạm thời với tên ngẫu nhiên
+            // Create temporary file with random name
             val tempFile = File.createTempFile("temp_upload_image", ".jpg", context.cacheDir)
             val outputStream = FileOutputStream(tempFile)
 
-            // Copy dữ liệu từ Uri sang File
+            // Copy data from URI to File
             inputStream.use { input ->
                 outputStream.use { output ->
                     input.copyTo(output)

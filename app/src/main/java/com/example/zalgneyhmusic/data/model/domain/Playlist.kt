@@ -10,6 +10,7 @@ data class Playlist(
     val description: String? = null,
     val imageUrl: String,
     val songs: List<Song> = emptyList(),
+    val isDefault: Boolean = false,
     val isPublic: Boolean = true,
     val createdBy: String = "Admin",
     val createdAt: String? = null,

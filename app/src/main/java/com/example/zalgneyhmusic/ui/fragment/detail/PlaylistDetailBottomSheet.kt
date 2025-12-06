@@ -17,8 +17,11 @@ import com.example.zalgneyhmusic.ui.fragment.BaseBottomSheetDialogFragment
 import com.example.zalgneyhmusic.ui.utils.setupFullHeightBottomSheet
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlaylistViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.zalgneyhmusic.databinding.DialogCreatePlaylistBinding
+import android.graphics.Color
+import android.app.AlertDialog
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.core.graphics.drawable.toDrawable
 
 @AndroidEntryPoint
 class PlaylistDetailBottomSheet : BaseBottomSheetDialogFragment() {
@@ -33,14 +36,14 @@ class PlaylistDetailBottomSheet : BaseBottomSheetDialogFragment() {
 
     private var editingPlaylistId: String? = null
     private var selectedImageUri: android.net.Uri? = null
-    private var editDialogView: View? = null
+
+    private var editBinding: DialogCreatePlaylistBinding? = null
     private val pickImageLauncher =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 selectedImageUri = it
-                // Update preview image on the edit dialog if it is currently visible
-                editDialogView?.findViewById<android.widget.ImageView>(R.id.imgPlaylistCover)
-                    ?.setImageURI(it)
+                // Cập nhật ảnh preview dùng binding
+                editBinding?.imageView?.setImageURI(it)
             }
         }
 
@@ -141,6 +144,18 @@ class PlaylistDetailBottomSheet : BaseBottomSheetDialogFragment() {
 
         ImageUtils.loadImage(binding.imgPlaylistCoverDetail, playlist.imageUrl)
 
+        binding.imgMoreOpt.setOnClickListener {
+            mediaActionHandler.onPlaylistMenuClick(
+                playlist = playlist,
+                onEditRequest = { target ->
+                    showEditPlaylistDialog(target)
+                },
+                onDeleteSuccess = {
+                    dismiss()
+                }
+            )
+        }
+
         if (playlist.songs.isNotEmpty()) {
             binding.rvPlaylistSongs.visibility = View.VISIBLE
             binding.txtTrackListHeading.visibility = View.VISIBLE
@@ -153,19 +168,6 @@ class PlaylistDetailBottomSheet : BaseBottomSheetDialogFragment() {
             binding.txtTrackListHeading.visibility = View.GONE
         }
 
-        binding.imgMoreOpt.setOnClickListener {
-            mediaActionHandler.onPlaylistMenuClick(
-                playlist = playlist,
-                onEditRequest = { targetPlaylist ->
-                    // MediaActionHandler requests edit -> open edit dialog in this fragment
-                    showEditPlaylistDialog(targetPlaylist)
-                },
-                onDeleteSuccess = {
-                    // Close the bottom sheet once delete is confirmed
-                    dismiss()
-                }
-            )
-        }
     }
 
     override fun onStart() {
@@ -178,47 +180,72 @@ class PlaylistDetailBottomSheet : BaseBottomSheetDialogFragment() {
         _binding = null
     }
 
-    // Shows the edit dialog (lives in this Fragment to reuse pickImageLauncher)
+    /**
+     * Shows the edit playlist dialog.
+     * Default playlists cannot be edited.
+     *
+     * @param playlist Playlist to edit
+     */
     private fun showEditPlaylistDialog(playlist: Playlist) {
+        if (playlist.isDefault) {
+            Toast.makeText(context, getString(R.string.toast_cannot_edit_default_playlist), Toast.LENGTH_SHORT).show()
+            return
+        }
         editingPlaylistId = playlist.id
-        selectedImageUri = null
+        selectedImageUri = null // Reset selected image
 
-        // Inflate the dialog layout (reuse create-playlist layout)
-        val dialogView =
-            LayoutInflater.from(requireContext()).inflate(R.layout.dialog_create_playlist, null)
-        editDialogView = dialogView // Keep reference to update image after selection
+        // Use ViewBinding for dialog to avoid ID conflicts
+        editBinding = DialogCreatePlaylistBinding.inflate(layoutInflater)
+        val binding = editBinding!! // Non-null shortcut
 
-        val edtName = dialogView.findViewById<android.widget.EditText>(R.id.edtPlaylistName)
-        val imgCover = dialogView.findViewById<android.widget.ImageView>(R.id.imgPlaylistCover)
+        // Setup UI for edit mode
+        binding.etPlaylistName.setText(playlist.name)
 
-        // Pre-fill existing data
-        edtName.setText(playlist.name)
-        ImageUtils.loadImage(imgCover, playlist.imageUrl)
+        // Load current image
+        ImageUtils.loadImage(binding.imageView, playlist.imageUrl)
 
-        // Image selection
-        imgCover.setOnClickListener {
+        // Change button text for edit context
+        binding.btnCreate.text = getString(R.string.save)
+
+        // Handle image selection
+        binding.imageView.setOnClickListener {
             pickImageLauncher.launch("image/*")
         }
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Sửa Playlist")
-            .setView(dialogView)
-            .setPositiveButton("Lưu") { _, _ ->
-                val newName = edtName.text.toString()
-                if (newName.isNotBlank()) {
-                    // Convert URI -> File
-                    val imageFile = selectedImageUri?.let { uri ->
-                        com.example.zalgneyhmusic.ui.utils.StorageHelper.uriToFile(
-                            requireContext(),
-                            uri
-                        )
-                    }
-                    // Gọi ViewModel update (Vì ViewModel nằm ở Fragment Scope)
-                    viewModel.updatePlaylist(playlist.id, newName, imageFile)
+        // Create dialog
+        val dialogBuilder = AlertDialog.Builder(requireContext())
+        dialogBuilder.setView(binding.root)
+        val dialog = dialogBuilder.create()
+
+        // Make dialog background transparent for rounded corners
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        // Handle button clicks
+        binding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        binding.btnCreate.setOnClickListener {
+            val newName = binding.etPlaylistName.text.toString().trim()
+
+            if (newName.isNotBlank()) {
+                val imageFile = selectedImageUri?.let { uri ->
+                    com.example.zalgneyhmusic.ui.utils.StorageHelper.uriToFile(
+                        requireContext(),
+                        uri
+                    )
                 }
+
+                // Call ViewModel to update playlist
+                viewModel.updatePlaylist(playlist.id, newName, imageFile)
+
+                dialog.dismiss()
+            } else {
+                binding.etPlaylistName.error = getString(R.string.error_name_empty)
             }
-            .setNegativeButton("Hủy", null)
-            .show()
+        }
+
+        dialog.show()
     }
 
     companion object {

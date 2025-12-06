@@ -162,7 +162,55 @@
     <string name="queue_up_next">Phát tiếp theo</string>
     <string name="queue_later">Sẽ phát sau</string>
 
-    <plurals name="numberOfSongs">
+    <!-- Toast Messages -->
+    <string name="toast_added_to_play_next">Đã thêm vào danh sách phát kế tiếp</string>
+    <string name="toast_added_to_queue">Đã thêm vào hàng chờ</string>
+    <string name="toast_playlist_created">Tạo playlist thành công!</string>
+    <string name="toast_cannot_edit_default_playlist">Không thể sửa playlist mặc định</string>
+    <string name="toast_no_playlists">Bạn chưa có playlist nào</string>
+    <string name="toast_added_to_playlist">Đã thêm vào playlist!</string>
+    <string name="toast_failed_add_to_playlist">Lỗi thêm vào playlist</string>
+    <string name="toast_unfollowed_artist">Đã bỏ theo dõi %1$s</string>
+    <string name="toast_following_artist">Đang theo dõi %1$s ❤️</string>
+    <string name="toast_connection_error">Lỗi kết nối</string>
+    <string name="toast_connection_error_with_msg">Lỗi kết nối: %1$s</string>
+    <string name="toast_syncing_data">Đang đồng bộ dữ liệu, vui lòng thử lại sau giây lát…</string>
+    <string name="toast_added_to_favorites">Đã thêm vào Yêu thích ❤️</string>
+    <string name="toast_removed_from_favorites">Đã xóa khỏi Yêu thích 💔</string>
+    <string name="toast_playing_album">Đang phát Album: %1$s</string>
+    <string name="toast_loading_songs">Đang tải danh sách bài hát…</string>
+    <string name="toast_loading_artist_songs">Đang tải bài hát của %1$s…</string>
+    <string name="toast_playing_artist">Đang phát nhạc của %1$s</string>
+    <string name="toast_playing_playlist">Đang phát playlist: %1$s</string>
+    <string name="toast_playlist_empty">Playlist trống</string>
+    <string name="toast_playlist_deleted">Đã xóa playlist</string>
+    <string name="toast_error_with_result">Lỗi: %1$s</string>
+    <string name="toast_sign_up_success">Đăng ký thành công</string>
+    <string name="toast_unknown_album">Album không xác định</string>
+
+    <!-- Navigation Errors -->
+    <string name="error_navigation_not_supported">Lỗi: Activity không hỗ trợ điều hướng</string>
+
+    <!-- Dialog Messages -->
+    <string name="dialog_add_to_playlist_title">Thêm vào Playlist</string>
+    <string name="dialog_delete_playlist_title">Xóa Playlist</string>
+    <string name="dialog_delete_playlist_message">Bạn có chắc muốn xóa playlist \'%1$s\' không?</string>
+    <string name="dialog_delete">Xóa</string>
+
+    <!-- Share Messages -->
+    <string name="share_song_message">Nghe bài hát %1$s của %2$s tại Zalgneyh Music!</string>
+    <string name="share_album_message">Nghe Album %1$s cực hay trên Zalgneyh Music!</string>
+    <string name="share_artist_message">Khám phá nghệ sĩ %1$s trên Zalgneyh Music!</string>
+    <string name="share_playlist_message">Nghe playlist %1$s cực chill trên Zalgneyh Music!</string>
+
+    <!-- Form Validation -->
+    <string name="error_name_empty">Tên không được để trống</string>
+    <string name="save">Lưu</string>
+
+    <string name="t_n_playlist">Tên Playlist</string>
+    <string name="mota_tuychon">Mô tả (Tùy chọn)</string>
+
+    <plurals name="numberOfSongs" tools:ignore="UnusedQuantity">
         <item quantity="one">%d bài hát</item>
         <item quantity="other">%d bài hát</item>
     </plurals>

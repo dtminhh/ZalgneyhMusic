@@ -26,6 +26,9 @@ data class PlaylistDTO(
     @SerializedName("isPublic")
     val isPublic: Boolean = true,
 
+    @SerializedName("isDefault")
+    val isDefault: Boolean = false,
+
     @SerializedName("createdBy")
     val createdBy: String? = null,
 
@@ -41,6 +44,7 @@ data class PlaylistDTO(
         description = description,
         imageUrl = imageUrl ?: "",
         songs = songs.map { it.toDomain() },
+        isDefault = isDefault,
         isPublic = isPublic,
         createdBy = createdBy ?: "Admin",
         createdAt = createdAt,

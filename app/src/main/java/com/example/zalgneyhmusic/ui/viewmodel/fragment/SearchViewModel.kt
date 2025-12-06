@@ -206,7 +206,7 @@ class SearchViewModel @Inject constructor(
 }
 
 /**
- * Data class cho search results
+ * Data class for search results containing songs, artists, and albums.
  */
 data class SearchResults(
     val songs: List<Song> = emptyList(),
