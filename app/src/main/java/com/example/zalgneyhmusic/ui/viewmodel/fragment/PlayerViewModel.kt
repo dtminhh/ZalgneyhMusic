@@ -59,9 +59,12 @@ class PlayerViewModel @Inject constructor(
         refreshFavorites()
     }
 
+    /**
+     * Loads favorite songs from API if not already cached.
+     */
     private fun refreshFavorites() {
         viewModelScope.launch {
-            // Nếu chưa có dữ liệu thì gọi API lấy về
+            // Load data from API if not already available
             if (userManager.favoriteSongIds.value.isEmpty()) {
                 musicRepository.getMyPlaylists()
             }

@@ -81,21 +81,41 @@ object MoreOptionsManager {
         ).show(fragmentManager, "AlbumOptions")
     }
 
+    /**
+     * Shows more options bottom sheet for a playlist.
+     * Actions are filtered based on whether the playlist is a default (favorites) playlist.
+     *
+     * @param fragmentManager Fragment manager to show the bottom sheet
+     * @param playlist Playlist to show options for
+     * @param onActionClick Callback for action clicks
+     */
     fun showForPlaylist(
         fragmentManager: FragmentManager,
         playlist: Playlist,
         onActionClick: (MoreOptionsAction.PlaylistAction) -> Unit
     ) {
-        MoreOptionsBottomSheet.forPlaylist(
-            title = playlist.name,
-            subtitle = "${playlist.songs.size} songs",
-            imageUrl = playlist.imageUrl,
-            actions = listOf(
+        // Filter actions based on playlist type
+        val actions = if (playlist.isDefault) {
+            // Default playlist (Favorites): Only allow Play All and Share
+            listOf(
+                MoreOptionsAction.PlaylistAction.PlayAll,
+                MoreOptionsAction.PlaylistAction.Share
+            )
+        } else {
+            // Custom playlist: Allow full actions (Edit, Delete, etc.)
+            listOf(
                 MoreOptionsAction.PlaylistAction.PlayAll,
                 MoreOptionsAction.PlaylistAction.Edit,
                 MoreOptionsAction.PlaylistAction.Delete,
                 MoreOptionsAction.PlaylistAction.Share
-            ),
+            )
+        }
+
+        MoreOptionsBottomSheet.forPlaylist(
+            title = playlist.name,
+            subtitle = "${playlist.songs.size} songs",
+            imageUrl = playlist.imageUrl,
+            actions = actions,
             onActionSelected = onActionClick
         ).show(fragmentManager, "PlaylistOptions")
     }

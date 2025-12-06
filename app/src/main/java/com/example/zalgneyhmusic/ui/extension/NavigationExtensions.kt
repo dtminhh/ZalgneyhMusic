@@ -2,6 +2,7 @@ package com.example.zalgneyhmusic.ui.extension
 
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.DetailType
 import com.example.zalgneyhmusic.ui.navigation.DetailNavigator
 
@@ -13,7 +14,7 @@ fun Fragment.openArtistDetail(artistId: String) {
     if (navigator != null) {
         navigator.navigatorToDetailScreen(DetailType.Artist(artistId))
     } else {
-        Toast.makeText(context, "Lỗi: Activity không hỗ trợ điều hướng", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context?.getString(R.string.error_navigation_not_supported), Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -25,7 +26,7 @@ fun Fragment.openAlbumDetail(albumId: String) {
     if (navigator != null) {
         navigator.navigatorToDetailScreen(DetailType.Album(albumId))
     } else {
-        Toast.makeText(context, "Lỗi: Activity không hỗ trợ điều hướng", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context?.getString(R.string.error_navigation_not_supported), Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -37,6 +38,6 @@ fun Fragment.openPlaylistDetail(playlistId: String) {
     if (navigator != null) {
         navigator.navigatorToDetailScreen(DetailType.Playlist(playlistId))
     } else {
-        Toast.makeText(context, "Lỗi: Activity không hỗ trợ điều hướng", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context?.getString(R.string.error_navigation_not_supported), Toast.LENGTH_SHORT).show()
     }
 }

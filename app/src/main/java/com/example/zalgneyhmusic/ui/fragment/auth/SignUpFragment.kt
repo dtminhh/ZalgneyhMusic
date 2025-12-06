@@ -64,7 +64,7 @@ class SignUpFragment : Fragment() {
                     is Resource.Success -> {
                         binding.buttonConfirmSignUp.isEnabled = true
                         binding.buttonConfirmSignUp.text = getString(R.string.confirm)
-                        Toast.makeText(requireContext(), "Sign Up Success", Toast.LENGTH_SHORT)
+                        Toast.makeText(requireContext(), getString(R.string.toast_sign_up_success), Toast.LENGTH_SHORT)
                             .show()
                         // Navigate to main screen
                         findNavController().navigate(R.id.mainFragment)

@@ -66,7 +66,8 @@ class PlaylistViewModel @Inject constructor(
                 _userPlaylists.value = result
             } else {
                 // Still no user -> force login before accessing playlists
-                _userPlaylists.value = Resource.Failure(Exception("Please sign in to view playlists"))
+                _userPlaylists.value =
+                    Resource.Failure(Exception("Please sign in to view playlists"))
             }
         }
     }
@@ -74,12 +75,12 @@ class PlaylistViewModel @Inject constructor(
     /**
      * Creates a new playlist for the current user.
      */
-    fun createPlaylist(name: String) {
+    fun createPlaylist(name: String, description: String? = null, imageFile: java.io.File? = null) {
         if (userManager.currentUser == null) return
 
         viewModelScope.launch {
             _createPlaylistState.value = Resource.Loading
-            val result = musicRepository.createPlaylist(name)
+            val result = musicRepository.createPlaylist(name, description, imageFile)
 
             if (result is Resource.Success) {
                 // Refresh playlists immediately after successful creation

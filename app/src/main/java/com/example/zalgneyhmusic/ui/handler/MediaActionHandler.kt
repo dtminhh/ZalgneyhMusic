@@ -59,13 +59,12 @@ class MediaActionHandler(
         when (action) {
             is MoreOptionsAction.SongAction.PlayNext -> {
                 playerViewModel.addSongToNext(song)
-                Toast.makeText(context, "Đã thêm vào danh sách phát kế tiếp", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(context, context.getString(R.string.toast_added_to_play_next), Toast.LENGTH_SHORT).show()
             }
 
             is MoreOptionsAction.SongAction.AddToQueue -> {
                 playerViewModel.addSongToQueue(song)
-                Toast.makeText(context, "Đã thêm vào hàng chờ", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_added_to_queue), Toast.LENGTH_SHORT).show()
             }
 
             is MoreOptionsAction.SongAction.AddToPlaylist -> {
@@ -85,22 +84,24 @@ class MediaActionHandler(
             is MoreOptionsAction.SongAction.GoToAlbum -> {
                 song.album?.id?.let { albumId ->
                     navigator?.navigatorToDetailScreen(DetailType.Album(albumId))
-                } ?: Toast.makeText(context, "Unknown Album", Toast.LENGTH_SHORT).show()
+                } ?: Toast.makeText(context, context.getString(R.string.toast_unknown_album), Toast.LENGTH_SHORT).show()
             }
 
             is MoreOptionsAction.SongAction.Share -> {
                 shareContent(
                     song.title,
-                    "Nghe bài hát ${song.title} của ${song.artist.name} tại Zalgneyh Music!"
+                    context.getString(R.string.share_song_message, song.title, song.artist.name)
                 )
             }
         }
     }
 
-    // Hàm hiển thị dialog chọn playlist
+    /**
+     * Shows dialog to select a playlist to add the song to.
+     */
     private fun showAddToPlaylistDialog(song: Song) {
         scope.launch {
-            // 1. Lấy danh sách playlist của tôi
+            // Load user's playlists
             val result = musicRepository.getMyPlaylists()
             if (result is Resource.Success) {
                 val playlists = result.result
@@ -113,31 +114,37 @@ class MediaActionHandler(
         }
     }
 
+    /**
+     * Displays dialog for selecting a playlist.
+     *
+     * @param playlists List of available playlists
+     * @param onPlaylistSelected Callback when a playlist is selected
+     */
     private fun showSelectPlaylistDialog(
         playlists: List<Playlist>,
         onPlaylistSelected: (Playlist) -> Unit
     ) {
         if (playlists.isEmpty()) {
-            Toast.makeText(context, "Bạn chưa có playlist nào", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_no_playlists), Toast.LENGTH_SHORT).show()
             return
         }
 
-        // 1. Tạo mảng tên playlist để hiển thị
+        // Create array of playlist names for display
         val playlistNames = playlists.map { it.name }.toTypedArray()
 
-        // 2. Tạo Dialog
+        // Create dialog
         MaterialAlertDialogBuilder(context)
-            .setTitle("Thêm vào Playlist")
+            .setTitle(context.getString(R.string.dialog_add_to_playlist_title))
             .setItems(playlistNames) { dialog, which ->
-                // 'which' là vị trí index người dùng chọn
+                // 'which' is the index of selected item
                 val selectedPlaylist = playlists[which]
 
-                // Gọi callback xử lý tiếp (thêm bài hát)
+                // Call callback to handle adding song
                 onPlaylistSelected(selectedPlaylist)
 
                 dialog.dismiss()
             }
-            .setNegativeButton("Hủy", null)
+            .setNegativeButton(context.getString(R.string.cancel), null)
             .show()
     }
 
@@ -147,90 +154,106 @@ class MediaActionHandler(
 
             withContext(Dispatchers.Main) {
                 if (result is Resource.Success) {
-                    Toast.makeText(context, "Đã thêm vào playlist!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_added_to_playlist), Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(context, "Lỗi thêm vào playlist", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_failed_add_to_playlist), Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
+    /**
+     * Toggles artist follow status with optimistic UI update.
+     *
+     * @param artist Artist to follow/unfollow
+     */
     fun toggleFollowArtist(artist: Artist) {
         scope.launch {
-            // 1. Lấy trạng thái hiện tại
+            // Get current follow status
             val isCurrentlyFollowed = userManager.isArtistFollowed(artist.id)
 
-            // 2. [OPTIMISTIC] Cập nhật UI NGAY LẬP TỨC
+            // [OPTIMISTIC] Update UI immediately
             if (isCurrentlyFollowed) {
                 userManager.unfollowArtist(artist.id)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Đã bỏ theo dõi ${artist.name}", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.toast_unfollowed_artist, artist.name),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } else {
                 userManager.followArtist(artist.id)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Đang theo dõi ${artist.name} ❤️", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.toast_following_artist, artist.name),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 
-            // 3. Gọi API ngầm
+            // Call API in background
             val result = musicRepository.toggleFollowArtist(artist.id)
 
-            // 4. Xử lý lỗi (Nếu lỗi thì hoàn tác)
+            // Handle errors (revert if failed)
             if (result is Resource.Failure) {
                 withContext(Dispatchers.Main) {
                     if (isCurrentlyFollowed) userManager.followArtist(artist.id)
                     else userManager.unfollowArtist(artist.id)
-                    Toast.makeText(context, "Lỗi kết nối", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_connection_error), Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
+    /**
+     * Toggles song favorite status with optimistic UI update.
+     *
+     * @param song Song to add/remove from favorites
+     */
     fun toggleFavorite(song: Song) {
         val favId = userManager.favoritePlaylistId
 
         if (favId.isNullOrEmpty()) {
             Toast.makeText(
                 context,
-                "Đang đồng bộ dữ liệu, vui lòng thử lại sau giây lát...",
+                context.getString(R.string.toast_syncing_data),
                 Toast.LENGTH_SHORT
             ).show()
-            // Gợi ý: Có thể gọi musicRepository.getMyPlaylists() ở đây để retry sync nếu cần
             return
         }
 
         scope.launch {
-            // 1. [QUAN TRỌNG] Lấy trạng thái hiện tại
+            // Get current favorite status
             val isCurrentlyFav = userManager.isSongFavorite(song.id)
 
-            // 2. [OPTIMISTIC UPDATE] Cập nhật UI NGAY LẬP TỨC (Không chờ Server)
-            // Nếu đang thích -> Xóa ngay khỏi bộ nhớ
-            // Nếu chưa thích -> Thêm ngay vào bộ nhớ
+            // [OPTIMISTIC UPDATE] Update UI immediately (don't wait for server)
             if (isCurrentlyFav) {
                 userManager.removeFavoriteSong(song.id)
             } else {
                 userManager.addFavoriteSong(song.id)
             }
-            // => Lúc này PlayerFragment và MoreOptions sẽ tự động đổi icon/text ngay tức thì
+            // PlayerFragment and MoreOptions will automatically update icon/text
 
-            // 3. Gọi API thực tế (Chạy ngầm)
+            // Call API in background
             val result = musicRepository.toggleFavorite(favId, song.id)
 
             withContext(Dispatchers.Main) {
                 when (result) {
                     is Resource.Success -> {
-                        // API Thành công: Kiểm tra lại kết quả từ Server để chắc chắn
+                        // API successful: Verify result from server
                         val serverAdded = result.result
 
-                        // Logic hiển thị thông báo
-                        val msg =
-                            if (serverAdded) "Đã thêm vào Yêu thích ❤️" else "Đã xóa khỏi Yêu thích 💔"
+                        // Show notification
+                        val msg = if (serverAdded) {
+                            context.getString(R.string.toast_added_to_favorites)
+                        } else {
+                            context.getString(R.string.toast_removed_from_favorites)
+                        }
                         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
-                        // (Optional) Đồng bộ lại nếu Server trả về khác với dự đoán của ta (hiếm gặp)
+                        // (Optional) Sync again if server result differs from prediction (rare case)
                         if (serverAdded != !isCurrentlyFav) {
                             if (serverAdded) userManager.addFavoriteSong(song.id)
                             else userManager.removeFavoriteSong(song.id)
@@ -238,15 +261,15 @@ class MediaActionHandler(
                     }
 
                     is Resource.Failure -> {
-                        // API Thất bại: HOÀN TÁC (Revert) lại trạng thái cũ
+                        // API failed: Revert to previous state
                         if (isCurrentlyFav) {
-                            userManager.addFavoriteSong(song.id) // Trả lại tim đỏ
+                            userManager.addFavoriteSong(song.id) // Restore favorite status
                         } else {
-                            userManager.removeFavoriteSong(song.id) // Trả lại tim trắng
+                            userManager.removeFavoriteSong(song.id) // Restore non-favorite status
                         }
                         Toast.makeText(
                             context,
-                            "Lỗi kết nối: ${result.exception.message}",
+                            context.getString(R.string.toast_connection_error_with_msg, result.exception.message),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -278,22 +301,27 @@ class MediaActionHandler(
             }
 
             is MoreOptionsAction.AlbumAction.Share -> {
-                shareContent(album.title, "Nghe Album ${album.title} cực hay trên Zalgneyh Music!")
+                shareContent(album.title, context.getString(R.string.share_album_message, album.title))
             }
         }
     }
 
-    // Play Album
+    /**
+     * Plays all songs from an album.
+     * Loads songs from API if not already available.
+     *
+     * @param album Album to play
+     */
     private fun playAlbum(album: Album) {
-        // already have song list
+        // Album already has song list
         if (album.songs.isNotEmpty()) {
             playerViewModel.setPlaylist(album.songs, 0)
-            Toast.makeText(context, "Đang phát Album: ${album.title}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_playing_album, album.title), Toast.LENGTH_SHORT).show()
             return
         }
 
-        // none songs list
-        Toast.makeText(context, "Đang tải danh sách bài hát...", Toast.LENGTH_SHORT).show()
+        // Load songs from API
+        Toast.makeText(context, context.getString(R.string.toast_loading_songs), Toast.LENGTH_SHORT).show()
 
         scope.launch {
             when (val result = musicRepository.getAlbumById(album.id)) {
@@ -353,13 +381,18 @@ class MediaActionHandler(
             }
 
             is MoreOptionsAction.ArtistAction.Share -> {
-                shareContent(artist.name, "Khám phá nghệ sĩ ${artist.name} trên Zalgneyh Music!")
+                shareContent(artist.name, context.getString(R.string.share_artist_message, artist.name))
             }
         }
     }
 
+    /**
+     * Plays all songs by an artist.
+     *
+     * @param artist Artist whose songs to play
+     */
     private fun playArtist(artist: Artist) {
-        Toast.makeText(context, "Đang tải bài hát của ${artist.name}...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.toast_loading_artist_songs, artist.name), Toast.LENGTH_SHORT).show()
 
         scope.launch {
             val result = musicRepository.getSongsByArtist(artist.id)
@@ -372,7 +405,7 @@ class MediaActionHandler(
                             playerViewModel.setPlaylist(songs, 0)
                             Toast.makeText(
                                 context,
-                                "Đang phát nhạc của ${artist.name}",
+                                context.getString(R.string.toast_playing_artist, artist.name),
                                 Toast.LENGTH_SHORT
                             ).show()
                         } else {
@@ -399,9 +432,16 @@ class MediaActionHandler(
     }
 
     // ==================== PLAYLIST ====================
+    /**
+     * Handles playlist menu click.
+     *
+     * @param playlist Playlist to show options for
+     * @param onEditRequest Callback to show edit dialog in Fragment
+     * @param onDeleteSuccess Callback when playlist is deleted successfully
+     */
     fun onPlaylistMenuClick(
         playlist: Playlist,
-        onEditRequest: (Playlist) -> Unit, // Callback để Fragment hiện Dialog sửa
+        onEditRequest: (Playlist) -> Unit,
         onDeleteSuccess: () -> Unit
     ) {
         MoreOptionsManager.showForPlaylist(fragmentManager, playlist) { action ->
@@ -418,17 +458,15 @@ class MediaActionHandler(
         when (action) {
             is MoreOptionsAction.PlaylistAction.PlayAll -> {
                 if (playlist.songs.isNotEmpty()) {
-                    // Giả định playlist.songs đã là List<Song> (sau khi bạn sửa Domain)
-                    // Nếu chưa, bạn cần map hoặc gọi API lấy chi tiết ở đây
                     playerViewModel.setPlaylist(playlist.songs, 0)
-                    Toast.makeText(context, "Đang phát playlist: ${playlist.name}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_playing_playlist, playlist.name), Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(context, "Playlist trống", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_playlist_empty), Toast.LENGTH_SHORT).show()
                 }
             }
 
             is MoreOptionsAction.PlaylistAction.Edit -> {
-                // MediaActionHandler không thể mở Gallery chọn ảnh, nên gọi ngược về Fragment
+                // MediaActionHandler cannot open Gallery, delegate to Fragment
                 onEditRequest(playlist)
             }
 
@@ -439,33 +477,39 @@ class MediaActionHandler(
             is MoreOptionsAction.PlaylistAction.Share -> {
                 shareContent(
                     title = "Playlist: ${playlist.name}",
-                    message = "Nghe playlist ${playlist.name} cực chill trên Zalgneyh Music!"
+                    message = context.getString(R.string.share_playlist_message, playlist.name)
                 )
             }
         }
     }
 
+    /**
+     * Shows confirmation dialog for deleting a playlist.
+     */
     private fun showConfirmDeletePlaylist(playlist: Playlist, onSuccess: () -> Unit) {
         MaterialAlertDialogBuilder(context)
-            .setTitle(context.getString(R.string.mo_delete_playlist)) // Hoặc "Xóa Playlist"
-            .setMessage("Bạn có chắc muốn xóa playlist '${playlist.name}' không?")
-            .setPositiveButton("Xóa") { dialog, _ ->
+            .setTitle(context.getString(R.string.dialog_delete_playlist_title))
+            .setMessage(context.getString(R.string.dialog_delete_playlist_message, playlist.name))
+            .setPositiveButton(context.getString(R.string.dialog_delete)) { dialog, _ ->
                 dialog.dismiss()
                 performDeletePlaylist(playlist.id, onSuccess)
             }
-            .setNegativeButton("Hủy", null)
+            .setNegativeButton(context.getString(R.string.cancel), null)
             .show()
     }
 
+    /**
+     * Performs playlist deletion via API.
+     */
     private fun performDeletePlaylist(playlistId: String, onSuccess: () -> Unit) {
         scope.launch {
             val result = musicRepository.deletePlaylist(playlistId)
             withContext(Dispatchers.Main) {
                 if (result is Resource.Success) {
-                    Toast.makeText(context, "Đã xóa playlist", Toast.LENGTH_SHORT).show()
-                    onSuccess() // Gọi callback để đóng Fragment
+                    Toast.makeText(context, context.getString(R.string.toast_playlist_deleted), Toast.LENGTH_SHORT).show()
+                    onSuccess() // Call callback to close Fragment
                 } else {
-                    Toast.makeText(context, "Lỗi: $result", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_error_with_result, result), Toast.LENGTH_SHORT).show()
                 }
             }
         }

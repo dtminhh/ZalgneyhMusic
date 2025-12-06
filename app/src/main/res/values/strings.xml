@@ -172,6 +172,53 @@
     <string name="followed_artists">Followed artists</string>
     <string name="no_lyrics_found">This song hasn\'t lyrics yet</string>
 
+    <!-- Toast Messages -->
+    <string name="toast_added_to_play_next">Added to play next queue</string>
+    <string name="toast_added_to_queue">Added to queue</string>
+    <string name="toast_playlist_created">Playlist created successfully!</string>
+    <string name="toast_cannot_edit_default_playlist">Cannot edit default playlist</string>
+    <string name="toast_no_playlists">You don\'t have any playlists yet</string>
+    <string name="toast_added_to_playlist">Added to playlist successfully!</string>
+    <string name="toast_failed_add_to_playlist">Failed to add to playlist</string>
+    <string name="toast_unfollowed_artist">Unfollowed %1$s</string>
+    <string name="toast_following_artist">Following %1$s ❤️</string>
+    <string name="toast_connection_error">Connection error</string>
+    <string name="toast_connection_error_with_msg">Connection error: %1$s</string>
+    <string name="toast_syncing_data">Syncing data, please try again in a moment…</string>
+    <string name="toast_added_to_favorites">Added to Favorites ❤️</string>
+    <string name="toast_removed_from_favorites">Removed from Favorites 💔</string>
+    <string name="toast_playing_album">Playing Album: %1$s</string>
+    <string name="toast_loading_songs">Loading songs…</string>
+    <string name="toast_loading_artist_songs">Loading songs by %1$s…</string>
+    <string name="toast_playing_artist">Playing music by %1$s</string>
+    <string name="toast_playing_playlist">Playing playlist: %1$s</string>
+    <string name="toast_playlist_empty">Playlist is empty</string>
+    <string name="toast_playlist_deleted">Playlist deleted</string>
+    <string name="toast_error_with_result">Error: %1$s</string>
+    <string name="toast_sign_up_success">Sign Up Success</string>
+    <string name="toast_unknown_album">Unknown Album</string>
+
+    <!-- Navigation Errors -->
+    <string name="error_navigation_not_supported">Error: Activity does not support navigation</string>
+
+    <!-- Dialog Messages -->
+    <string name="dialog_add_to_playlist_title">Add to Playlist</string>
+    <string name="dialog_delete_playlist_title">Delete Playlist</string>
+    <string name="dialog_delete_playlist_message">Are you sure you want to delete playlist \'%1$s\'?</string>
+    <string name="dialog_delete">Delete</string>
+
+    <!-- Share Messages -->
+    <string name="share_song_message">Listen to %1$s by %2$s on Zalgneyh Music!</string>
+    <string name="share_album_message">Listen to the amazing album %1$s on Zalgneyh Music!</string>
+    <string name="share_artist_message">Discover artist %1$s on Zalgneyh Music!</string>
+    <string name="share_playlist_message">Listen to the amazing playlist %1$s on Zalgneyh Music!</string>
+
+    <!-- Form Validation -->
+    <string name="error_name_empty">Name cannot be empty</string>
+    <string name="save">Save</string>
+    <string name="t_n_playlist">Playlist Name</string>
+    <string name="mota_tuychon">Description (Optional)</string>
+
     <plurals name="numberOfSongs">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

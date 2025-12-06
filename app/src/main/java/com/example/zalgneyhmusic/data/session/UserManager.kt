@@ -13,17 +13,20 @@ import javax.inject.Singleton
 import androidx.core.content.edit
 
 /**
- * Quản lý phiên làm việc của User hiện tại.
- * Lưu trữ thông tin User sau khi đăng nhập để dùng toàn app.
+ * Manages the current user session.
+ * Stores user information after login for app-wide use.
  */
 @Singleton
 class UserManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
-    // Biến lưu trữ User hiện tại (null nếu chưa đăng nhập)
+    /**
+     * Current logged-in user (null if not logged in).
+     * Can only be set through saveUserSession function.
+     */
     var currentUser: User? = null
-        private set // Chỉ cho phép set thông qua hàm saveUserSession
+        private set
 
 
     private val _favoriteSongIds = MutableStateFlow<Set<String>>(loadFavoritesFromCache())
@@ -68,39 +71,60 @@ class UserManager @Inject constructor(
     }
 
     /**
-     * Lưu thông tin user sau khi Login/Sync thành công
+     * Saves user session information after successful login/sync.
+     *
+     * @param user User data to save
      */
     fun saveUserSession(user: User) {
         this.currentUser = user
-        // TODO: Sau này có thể lưu thêm vào DataStore để khi mở lại app không bị mất
+        // TODO: Could persist to DataStore in the future to retain across app restarts
     }
 
-    // [MỚI] Hàm cập nhật danh sách tim (gọi khi load playlist)
+    /**
+     * Updates the list of favorite song IDs.
+     * Called when playlists are loaded.
+     *
+     * @param ids List of favorite song IDs
+     */
     fun setFavoriteSongIds(ids: List<String>) {
         val idSet = ids.toSet()
         _favoriteSongIds.value = idSet
         saveFavoritesToCache(idSet)
     }
 
-    // [MỚI] Hàm thêm 1 bài vào danh sách tim (gọi khi bấm tim thành công)
+    /**
+     * Adds a song to favorites list.
+     * Called when user favorites a song successfully.
+     *
+     * @param songId Song ID to add
+     */
     fun addFavoriteSong(songId: String) {
         _favoriteSongIds.update { current ->
             val newSet = current + songId
-            saveFavoritesToCache(newSet) // Lưu ngay
+            saveFavoritesToCache(newSet) // Save immediately
             newSet
         }
     }
 
-    // [MỚI] Hàm xóa 1 bài khỏi danh sách tim
+    /**
+     * Removes a song from favorites list.
+     *
+     * @param songId Song ID to remove
+     */
     fun removeFavoriteSong(songId: String) {
         _favoriteSongIds.update { current ->
             val newSet = current - songId
-            saveFavoritesToCache(newSet) // Lưu ngay
+            saveFavoritesToCache(newSet) // Save immediately
             newSet
         }
     }
 
-    // [MỚI] Kiểm tra nhanh 1 bài hát có được thích không
+    /**
+     * Checks if a song is favorited.
+     *
+     * @param songId Song ID to check
+     * @return true if song is favorited, false otherwise
+     */
     fun isSongFavorite(songId: String): Boolean {
         return _favoriteSongIds.value.contains(songId)
     }
@@ -123,8 +147,7 @@ class UserManager @Inject constructor(
     companion object {
         private const val PREF_NAME = "user_session_prefs"
         private const val KEY_FAV_IDS = "favorite_song_ids"
-
-        private const val KEY_FOLLOWED_ARTIST_IDS = "followed_artist_ids" // Key mới cho SharedPreferences
+        private const val KEY_FOLLOWED_ARTIST_IDS = "followed_artist_ids" // SharedPreferences key for followed artists
     }
 
 }

@@ -22,37 +22,41 @@ class MainViewModel @Inject constructor(
         restoreUserSession()
     }
 
+    /**
+     * Restores user session when the application is launched.
+     * Synchronizes user data from backend and loads favorite songs and followed artists.
+     */
     private fun restoreUserSession() {
         viewModelScope.launch {
-            // Chỉ khôi phục nếu Session đang rỗng (trường hợp mở lại app)
+            // Only restore if session is empty (app restart scenario)
             if (userManager.currentUser == null) {
                 val firebaseUser = authRepository.currentUser
 
                 if (firebaseUser != null) {
-                    Log.d("APP_INIT", "Phát hiện User đã đăng nhập. Đang khôi phục Session...")
+                    Log.d("APP_INIT", "User already logged in. Restoring session...")
 
-                    // 1. Sync User để lấy ID Playlist Favorites
+                    // Sync user to get favorites playlist ID
                     val syncResult = authRepository.syncUserToBackEnd()
 
                     if (syncResult is Resource.Success) {
-                        // Lưu User vào UserManager
+                        // Save user to UserManager
                         userManager.saveUserSession(syncResult.result)
 
-                        // 2. Tải danh sách Playlist (Repo sẽ tự động trích xuất Favorites để cập nhật UserManager)
+                        // Load playlists and followed artists (repository will auto-extract favorites to update UserManager)
                         val playlistResult = musicRepository.getMyPlaylists()
                         val artistResult = musicRepository.getFollowedArtists()
 
                         if (playlistResult is Resource.Success && artistResult is Resource.Success) {
                             Log.d(
                                 "APP_INIT",
-                                "Khôi phục thành công! Đã nạp ${userManager.favoriteSongIds.value.size} bài hát yêu thích và ${userManager.followedArtistIds.value.size} nghệ sĩ theo dõi."
+                                "Session restored successfully! Loaded ${userManager.favoriteSongIds.value.size} favorite songs and ${userManager.followedArtistIds.value.size} followed artists."
                             )
                         }
                     } else {
-                        Log.e("APP_INIT", "Lỗi Sync User: $syncResult")
+                        Log.e("APP_INIT", "User sync error: $syncResult")
                     }
                 } else {
-                    Log.d("APP_INIT", "Chưa có User đăng nhập.")
+                    Log.d("APP_INIT", "No user logged in.")
                 }
             }
         }

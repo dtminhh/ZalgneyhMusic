@@ -1,12 +1,11 @@
 package com.example.zalgneyhmusic.ui.fragment.mainNav.playlist
 
 import android.app.AlertDialog
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
@@ -14,14 +13,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Playlist
+import com.example.zalgneyhmusic.databinding.DialogCreatePlaylistBinding
 import com.example.zalgneyhmusic.databinding.FragmentPlaylistsBinding
 import com.example.zalgneyhmusic.ui.adapter.PlaylistAdapter
 import com.example.zalgneyhmusic.ui.extension.openPlaylistDetail
 import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.utils.StorageHelper
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlaylistViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.core.graphics.drawable.toDrawable
 
 /**
  * Fragment displaying playlists in vertical list
@@ -36,14 +36,14 @@ class PlaylistsFragment : BaseFragment() {
 
     // Biến hỗ trợ chọn ảnh
     private var selectedImageUri: android.net.Uri? = null
-    private var editDialogView: View? = null
-
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            selectedImageUri = it
-            editDialogView?.findViewById<ImageView>(R.id.imgPlaylistCover)?.setImageURI(it)
+    private var currentDialogBinding: DialogCreatePlaylistBinding? = null
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                selectedImageUri = it
+                currentDialogBinding?.imageView?.setImageURI(it)
+            }
         }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,31 +65,74 @@ class PlaylistsFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Observes playlist creation state and shows appropriate messages.
+     */
     private fun observeCreateState() {
         viewModel.createPlaylistState.observe(viewLifecycleOwner) { resource ->
             if (resource is Resource.Success) {
-                Toast.makeText(context, "Tạo playlist thành công!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.toast_playlist_created), Toast.LENGTH_SHORT).show()
                 viewModel.resetCreateState()
             } else if (resource is Resource.Failure) {
-                Toast.makeText(context, "Lỗi: ${resource.exception.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.error, resource.exception.message), Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
 
-    // Dialog nhập tên playlist
+    /**
+     * Shows dialog to create a new playlist.
+     */
+    /**
+     * Shows dialog to create a new playlist.
+     */
     private fun showCreatePlaylistDialog() {
-        val input = EditText(context)
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.create_new_playlist))
-            .setView(input)
-            .setPositiveButton(getString(R.string.create)) { _, _ ->
-                val name = input.text.toString()
-                if (name.isNotBlank()) {
-                    viewModel.createPlaylist(name)
+        // Reset previous state
+        selectedImageUri = null
+
+        // Inflate layout
+        val dialogBinding = DialogCreatePlaylistBinding.inflate(layoutInflater)
+        currentDialogBinding = dialogBinding // Save for launcher use
+
+        // Setup Dialog
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        // Handle image selection
+        dialogBinding.imageView.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+
+        dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
+
+        dialogBinding.btnCreate.setOnClickListener {
+            val name = dialogBinding.etPlaylistName.text.toString().trim()
+            val description = dialogBinding.etDescription.text.toString().trim()
+
+            if (name.isNotEmpty()) {
+                // Convert URI to File (if image selected)
+                val imageFile = selectedImageUri?.let { uri ->
+                    StorageHelper.uriToFile(requireContext(), uri)
                 }
+
+                // Call ViewModel to create playlist
+                viewModel.createPlaylist(name, description, imageFile)
+
+                dialog.dismiss()
+            } else {
+                dialogBinding.etPlaylistName.error = getString(R.string.error_name_empty)
             }
-            .setNegativeButton(getString(R.string.cancel), null)
-            .show()
+        }
+
+        // Clear binding when dialog dismissed to avoid memory leak
+        dialog.setOnDismissListener {
+            currentDialogBinding = null
+        }
+
+        dialog.show()
     }
 
     private fun setupRecyclerView() {
@@ -98,7 +141,6 @@ class PlaylistsFragment : BaseFragment() {
                 openPlaylistDetail(playlist.id)
             },
             onPlaylistLongClick = { playlist ->
-                // SỬA LỖI Ở ĐÂY: Truyền đủ 3 tham số
                 mediaActionHandler.onPlaylistMenuClick(
                     playlist = playlist,
                     onEditRequest = { target -> showEditPlaylistDialog(target) },
@@ -114,31 +156,49 @@ class PlaylistsFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Shows dialog to edit an existing playlist.
+     */
     private fun showEditPlaylistDialog(playlist: Playlist) {
         selectedImageUri = null
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_create_playlist, null)
-        editDialogView = dialogView
+        val dialogBinding = DialogCreatePlaylistBinding.inflate(layoutInflater)
+        currentDialogBinding = dialogBinding // Save for launcher use
 
-        val edtName = dialogView.findViewById<EditText>(R.id.edtPlaylistName)
-        val imgCover = dialogView.findViewById<ImageView>(R.id.imgPlaylistCover)
+        // Fill existing data
+        dialogBinding.etPlaylistName.setText(playlist.name)
+        dialogBinding.btnCreate.text = getString(R.string.save)
 
-        edtName.setText(playlist.name)
-        ImageUtils.loadImage(imgCover, playlist.imageUrl)
+        // Load current playlist image (using your image library, e.g. Glide/Picasso/ImageUtils)
+        // ImageUtils.loadImage(dialogBinding.imageView, playlist.imageUrl)
 
-        imgCover.setOnClickListener { pickImageLauncher.launch("image/*") }
+        // Handle image selection
+        dialogBinding.imageView.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Sửa Playlist")
-            .setView(dialogView)
-            .setPositiveButton("Lưu") { _, _ ->
-                val newName = edtName.text.toString()
-                if (newName.isNotBlank()) {
-                    val imageFile = selectedImageUri?.let { StorageHelper.uriToFile(requireContext(), it) }
-                    viewModel.updatePlaylist(playlist.id, newName, imageFile)
-                }
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
+
+        dialogBinding.btnCreate.setOnClickListener {
+            val newName = dialogBinding.etPlaylistName.text.toString().trim()
+            if (newName.isNotBlank()) {
+                // Convert Uri sang File để upload
+                val imageFile = selectedImageUri?.let { StorageHelper.uriToFile(requireContext(), it) }
+                viewModel.updatePlaylist(playlist.id, newName, imageFile)
+                dialog.dismiss()
             }
-            .setNegativeButton("Hủy", null)
-            .show()
+        }
+
+        dialog.setOnDismissListener {
+            currentDialogBinding = null
+        }
+
+        dialog.show()
     }
 
     /**
@@ -164,7 +224,8 @@ class PlaylistsFragment : BaseFragment() {
                     binding.progressBar.visibility = View.GONE
                     binding.rvPlaylists.visibility = View.GONE
                     binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text = resource.exception.message ?: getString(R.string.unknown_error)
+                    binding.txtError.text =
+                        resource.exception.message ?: getString(R.string.unknown_error)
                 }
             }
         }

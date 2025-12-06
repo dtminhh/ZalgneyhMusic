@@ -39,13 +39,22 @@ interface MusicRepository {
     fun getRecentAlbums(limit: Int = 10): Flow<Resource<List<Album>>>
     suspend fun getAlbumById(id: String): Resource<Album>
 
-    suspend fun createPlaylist(name: String): Resource<Playlist>
+    suspend fun createPlaylist(
+        name: String,
+        description: String?,
+        imageFile: java.io.File?
+    ): Resource<Playlist>
+
     suspend fun getMyPlaylists(): Resource<List<Playlist>>
     suspend fun addSongToPlaylist(playlistId: String, songId: String): Resource<Any>
 
     suspend fun deletePlaylist(id: String): Resource<Boolean>
 
-    suspend fun updatePlaylist(id: String, name: String, imageFile: java.io.File?): Resource<Playlist>
+    suspend fun updatePlaylist(
+        id: String,
+        name: String,
+        imageFile: java.io.File?
+    ): Resource<Playlist>
 
     fun searchEverything(query: String): Flow<Resource<SearchResults>>
 }

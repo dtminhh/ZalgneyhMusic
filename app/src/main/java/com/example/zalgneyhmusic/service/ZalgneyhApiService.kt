@@ -167,10 +167,13 @@ interface ZalgneyhApiService {
     @GET("search")
     suspend fun search(@Query("q") query: String): Response<ApiResponse<SearchResponseDTO>>
 
+    @Multipart
     @POST("playlists")
     suspend fun createPlaylist(
         @Header("Authorization") token: String,
-        @Body body: Map<String, String>
+        @Part("name") name: okhttp3.RequestBody,
+        @Part("description") description: okhttp3.RequestBody?,
+        @Part image: okhttp3.MultipartBody.Part?
     ): Response<ApiResponse<PlaylistDTO>>
 
     @GET("playlists/my")
@@ -200,7 +203,7 @@ interface ZalgneyhApiService {
         @Part("name") name: okhttp3.RequestBody,
         @Part("description") description: okhttp3.RequestBody?,
         @Part image: okhttp3.MultipartBody.Part?
-    ): Response<ApiResponse<com.example.zalgneyhmusic.data.model.api.PlaylistDTO>>
+    ): Response<ApiResponse<PlaylistDTO>>
 
     // ==================== HEALTH CHECK ====================
 

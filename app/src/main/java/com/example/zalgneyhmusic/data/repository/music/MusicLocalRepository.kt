@@ -188,6 +188,14 @@ class MusicLocalRepository @Inject constructor(
         }
     }
 
+    override suspend fun createPlaylist(
+        name: String,
+        description: String?,
+        imageFile: File?
+    ): Resource<Playlist> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getSongsByArtist(artistId: String): Resource<List<Song>> {
         TODO("Not yet implemented")
     }
@@ -211,9 +219,6 @@ class MusicLocalRepository @Inject constructor(
         TODO("Not yet implemented")
     }
 
-    override suspend fun createPlaylist(name: String): Resource<Playlist> {
-        TODO("Not yet implemented")
-    }
 
     override suspend fun getMyPlaylists(): Resource<List<Playlist>> {
         TODO("Not yet implemented")
