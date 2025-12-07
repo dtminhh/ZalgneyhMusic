@@ -9,5 +9,6 @@ data class User(
     val email: String,
     val displayName: String,
     val role: String,
+    val photoUrl: String? = null,
     val favoritePlaylistId: String?
 )

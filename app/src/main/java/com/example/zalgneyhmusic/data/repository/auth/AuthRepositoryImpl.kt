@@ -8,6 +8,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.example.zalgneyhmusic.data.session.UserManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -31,6 +38,40 @@ class AuthRepositoryImpl @Inject constructor(
     override val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
 
+
+    override suspend fun updateUserProfile(displayName: String?, imageFile: File?): Resource<User> =
+        withContext(Dispatchers.IO) {
+            try {
+                val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("User not logged in"))
+                val token = "Bearer ${user.getIdToken(false).await().token}"
+
+                // Get user ID from current session
+                val userId = userManager.currentUserValue?.id ?: return@withContext Resource.Failure(Exception("Session error"))
+
+                // Package data for multipart request
+                val namePart = displayName?.toRequestBody("text/plain".toMediaTypeOrNull())
+                val imagePart = imageFile?.let {
+                    val requestFile = it.asRequestBody("image/*".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("image", it.name, requestFile)
+                }
+
+                // Send update request to backend
+                // Note: userId must match @Path("id") parameter in ApiService
+                val response = apiService.updateProfile(token, userId, namePart, imagePart)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val updatedUser = response.body()!!.data!!.toDomain()
+
+                    // Update session to trigger UI refresh
+                    userManager.saveUserSession(updatedUser)
+                    Resource.Success(updatedUser)
+                } else {
+                    Resource.Failure(Exception(response.message()))
+                }
+            } catch (e: Exception) {
+                Resource.Failure(e)
+            }
+        }
     /**
      * Synchronizes the currently authenticated Firebase user with the backend server.
      *
@@ -45,7 +86,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun syncUserToBackEnd(): Resource<User> {
         val user = firebaseAuth.currentUser
         if (user == null) {
-            android.util.Log.e("DEBUG_SYNC", "Lỗi: Current User is NULL")
+            android.util.Log.e("DEBUG_SYNC", "Error: Current User is NULL")
             return Resource.Failure(Exception("No User"))
         }
 

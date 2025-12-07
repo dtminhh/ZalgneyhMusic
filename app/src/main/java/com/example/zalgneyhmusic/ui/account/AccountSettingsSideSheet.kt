@@ -4,6 +4,8 @@ import ImageUtils
 import android.app.AlertDialog
 import android.app.Dialog
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -11,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.LocaleListCompat
@@ -20,6 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
+import com.example.zalgneyhmusic.databinding.DialogEditProfileBinding
 import com.example.zalgneyhmusic.databinding.SideSheetAccountSettingsBinding
 import com.example.zalgneyhmusic.ui.utils.StorageHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -34,6 +38,16 @@ import kotlinx.coroutines.launch
  */
 @AndroidEntryPoint
 class AccountSettingsSideSheet : DialogFragment() {
+
+    private var selectedImageUri: Uri? = null
+    private var dialogBinding: DialogEditProfileBinding? = null
+
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            selectedImageUri = it
+            dialogBinding?.imgAvatarEdit?.setImageURI(it)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,6 +125,24 @@ class AccountSettingsSideSheet : DialogFragment() {
                 ).show()
             }
         }
+
+        viewModel.currentUser.observe(viewLifecycleOwner) { user ->
+            user?.let {
+                binding.txtUserName.text = it.displayName
+                binding.txtUserEmail.text = it.email
+                ImageUtils.loadImageRounded(binding.imgUserAvatar, it.photoUrl)
+                dialogBinding?.imgAvatarEdit?.let { view -> ImageUtils.loadImageRounded(view, it.photoUrl) }
+            }
+        }
+
+        viewModel.updateState.observe(viewLifecycleOwner) { resource ->
+            // Handle update state with loading indicator if needed
+            if (resource is com.example.zalgneyhmusic.data.Resource.Failure) {
+                Toast.makeText(context, "Update error: ${resource.exception.message}", Toast.LENGTH_SHORT).show()
+            } else if (resource is com.example.zalgneyhmusic.data.Resource.Success) {
+                Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun getSettingsItems(): List<AccountSettingsItem> {
@@ -137,10 +169,7 @@ class AccountSettingsSideSheet : DialogFragment() {
 
     private fun handleAction(action: AccountSettingsAction) {
         when (action) {
-            AccountSettingsAction.EditProfile -> {
-                Toast.makeText(context, "Edit Profile - Coming soon", Toast.LENGTH_SHORT).show()
-                dismiss()
-            }
+            AccountSettingsAction.EditProfile -> showEditProfileDialog()
 
             AccountSettingsAction.ManageSubscription -> {
                 Toast.makeText(context, "Manage Subscription - Coming soon", Toast.LENGTH_SHORT)
@@ -270,6 +299,56 @@ class AccountSettingsSideSheet : DialogFragment() {
             }
             btnCancel.setOnClickListener { dialog.dismiss() }
         }
+        dialog.show()
+    }
+
+    private fun showEditProfileDialog() {
+        // Get current user from ViewModel
+        val user = viewModel.getCurrentUser()
+
+        if (user == null) {
+            Toast.makeText(context, "User information not found!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        selectedImageUri = null
+
+        // Inflate layout (ensure dialog_edit_profile.xml exists)
+        // Note: Use proper binding variable for correct logic
+        dialogBinding = DialogEditProfileBinding.inflate(layoutInflater)
+        val dialogBinding = dialogBinding!! // Temporary variable for cleaner code
+
+        // 1. Fill existing data
+        dialogBinding.etDisplayName.setText(user.displayName)
+        ImageUtils.loadImageRounded(dialogBinding.imgAvatarEdit, user.photoUrl)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .create()
+
+        // Transparent background for rounded corners
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        // 2. Select image
+        dialogBinding.imgAvatarEdit.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+
+        // 3. Save
+        dialogBinding.btnSave.setOnClickListener {
+            val newName = dialogBinding.etDisplayName.text.toString().trim()
+            if (newName.isNotEmpty()) {
+                val imageFile = selectedImageUri?.let { StorageHelper.uriToFile(requireContext(), it) }
+                viewModel.updateUserProfile(newName, imageFile)
+                dialog.dismiss()
+            } else {
+                dialogBinding.etDisplayName.error = getString(R.string.error_name_empty)
+            }
+        }
+
+        dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
+
+        dialog.setOnDismissListener {  dialogBinding.imgAvatarEdit.setImageURI(null) }
         dialog.show()
     }
 
