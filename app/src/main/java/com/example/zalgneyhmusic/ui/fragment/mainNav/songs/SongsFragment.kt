@@ -9,6 +9,7 @@ import com.example.zalgneyhmusic.databinding.FragmentSongsBinding
 import com.example.zalgneyhmusic.ui.fragment.BaseNavFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.FeatureSongsFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.NewSongsFragment
+import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.SuggestionFragment
 
 /**
  * Songs fragment with TabLayout and child ViewPager2
@@ -33,10 +34,11 @@ class SongsFragment : BaseNavFragment() {
     }
 
     override fun setupTabLayoutAndViewPager() {
-        val tabs = listOf("Feature Songs", "New Songs")
+        val tabs = listOf("Feature Songs", "New Songs", "Suggestion")
         val fragments = listOf<() -> Fragment>(
             { FeatureSongsFragment() },
-            { NewSongsFragment() }
+            { NewSongsFragment() },
+            { SuggestionFragment() }
         )
 
         setupTabsAndFragments(

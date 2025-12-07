@@ -21,9 +21,11 @@ import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOn
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -298,6 +300,77 @@ class MusicHybridRepository @Inject constructor(
                 entities.map { it.toDomain() }
             }
     }
+
+    override fun getPersonalizedSuggestions(): Flow<Resource<List<Song>>> = flow {
+        emit(Resource.Loading)
+        try {
+            // 1. Gather seed data
+            // Get the 50 most recently played songs to analyze current preferences
+            val historyEntities = recentlyPlayedDao.getRecentlyPlayedSongs(limit = 50).first()
+            val historySongs = historyEntities.map { it.toDomain() }
+
+            // Get the list of favorite song IDs
+            val favoriteIds = userManager.favoriteSongIds.value
+
+            // 2. Build user profile (preference profile)
+            // Count plays per artist
+            val artistAffinity = historySongs.groupingBy { it.artist.id }.eachCount()
+            // Count plays per genre (if genre exists)
+            val genreAffinity = historySongs.groupingBy { it.genre ?: "Unknown" }.eachCount()
+
+            // 3. Candidate generation
+            // Load all songs currently in cache (offline)
+            val allSongs = songDao.getAllSongsSync().map { it.toDomain() }
+
+            // 4. Scoring
+            val scoredSongs = allSongs.map { song ->
+                var score = 0.0
+
+                // A. Artist score (most important)
+                // Example: if artist listened 5 times -> songs by that artist get +15 points
+                val artistCount = artistAffinity[song.artist.id] ?: 0
+                score += artistCount * 3.0
+
+                // B. Genre score (second important)
+                val genreCount = genreAffinity[song.genre ?: "Unknown"] ?: 0
+                score += genreCount * 1.0
+
+                // C. Favorite score
+                if (favoriteIds.contains(song.id)) {
+                    score += 5.0
+                }
+
+                // D. Random score (discovery)
+                // Add small randomness to avoid monotony
+                score += Math.random() * 2.0
+
+                // E. Heavy penalty for recently played songs (avoid repeating recent plays)
+                if (historySongs.any { it.id == song.id }) {
+                    score -= 100.0
+                }
+
+                song to score
+            }
+
+            // 5. Ranking & filtering
+            val suggestions = scoredSongs
+                .filter { it.second > 0 } // Keep only songs with positive score
+                .sortedByDescending { it.second } // Higher score first
+                .map { it.first }
+                .take(20) // Take top 20
+
+            // If algorithm finds no candidates (new user), return random or top songs
+            if (suggestions.isEmpty()) {
+                // Fallback: return random 10 songs
+                emit(Resource.Success(allSongs.shuffled().take(10)))
+            } else {
+                emit(Resource.Success(suggestions))
+            }
+
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }.flowOn(Dispatchers.IO)
 
     /**
      * Toggle favorite status of a song in a playlist.

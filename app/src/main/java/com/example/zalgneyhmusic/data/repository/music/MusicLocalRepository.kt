@@ -115,6 +115,10 @@ class MusicLocalRepository @Inject constructor(
         TODO("Not yet implemented")
     }
 
+    override fun getPersonalizedSuggestions(): Flow<Resource<List<Song>>> {
+        TODO("Not yet implemented")
+    }
+
 
     // Artists
     override fun getAllArtists(): Flow<Resource<List<Artist>>> = flow {

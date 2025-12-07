@@ -161,6 +161,7 @@
     <string name="queue_now_playing">Đang phát</string>
     <string name="queue_up_next">Phát tiếp theo</string>
     <string name="queue_later">Sẽ phát sau</string>
+    <string name="no_suggestions">Chưa có gợi ý nào cho bạn</string>
 
     <!-- Toast Messages -->
     <string name="toast_added_to_play_next">Đã thêm vào danh sách phát kế tiếp</string>

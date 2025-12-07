@@ -25,6 +25,8 @@ interface MusicRepository {
 
     fun getListeningHistory(): Flow<List<Song>>
 
+    fun getPersonalizedSuggestions(): Flow<Resource<List<Song>>>
+
     suspend fun toggleFavorite(playlistId: String, songId: String): Resource<Boolean>
 
     // Artists
