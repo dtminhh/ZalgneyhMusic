@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.Flow
  */
 interface MusicRepository {
     // Songs
+
+    suspend fun downloadSong(songId: String): Resource<Boolean>
+    suspend fun removeDownloadedSong(songId: String): Resource<Boolean>
+    fun getDownloadedSongs(): Flow<List<Song>>
     fun getAllSongs(): Flow<Resource<List<Song>>>
     fun getTopSongs(limit: Int = 10): Flow<Resource<List<Song>>>
     fun getRecentSongs(limit: Int = 10): Flow<Resource<List<Song>>>

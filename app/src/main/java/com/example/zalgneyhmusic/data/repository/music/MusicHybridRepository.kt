@@ -30,6 +30,12 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
+import android.content.Context
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.File
+import java.io.FileOutputStream
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Hybrid Repository Implementation
@@ -48,6 +54,8 @@ class MusicHybridRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val userManager: UserManager,
     database: MusicDatabase,
+    @ApplicationContext private val context: Context,
+    private val client: OkHttpClient
 ) : MusicRepository {
 
     private val recentlyPlayedDao = database.recentlyPlayedDao()
@@ -57,6 +65,66 @@ class MusicHybridRepository @Inject constructor(
     }
 
     // ==================== SONGS ====================
+
+    override suspend fun downloadSong(songId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            // 1. Lấy thông tin bài hát từ DB hoặc API
+            val songEntity = songDao.getSongById(songId) ?: return@withContext Resource.Failure(Exception("Song not found"))
+
+            // 2. Tạo đường dẫn file đích (Internal Storage/music/songId.mp3)
+            val musicDir = File(context.filesDir, "music")
+            if (!musicDir.exists()) musicDir.mkdirs()
+            val destFile = File(musicDir, "${songId}.mp3")
+
+            // 3. Tải file
+            val request = Request.Builder().url(songEntity.url).build()
+            val response = client.newCall(request).execute()
+
+            if (!response.isSuccessful || response.body == null) {
+                return@withContext Resource.Failure(Exception("Download failed"))
+            }
+
+            // 4. Ghi file ra bộ nhớ
+            val inputStream = response.body!!.byteStream()
+            val outputStream = FileOutputStream(destFile)
+
+            inputStream.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            // 5. Cập nhật DB
+            songDao.updateLocalPath(songId, destFile.absolutePath)
+
+            Resource.Success(true)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun removeDownloadedSong(songId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val songEntity = songDao.getSongById(songId)
+            val path = songEntity?.localPath
+
+            if (path != null) {
+                val file = File(path)
+                if (file.exists()) {
+                    file.delete()
+                }
+                songDao.updateLocalPath(songId, null) // Xóa path trong DB nhưng giữ bài hát
+            }
+            Resource.Success(true)
+        } catch(e: Exception) {
+            Resource.Failure(e)
+        }
+    }
+
+    override fun getDownloadedSongs(): Flow<List<Song>> {
+        TODO("Not yet implemented")
+    }
 
     /**
      * Fetch all songs from API (page 1, limit 100), cache them in local DB.

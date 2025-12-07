@@ -30,7 +30,8 @@ data class SongEntity(
     val likes: Int = 0,
     val isPublic: Boolean = true,
     val createdAt: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
+    val localPath: String? = null
 ) {
     /**
      * Convert Entity to Domain Model
@@ -74,7 +75,8 @@ data class SongEntity(
             likes = likes,
             isPublic = isPublic,
             createdAt = createdAt,
-            updatedAt = updatedAt
+            updatedAt = updatedAt,
+            localPath = localPath
         )
     }
 
@@ -104,7 +106,8 @@ data class SongEntity(
                 likes = song.likes,
                 isPublic = song.isPublic,
                 createdAt = song.createdAt,
-                updatedAt = song.updatedAt
+                updatedAt = song.updatedAt,
+                localPath = song.localPath
             )
         }
     }

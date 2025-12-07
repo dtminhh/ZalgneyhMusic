@@ -211,6 +211,9 @@
     <string name="t_n_playlist">Tên Playlist</string>
     <string name="mota_tuychon">Mô tả (Tùy chọn)</string>
 
+    <string name="download">Tải về</string>
+    <string name="downloaded">Đã tải</string>
+
     <plurals name="numberOfSongs" tools:ignore="UnusedQuantity">
         <item quantity="one">%d bài hát</item>
         <item quantity="other">%d bài hát</item>

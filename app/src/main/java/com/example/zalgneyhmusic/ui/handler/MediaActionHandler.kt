@@ -93,6 +93,10 @@ class MediaActionHandler(
                     context.getString(R.string.share_song_message, song.title, song.artist.name)
                 )
             }
+
+
+
+            else -> {}
         }
     }
 

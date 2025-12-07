@@ -26,6 +26,7 @@ object MoreOptionsManager {
                 MoreOptionsAction.SongAction.PlayNext,
                 MoreOptionsAction.SongAction.AddToQueue,
                 MoreOptionsAction.SongAction.AddToPlaylist,
+                MoreOptionsAction.SongAction.Download,
                 if (isFavorite) {
                     MoreOptionsAction.SongAction.RemoveFromFavorites
                 } else {

@@ -9,10 +9,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
+import com.example.zalgneyhmusic.ui.adapter.home.SuggestionAdapter
 import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import com.example.zalgneyhmusic.ui.adapter.home.SuggestionAdapter
 
 @AndroidEntryPoint
 class SuggestionFragment : BaseFragment() {
@@ -56,8 +56,9 @@ class SuggestionFragment : BaseFragment() {
         }
     }
 
+    // Observe suggestions from ViewModel
+    // Quan sát suggestions từ ViewModel
     private fun observeData() {
-        // Observe suggestions from ViewModel
         songViewModel.suggestions.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Loading -> {
@@ -72,8 +73,8 @@ class SuggestionFragment : BaseFragment() {
                     binding.txtError.visibility = View.GONE
 
                     if (resource.result.isEmpty()) {
-                        binding.txtError.visibility = View.VISIBLE
                         binding.txtError.text = getString(R.string.no_suggestions)
+                        binding.txtError.text = "Chưa có gợi ý nào cho bạn"
                     } else {
                         suggestionAdapter.submitList(resource.result)
                     }
@@ -83,7 +84,8 @@ class SuggestionFragment : BaseFragment() {
                     binding.progressBar.visibility = View.GONE
                     binding.rvSongs.visibility = View.GONE
                     binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text = resource.exception.message ?: getString(R.string.unknown_error)
+                    binding.txtError.text =
+                        resource.exception.message ?: getString(R.string.unknown_error)
                 }
             }
         }

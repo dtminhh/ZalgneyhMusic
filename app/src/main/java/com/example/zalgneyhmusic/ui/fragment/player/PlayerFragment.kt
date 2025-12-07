@@ -66,7 +66,14 @@ class PlayerFragment : BaseFragment() {
             if (currentSong != null) {
                 mediaActionHandler.toggleFavorite(currentSong)
             }
+        }
 
+        binding.btnDownload.setOnClickListener {
+            val currentSong = viewModel.currentSong.value
+            if (currentSong != null) {
+                // Gọi hàm download trong ViewModel (bạn cần thêm hàm này vào ViewModel)
+                viewModel.toggleDownload(currentSong)
+            }
         }
 
         // Play/Pause
@@ -150,6 +157,28 @@ class PlayerFragment : BaseFragment() {
                             binding.tvLyricsPreview.layoutParams = params
                             binding.tvLyricsPreview.gravity = Gravity.START
                             binding.tvLyricsPreview.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
+                        }
+                    }
+                }
+            }
+
+            launch {
+                viewModel.currentSong.collect { song ->
+                    song?.let {
+                        // Kiểm tra xem bài hát đã có đường dẫn local chưa
+                        val isDownloaded = !it.localPath.isNullOrEmpty()
+                        val icon = if (isDownloaded) R.drawable.ic_download_done else R.drawable.ic_download
+                        binding.btnDownload.setImageResource(icon)
+
+                        // Đổi màu để người dùng dễ nhận biết (ví dụ: xanh lá khi đã tải)
+                        if (isDownloaded) {
+                            binding.btnDownload.setColorFilter(
+                                android.graphics.Color.parseColor("#4CAF50") // Green
+                            )
+                        } else {
+                            binding.btnDownload.setColorFilter(
+                                android.graphics.Color.BLACK
+                            )
                         }
                     }
                 }

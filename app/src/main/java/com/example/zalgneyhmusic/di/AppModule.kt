@@ -9,6 +9,7 @@ import com.example.zalgneyhmusic.data.repository.auth.AuthRepositoryImpl
 import com.example.zalgneyhmusic.data.repository.music.MusicHybridRepository
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
 import com.example.zalgneyhmusic.data.session.UserManager
+import com.example.zalgneyhmusic.di.NetworkModule.provideOkHttpClient
 import com.example.zalgneyhmusic.player.MusicPlayer
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
@@ -94,7 +95,9 @@ class AppModule {
             albumDao = database.albumDao(),
             firebaseAuth = provideFirebaseAuth(),
             userManager = UserManager(context),
-            database = database
+            database = database,
+            context = context,
+            client = provideOkHttpClient()
         )
     }
 

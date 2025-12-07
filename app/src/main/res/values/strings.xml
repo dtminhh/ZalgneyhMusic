@@ -220,6 +220,9 @@
     <string name="t_n_playlist">Playlist Name</string>
     <string name="mota_tuychon">Description (Optional)</string>
 
+    <string name="download">Download</string>
+    <string name="downloaded">Dowloaded</string>
+
     <plurals name="numberOfSongs">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

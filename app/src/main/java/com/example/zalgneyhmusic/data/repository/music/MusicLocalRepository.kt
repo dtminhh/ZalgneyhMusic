@@ -26,6 +26,17 @@ class MusicLocalRepository @Inject constructor(
     private val songDao = database.songDao()
     private val artistDao = database.artistDao()
     private val albumDao = database.albumDao()
+    override suspend fun downloadSong(songId: String): Resource<Boolean> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun removeDownloadedSong(songId: String): Resource<Boolean> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getDownloadedSongs(): Flow<List<Song>> {
+        TODO("Not yet implemented")
+    }
 
     // Songs
     override fun getAllSongs(): Flow<Resource<List<Song>>> = flow {

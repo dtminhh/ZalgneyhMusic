@@ -19,5 +19,6 @@ data class Song(
     val likes: Int = 0,
     val isPublic: Boolean = true,
     val createdAt: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
+    val localPath: String? = null
 )

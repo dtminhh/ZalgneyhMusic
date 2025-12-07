@@ -1,6 +1,7 @@
 package com.example.zalgneyhmusic.ui.viewmodel.fragment
 
 import androidx.lifecycle.viewModelScope
+import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
 import com.example.zalgneyhmusic.data.session.UserManager
@@ -142,6 +143,31 @@ class PlayerViewModel @Inject constructor(
      * */
     fun addSongToQueue(song: Song) {
         musicPlayer.addSongToQueue(song)
+    }
+
+    fun toggleDownload(song: Song) {
+        viewModelScope.launch {
+            // Kiểm tra trạng thái hiện tại dựa trên localPath
+            val isDownloaded = !song.localPath.isNullOrEmpty()
+
+            if (isDownloaded) {
+                // Đã tải -> Xóa
+                val result = musicRepository.removeDownloadedSong(song.id)
+                if (result is Resource.Failure) {
+                    // Xử lý lỗi (ví dụ: hiển thị Toast hoặc Log)
+                    // _errorEvent.emit("Không thể xóa bài hát")
+                } else {
+                    // Cập nhật lại trạng thái UI nếu cần (thường Flow từ DB sẽ tự update)
+                }
+            } else {
+                // Chưa tải -> Tải về
+                // Có thể emit loading state ở đây nếu muốn hiển thị progress
+                val result = musicRepository.downloadSong(song.id)
+                if (result is Resource.Failure) {
+                    // Xử lý lỗi tải xuống
+                }
+            }
+        }
     }
 
     /**

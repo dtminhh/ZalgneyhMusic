@@ -196,8 +196,22 @@ class MusicService : Service() {
 
         exoPlayer.clearMediaItems()
         val mediaItems = songs.map { song ->
+            val uri = if (!song.localPath.isNullOrEmpty()) {
+                val file = java.io.File(song.localPath)
+                if (file.exists()) {
+                    // Nếu có file tải về, dùng đường dẫn local
+                    android.net.Uri.fromFile(file)
+                } else {
+                    // Có path nhưng file không tồn tại (lỗi), fallback về URL online
+                    android.net.Uri.parse(song.url)
+                }
+            } else {
+                // Chưa tải, dùng URL online
+                android.net.Uri.parse(song.url)
+            }
+
             MediaItem.Builder()
-                .setUri(song.url)
+                .setUri(uri) // Dùng URI đã xử lý
                 .setMediaId(song.id)
                 .setTag(song)
                 .build()
