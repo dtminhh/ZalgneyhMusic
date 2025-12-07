@@ -106,8 +106,8 @@ class HomeViewModel @Inject constructor(
     /** Loads personalized song suggestions based on user preferences */
     private fun loadSuggestions() {
         viewModelScope.launch {
-            // Currently loads all songs as suggestions (algorithm can be improved later)
-            musicRepository.getAllSongs().collect { resource ->
+            // Call the new lightweight ML-based suggestions method
+            musicRepository.getPersonalizedSuggestions().collect { resource ->
                 _suggestions.value = resource
             }
         }

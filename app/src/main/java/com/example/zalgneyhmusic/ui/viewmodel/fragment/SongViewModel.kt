@@ -30,6 +30,8 @@ class SongViewModel @Inject constructor(
     private val _newSongs = MutableLiveData<Resource<List<Song>>>()
     val newSongs: LiveData<Resource<List<Song>>> = _newSongs
 
+    val suggestions = musicRepository.getPersonalizedSuggestions().asLiveData()
+
     init {
         loadFeatureSongs()
         loadNewSongs()

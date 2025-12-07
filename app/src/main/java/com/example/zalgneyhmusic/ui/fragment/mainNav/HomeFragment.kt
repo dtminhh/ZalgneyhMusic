@@ -91,11 +91,18 @@ class HomeFragment : BaseFragment() {
                 when (sectionType) {
                     SectionType.RECENTLY_HEARD -> {
                         // Navigate to RecentSongsFragment
-                        // Ensure recentSongsFragment id is defined in nav_graph.xml
                         try {
                             findNavController().navigate(R.id.recentSongsFragment)
                         } catch (e: Exception) {
                             e.printStackTrace()
+                        }
+                    }
+                    SectionType.SUGGESTIONS -> {
+                        try {
+                            findNavController().navigate(R.id.suggestionFragment)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            Toast.makeText(context, "Chưa cài đặt điều hướng", Toast.LENGTH_SHORT).show()
                         }
                     }
                     else -> {}

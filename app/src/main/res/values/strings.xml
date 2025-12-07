@@ -171,6 +171,7 @@
     <string name="follower">%1$d follower</string>
     <string name="followed_artists">Followed artists</string>
     <string name="no_lyrics_found">This song hasn\'t lyrics yet</string>
+    <string name="no_suggestions">No suggestions for you yet</string>
 
     <!-- Toast Messages -->
     <string name="toast_added_to_play_next">Added to play next queue</string>

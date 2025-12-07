@@ -55,7 +55,7 @@ class PlayerViewModel @Inject constructor(
 
     private fun refreshFavorites() {
         viewModelScope.launch {
-            // Nếu chưa có dữ liệu thì gọi API lấy về
+            // Fetch favorite songs from API if not loaded yet
             if (userManager.favoriteSongIds.value.isEmpty()) {
                 musicRepository.getMyPlaylists()
             }
@@ -66,7 +66,7 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             musicPlayer.currentSong.collect { song ->
                 if (song != null) {
-                    // Lưu vào lịch sử khi bài hát thay đổi
+                    // Save to listening history when song changes
                     musicRepository.addToRecentlyPlayed(song)
                 }
             }
