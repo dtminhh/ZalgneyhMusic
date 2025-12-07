@@ -3,13 +3,12 @@ package com.example.zalgneyhmusic.di
 import android.content.Context
 import androidx.room.Room
 import com.example.zalgneyhmusic.data.local.MusicDatabase
-import com.example.zalgneyhmusic.data.model.utils.GoogleSignInHelper
+import com.example.zalgneyhmusic.utils.GoogleSignInHelper
 import com.example.zalgneyhmusic.data.repository.auth.AuthRepository
 import com.example.zalgneyhmusic.data.repository.auth.AuthRepositoryImpl
 import com.example.zalgneyhmusic.data.repository.music.MusicHybridRepository
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
 import com.example.zalgneyhmusic.data.session.UserManager
-import com.example.zalgneyhmusic.di.NetworkModule.provideOkHttpClient
 import com.example.zalgneyhmusic.player.MusicPlayer
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
@@ -21,50 +20,27 @@ import javax.inject.Singleton
 
 /**
  * Hilt module that provides application-level dependencies.
- *
- * This module is installed in the [SingletonComponent], meaning
- * all the provided dependencies will live as long as the application.
+ * Installed in SingletonComponent: instances live for the app lifecycle.
  */
 @InstallIn(SingletonComponent::class)
 @Module
 class AppModule {
-    /**
-     * Provides a singleton instance of [FirebaseAuth].
-     *
-     * @return The [FirebaseAuth] instance from Firebase.
-     */
+    /** Provides FirebaseAuth singleton. */
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
 
-    /**
-     * Provides a singleton implementation of [AuthRepository].
-     *
-     * @param impl The [AuthRepositoryImpl] implementation injected by Hilt.
-     * @return An [AuthRepository] that delegates to [AuthRepositoryImpl].
-     */
+    /** Binds AuthRepository to its implementation. */
     @Provides
     @Singleton
     fun provideAuthRepository(impl: AuthRepositoryImpl): AuthRepository = impl
 
-    /**
-     * Provides a singleton instance of [GoogleSignInHelper] for dependency injection.
-     *
-     * This method is annotated with `@Provides` and `@Singleton`, meaning:
-     * - Hilt/Dagger will use this function to create and supply a single instance
-     *   of [GoogleSignInHelper] throughout the application lifecycle.
-     * - Any class that requires [GoogleSignInHelper] in its constructor
-     *   can have it automatically injected by Hilt.
-     *
-     * @return a singleton instance of [GoogleSignInHelper]
-     */
+    /** Provides GoogleSignInHelper singleton. */
     @Provides
     @Singleton
     fun provideGoogleSignInHelper(): GoogleSignInHelper = GoogleSignInHelper()
 
-    /**
-     * Provides Room Database instance
-     */
+    /** Provides Room database instance. */
     @Provides
     @Singleton
     fun provideMusicDatabase(@ApplicationContext context: Context): MusicDatabase {
@@ -73,14 +49,12 @@ class AppModule {
             MusicDatabase::class.java,
             "music_database"
         )
-            .fallbackToDestructiveMigration() // Allow DB recreation on schema changes (dev mode)
+            // Allow destructive migration for development; replace with proper migrations later.
+            .fallbackToDestructiveMigration()
             .build()
     }
 
-    /**
-     * Provides MusicRepository implementation (Hybrid: API + Local Cache)
-     * Strategy: Try API first, fallback to cache on error
-     */
+    /** Provides MusicRepository implementation (API + Local cache). */
     @Provides
     @Singleton
     fun provideMusicRepository(
@@ -96,14 +70,11 @@ class AppModule {
             firebaseAuth = provideFirebaseAuth(),
             userManager = UserManager(context),
             database = database,
-            context = context,
-            client = provideOkHttpClient()
+            context = context
         )
     }
 
-    /**
-     * Provides MusicPlayer singleton instance
-     */
+    /** Provides MusicPlayer singleton. */
     @Provides
     @Singleton
     fun provideMusicPlayer(

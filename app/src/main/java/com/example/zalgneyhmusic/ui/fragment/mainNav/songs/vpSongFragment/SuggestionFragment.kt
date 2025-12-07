@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.home.SuggestionAdapter
 import com.example.zalgneyhmusic.ui.fragment.BaseFragment
@@ -57,7 +57,7 @@ class SuggestionFragment : BaseFragment() {
     }
 
     // Observe suggestions from ViewModel
-    // Quan sát suggestions từ ViewModel
+    // Observes suggestion list and updates UI state accordingly.
     private fun observeData() {
         songViewModel.suggestions.observe(viewLifecycleOwner) { resource ->
             when (resource) {
@@ -73,8 +73,8 @@ class SuggestionFragment : BaseFragment() {
                     binding.txtError.visibility = View.GONE
 
                     if (resource.result.isEmpty()) {
+                        // Use localized string resource for empty state
                         binding.txtError.text = getString(R.string.no_suggestions)
-                        binding.txtError.text = "Chưa có gợi ý nào cho bạn"
                     } else {
                         suggestionAdapter.submitList(resource.result)
                     }

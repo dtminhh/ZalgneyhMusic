@@ -1,8 +1,8 @@
 package com.example.zalgneyhmusic.data.repository.auth
 
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.User
-import com.example.zalgneyhmusic.data.model.utils.await
+import com.example.zalgneyhmusic.utils.await
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser

@@ -19,39 +19,39 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 /**
- * Dagger Hilt Module for Network dependencies
- * Provides Retrofit, OkHttpClient, and API Service
+ * Dagger Hilt module for network dependencies.
+ * Provides Gson, OkHttpClient, Retrofit, and API service.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
     /**
-     * Base URL for Zalgneyh Backend API
-     * Railway deployment: https://zalgneyh-backend-production.up.railway.app/api/
+     * Base URL for the backend API.
+     * Note: consider moving to BuildConfig for environment-based switching.
      */
     private const val BASE_URL = "https://zalgneyh-backend-production.up.railway.app/api/"
 
     /**
-     * Provides Gson instance for JSON serialization/deserialization
+     * Provides Gson instance for JSON (de)serialization.
      * - Registers AlbumDeserializer to handle flexible album.artist field
-     *   (can be STRING id or OBJECT with full artist data)
-     * - Registers PlaylistDeserializer to handle songs as IDs or objects
+     *   (can be string id or full artist object).
+     * - Registers ArtistDeserializer to handle flexible ArtistDTO mapping.
      */
     @Provides
     @Singleton
     fun provideGson(): Gson {
         return GsonBuilder()
             .setLenient()
-            // Register deserializer for AlbumDTO (not domain Album)
+            // AlbumDTO custom deserializer
             .registerTypeAdapter(AlbumDTO::class.java, AlbumDeserializer())
-            // Register deserializer for PlaylistDTO (not domain Playlist)
+            // ArtistDTO custom deserializer
             .registerTypeAdapter(ArtistDTO::class.java, ArtistDeserializer())
             .create()
     }
 
     /**
-     * Provides OkHttpClient with logging interceptor
+     * Provides OkHttpClient with HTTP logging and timeouts.
      */
     @Provides
     @Singleton
@@ -69,7 +69,7 @@ object NetworkModule {
     }
 
     /**
-     * Provides Retrofit instance
+     * Provides Retrofit configured with the base URL, OkHttp client, and Gson converter.
      */
     @Provides
     @Singleton
@@ -82,7 +82,7 @@ object NetworkModule {
     }
 
     /**
-     * Provides ZalgneyhApiService
+     * Provides API service interface implementation.
      */
     @Provides
     @Singleton

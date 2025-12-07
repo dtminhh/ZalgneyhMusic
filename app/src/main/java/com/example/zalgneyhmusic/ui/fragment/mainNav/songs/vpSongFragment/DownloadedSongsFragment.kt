@@ -6,26 +6,23 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
 import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
-/**
- * Feature Songs Fragment - Displays featured songs
- */
 @AndroidEntryPoint
-class FeatureSongsFragment : BaseFragment() {
+class DownloadedSongsFragment : BaseFragment() {
 
     private var _binding: FragmentSongListBinding? = null
     private val binding get() = _binding!!
 
-    private val songViewModel: SongViewModel by viewModels()
+    // Use shared or dedicated ViewModel depending on app architecture; using SongViewModel here.
+    private val viewModel: SongViewModel by viewModels()
     private lateinit var songAdapter: SongAdapter
 
+    // [FIX 1] Phải có onCreateView để khởi tạo binding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -38,16 +35,19 @@ class FeatureSongsFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        observeSongs()
+        observeData()
     }
 
     private fun setupRecyclerView() {
+        // Provide required callbacks to the adapter
         songAdapter = SongAdapter(
             onSongClick = { song ->
-                mediaActionHandler.onSongClick(song, songAdapter.currentList)
+                val currentList = songAdapter.currentList
+                mediaActionHandler.onSongClick(song, currentList)
             },
             onPlayClick = { song ->
-              mediaActionHandler.onSongClick(song,songAdapter.currentList)
+                val currentList = songAdapter.currentList
+                mediaActionHandler.onSongClick(song, currentList)
             },
             onMenuClick = { song ->
                 mediaActionHandler.onSongMenuClick(song)
@@ -55,35 +55,16 @@ class FeatureSongsFragment : BaseFragment() {
         )
 
         binding.rvSongs.apply {
-            layoutManager = LinearLayoutManager(context)
             adapter = songAdapter
+            layoutManager = LinearLayoutManager(context)
         }
     }
 
-    private fun observeSongs() {
-        songViewModel.featureSongs.observe(viewLifecycleOwner) { resource ->
-            when (resource) {
-                is Resource.Loading -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.rvSongs.visibility = View.GONE
-                    binding.txtError.visibility = View.GONE
-                }
-
-                is Resource.Success -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.rvSongs.visibility = View.VISIBLE
-                    binding.txtError.visibility = View.GONE
-                    songAdapter.submitList(resource.result)
-                }
-
-                is Resource.Failure -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.rvSongs.visibility = View.GONE
-                    binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text =
-                        resource.exception.message ?: getString(R.string.unknown_error)
-                }
-            }
+    private fun observeData() {
+        viewModel.downloadedSongs.observe(viewLifecycleOwner) { songs ->
+            songAdapter.submitList(songs)
+            // Optionally show an empty-state message when the list is empty
+            // e.g. binding.txtError.text = getString(R.string.no_downloaded_songs)
         }
     }
 
@@ -91,4 +72,6 @@ class FeatureSongsFragment : BaseFragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    // [FIX 3] Đã xóa hàm getLayoutResourceId() vì BaseFragment không hỗ trợ
 }

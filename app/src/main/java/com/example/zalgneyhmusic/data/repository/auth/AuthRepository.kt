@@ -1,6 +1,6 @@
 package com.example.zalgneyhmusic.data.repository.auth
 
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.User
 import com.google.firebase.auth.FirebaseUser
 import java.io.File

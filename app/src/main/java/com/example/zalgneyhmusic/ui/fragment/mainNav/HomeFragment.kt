@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.databinding.FragmentHomeBinding
 import com.example.zalgneyhmusic.ui.adapter.home.HomeParentAdapter
 import com.example.zalgneyhmusic.ui.extension.openAlbumDetail
@@ -102,7 +102,8 @@ class HomeFragment : BaseFragment() {
                             findNavController().navigate(R.id.suggestionFragment)
                         } catch (e: Exception) {
                             e.printStackTrace()
-                            Toast.makeText(context, "Chưa cài đặt điều hướng", Toast.LENGTH_SHORT).show()
+                            // Use existing localized string resource for missing navigation
+                            Toast.makeText(context, R.string.error_navigation_not_supported, Toast.LENGTH_SHORT).show()
                         }
                     }
                     else -> {}

@@ -1,6 +1,7 @@
 package com.example.zalgneyhmusic.data.repository.music
 
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.DownloadState
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.Playlist
@@ -15,9 +16,10 @@ import kotlinx.coroutines.flow.Flow
 interface MusicRepository {
     // Songs
 
-    suspend fun downloadSong(songId: String): Resource<Boolean>
-    suspend fun removeDownloadedSong(songId: String): Resource<Boolean>
+    fun downloadSong(song: Song): Flow<DownloadState>
+    suspend fun removeDownloadedSong(songId: String): Resource<Unit>
     fun getDownloadedSongs(): Flow<List<Song>>
+    fun getSongFlow(songId: String): Flow<Song?>
     fun getAllSongs(): Flow<Resource<List<Song>>>
     fun getTopSongs(limit: Int = 10): Flow<Resource<List<Song>>>
     fun getRecentSongs(limit: Int = 10): Flow<Resource<List<Song>>>

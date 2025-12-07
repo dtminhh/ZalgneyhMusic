@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.databinding.FragmentArtistDetailBinding
 import com.example.zalgneyhmusic.ui.adapter.AlbumAdapter

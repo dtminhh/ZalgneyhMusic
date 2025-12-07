@@ -1,7 +1,7 @@
 package com.example.zalgneyhmusic.ui.viewmodel.fragment
 
 import androidx.lifecycle.viewModelScope
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.local.entity.SearchHistoryEntity
 import com.example.zalgneyhmusic.data.model.domain.Album

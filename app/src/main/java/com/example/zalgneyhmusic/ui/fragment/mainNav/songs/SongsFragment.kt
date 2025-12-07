@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.zalgneyhmusic.databinding.FragmentSongsBinding
 import com.example.zalgneyhmusic.ui.fragment.BaseNavFragment
+import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.DownloadedSongsFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.FeatureSongsFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.NewSongsFragment
 import com.example.zalgneyhmusic.ui.fragment.mainNav.songs.vpSongFragment.SuggestionFragment
@@ -34,11 +35,12 @@ class SongsFragment : BaseNavFragment() {
     }
 
     override fun setupTabLayoutAndViewPager() {
-        val tabs = listOf("Feature Songs", "New Songs", "Suggestion")
+        val tabs = listOf("Feature", "New Songs", "Suggestion", "Downloaded")
         val fragments = listOf<() -> Fragment>(
             { FeatureSongsFragment() },
             { NewSongsFragment() },
-            { SuggestionFragment() }
+            { SuggestionFragment() },
+            { DownloadedSongsFragment() }
         )
 
         setupTabsAndFragments(

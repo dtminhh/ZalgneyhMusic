@@ -1,6 +1,7 @@
 package com.example.zalgneyhmusic.ui.fragment.detail
 
 import ImageUtils
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +10,7 @@ import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.databinding.FragmentAlbumDetailBinding
 import com.example.zalgneyhmusic.ui.adapter.SongAdapter
@@ -111,6 +112,7 @@ class AlbumDetailBottomSheet : BaseBottomSheetDialogFragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun bindAlbumData(album: Album) {
         binding.apply {
             txtAlbumTitleDetail.text = album.title

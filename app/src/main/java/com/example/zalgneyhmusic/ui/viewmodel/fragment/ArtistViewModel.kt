@@ -3,7 +3,7 @@ package com.example.zalgneyhmusic.ui.viewmodel.fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.Song
@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * ViewModel for the Artists screen.
- * Uses MusicRepository to load artists from remote API and local cache.
+ * ViewModel for Artists.
+ * Loads artists, followed artists, and artist details via MusicRepository.
  */
 @HiltViewModel
 class ArtistViewModel @Inject constructor(
@@ -44,6 +44,7 @@ class ArtistViewModel @Inject constructor(
         loadTopCountryArtists()
     }
 
+    /** Load top artists globally. */
     fun loadTopWorldArtists() {
         viewModelScope.launch {
             _topWorldArtists.value = Resource.Loading
@@ -53,15 +54,14 @@ class ArtistViewModel @Inject constructor(
         }
     }
 
+    /** Load top artists in country (subset from all artists). */
     fun loadTopCountryArtists() {
         viewModelScope.launch {
             _topCountryArtists.value = Resource.Loading
             musicRepository.getAllArtists().collect { resource ->
-                // Limit to a small subset for the country section
                 when (resource) {
                     is Resource.Success -> _topCountryArtists.value =
                         Resource.Success(resource.result.take(10))
-
                     is Resource.Loading -> _topCountryArtists.value = Resource.Loading
                     is Resource.Failure -> _topCountryArtists.value = resource
                 }
@@ -69,6 +69,7 @@ class ArtistViewModel @Inject constructor(
         }
     }
 
+    /** Load artists that the current user follows. */
     fun loadFollowedArtists() {
         viewModelScope.launch {
             _followedArtists.value = Resource.Loading
@@ -76,16 +77,15 @@ class ArtistViewModel @Inject constructor(
         }
     }
 
+    /** Load artist profile, albums, and songs by ID. */
     fun loadArtistDetail(id: String) {
         viewModelScope.launch {
             _artistDetail.value = Resource.Loading
             _artistDetail.value = musicRepository.getArtistById(id)
 
-            // Load albums
             _artistAlbums.value = Resource.Loading
             _artistAlbums.value = musicRepository.getAlbumsByArtist(id)
 
-            // Load songs
             _artistSongs.value = Resource.Loading
             _artistSongs.value = musicRepository.getSongsByArtist(id)
         }

@@ -1,7 +1,8 @@
-package com.example.zalgneyhmusic.ui
+package com.example.zalgneyhmusic.ui.utils
 
 /** Password length requirement for login/sign up type box */
 const val PASSWORD_LENGTH_REQUIREMENT = 6
+
 /**
  * App-wide UI constants to avoid hardcoded values throughout the application.
  *
@@ -26,3 +27,4 @@ object UIConstants {
         const val USER_INPUT_ENABLED = false
     }
 }
+

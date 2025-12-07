@@ -1,7 +1,10 @@
 package com.example.zalgneyhmusic.data.repository.music
 
+import android.content.Context
+import android.os.Environment
 import android.util.Log
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.DownloadState
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.local.dao.AlbumDao
 import com.example.zalgneyhmusic.data.local.dao.ArtistDao
@@ -14,28 +17,27 @@ import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.data.model.domain.Song
-import com.example.zalgneyhmusic.data.model.utils.await
+import com.example.zalgneyhmusic.utils.await
 import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
 import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.flow.flowOn
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import javax.inject.Inject
-import android.content.Context
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
-import dagger.hilt.android.qualifiers.ApplicationContext
+import java.net.URL
+import javax.inject.Inject
 
 /**
  * Hybrid Repository Implementation
@@ -54,8 +56,7 @@ class MusicHybridRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val userManager: UserManager,
     database: MusicDatabase,
-    @ApplicationContext private val context: Context,
-    private val client: OkHttpClient
+    @ApplicationContext private val context: Context
 ) : MusicRepository {
 
     private val recentlyPlayedDao = database.recentlyPlayedDao()
@@ -66,64 +67,104 @@ class MusicHybridRepository @Inject constructor(
 
     // ==================== SONGS ====================
 
-    override suspend fun downloadSong(songId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
+    override fun downloadSong(song: Song): Flow<DownloadState> = flow {
+        emit(DownloadState.Downloading(0))
+
         try {
-            // 1. Lấy thông tin bài hát từ DB hoặc API
-            val songEntity = songDao.getSongById(songId) ?: return@withContext Resource.Failure(Exception("Song not found"))
+            // Setup file path using app-specific storage (no permission required)
+            val musicDir = context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)
+            val file = File(musicDir, "${song.id}.mp3")
+            val entity = songDao.getSongById(song.id)
 
-            // 2. Tạo đường dẫn file đích (Internal Storage/music/songId.mp3)
-            val musicDir = File(context.filesDir, "music")
-            if (!musicDir.exists()) musicDir.mkdirs()
-            val destFile = File(musicDir, "${songId}.mp3")
-
-            // 3. Tải file
-            val request = Request.Builder().url(songEntity.url).build()
-            val response = client.newCall(request).execute()
-
-            if (!response.isSuccessful || response.body == null) {
-                return@withContext Resource.Failure(Exception("Download failed"))
+            // If file already exists, update DB path and return success
+            if (file.exists() && entity != null && entity.localPath == null) {
+                val updatedEntity = entity.copy(localPath = file.absolutePath)
+                songDao.insert(updatedEntity)
+                emit(DownloadState.Success)
+                return@flow
             }
 
-            // 4. Ghi file ra bộ nhớ
-            val inputStream = response.body!!.byteStream()
-            val outputStream = FileOutputStream(destFile)
+            if (entity == null) {
+                emit(DownloadState.Failure(Exception("Song not found in cache for download")))
+                return@flow
+            }
 
-            inputStream.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
+            // Download file from URL
+            val url = URL(song.url)
+            val connection = url.openConnection()
+            connection.connect()
+
+            val fileSize = connection.contentLength
+            val inputStream = BufferedInputStream(url.openStream())
+            val outputStream = FileOutputStream(file)
+
+            val data = ByteArray(8192) // 8KB buffer size
+            var totalBytesRead: Long = 0
+            var bytesRead: Int
+
+            while (inputStream.read(data).also { bytesRead = it } != -1) {
+                totalBytesRead += bytesRead
+                outputStream.write(data, 0, bytesRead)
+
+                // Calculate and emit download progress
+                if (fileSize > 0) {
+                    val progress = ((totalBytesRead * 100) / fileSize).toInt().coerceIn(0, 100)
+                    emit(DownloadState.Downloading(progress))
                 }
             }
 
-            // 5. Cập nhật DB
-            songDao.updateLocalPath(songId, destFile.absolutePath)
+            outputStream.flush()
+            outputStream.close()
+            inputStream.close()
 
-            Resource.Success(true)
+            val updatedEntity = entity.copy(localPath = file.absolutePath)
+            songDao.insert(updatedEntity)
+
+            emit(DownloadState.Success)
+
         } catch (e: Exception) {
-            e.printStackTrace()
-            Resource.Failure(e)
+            emit(DownloadState.Failure(e))
+            // Clean up incomplete file on error
+            File(
+                context.getExternalFilesDir(Environment.DIRECTORY_MUSIC),
+                "${song.id}.mp3"
+            ).delete()
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
-    override suspend fun removeDownloadedSong(songId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
-        try {
-            val songEntity = songDao.getSongById(songId)
-            val path = songEntity?.localPath
+    override suspend fun removeDownloadedSong(songId: String): Resource<Unit> =
+        withContext(Dispatchers.IO) {
+            try {
+                val entity = songDao.getSongById(songId)
 
-            if (path != null) {
-                val file = File(path)
-                if (file.exists()) {
-                    file.delete()
+                if (entity?.localPath != null) {
+                    // Delete physical file
+                    val file = File(entity.localPath)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+
+                    // Update DB (set localPath = null)
+                    val updatedEntity = entity.copy(localPath = null)
+                    songDao.insert(updatedEntity)
+
+                    Resource.Success(Unit)
+                } else {
+                    Resource.Failure(Exception("Song has not been downloaded"))
                 }
-                songDao.updateLocalPath(songId, null) // Xóa path trong DB nhưng giữ bài hát
+            } catch (e: Exception) {
+                Resource.Failure(e)
             }
-            Resource.Success(true)
-        } catch(e: Exception) {
-            Resource.Failure(e)
         }
-    }
 
     override fun getDownloadedSongs(): Flow<List<Song>> {
-        TODO("Not yet implemented")
+        return songDao.getDownloadedSongs()
+            .map { entities -> entities.map { it.toDomain() } }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getSongFlow(songId: String): Flow<Song?> {
+        return songDao.getSongFlow(songId).map { it?.toDomain() }
     }
 
     /**
@@ -140,9 +181,10 @@ class MusicHybridRepository @Inject constructor(
                 val songDTOs = response.body()?.data ?: emptyList()
                 val songs = songDTOs.map { it.toDomain() }
 
+                val entitiesToInsert = mergeWithLocalCache(songs)
+
                 // Update cache
-                songDao.deleteAll()
-                songDao.insertAll(songs.map { SongEntity.fromDomain(it) })
+                songDao.insertAll(entitiesToInsert)
 
                 Log.d(TAG, "getAllSongs: Fetched ${songs.size} songs from API")
                 emit(Resource.Success(songs))
@@ -164,7 +206,7 @@ class MusicHybridRepository @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     /**
      * Fetch top trending songs from API, cache them.
@@ -183,7 +225,8 @@ class MusicHybridRepository @Inject constructor(
                 val songs = songDTOs.map { it.toDomain() }
 
                 // Update cache
-                songDao.insertAll(songs.map { SongEntity.fromDomain(it) })
+                val entitiesToInsert = mergeWithLocalCache(songs)
+                songDao.insertAll(entitiesToInsert)
 
                 Log.d(TAG, "getTopSongs: Fetched ${songs.size} trending songs")
                 emit(Resource.Success(songs))
@@ -207,27 +250,30 @@ class MusicHybridRepository @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     /**
-     * Fetch recent songs from API sorted by creation date.
-     * Fallback: use cached songs sorted by creation date.
+     * Fetch recent songs using server-side sorting by creation date.
+     * Fallback: sort cached songs by createdAt.
      *
-     * @param limit Number of recent songs
+     * @param limit Max number of recent songs
      */
     override fun getRecentSongs(limit: Int): Flow<Resource<List<Song>>> = flow {
         emit(Resource.Loading)
 
         try {
-            // Use getAllSongs and take most recent
-            val response = apiService.getAllSongs(limit = limit)
+            // Backend API does not expose sort params here; fetch limited set then sort client-side.
+            // TODO: switch to a dedicated recent endpoint or server-side sorting when available.
+            val response = apiService.getAllSongs(
+                limit = limit
+            )
             if (response.isSuccessful && response.body()?.success == true) {
                 val songDTOs = response.body()?.data ?: emptyList()
                 val songs = songDTOs.map { it.toDomain() }
                     .sortedByDescending { it.createdAt }
-                    .take(limit)
 
-                songDao.insertAll(songs.map { SongEntity.fromDomain(it) })
+                val entitiesToInsert = mergeWithLocalCache(songs)
+                songDao.insertAll(entitiesToInsert)
 
                 Log.d(TAG, "getRecentSongs: Fetched ${songs.size} songs")
                 emit(Resource.Success(songs))
@@ -237,7 +283,7 @@ class MusicHybridRepository @Inject constructor(
             Log.e(TAG, "getRecentSongs: API error", e)
         }
 
-        // Fallback
+        // Fallback: use cached songs
         try {
             val cached = songDao.getAllSongsSync()
                 .map { it.toDomain() }
@@ -251,7 +297,7 @@ class MusicHybridRepository @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     /**
      * Fetch new songs from API (backend-defined new), cache them.
@@ -268,7 +314,8 @@ class MusicHybridRepository @Inject constructor(
                 val songDTOs = response.body()?.data ?: emptyList()
                 val songs = songDTOs.map { it.toDomain() }
 
-                songDao.insertAll(songs.map { SongEntity.fromDomain(it) })
+                val entitiesToInsert = mergeWithLocalCache(songs)
+                songDao.insertAll(entitiesToInsert)
 
                 Log.d(TAG, "getNewSongs: Fetched ${songs.size} new songs")
                 emit(Resource.Success(songs))
@@ -291,6 +338,27 @@ class MusicHybridRepository @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
+    }.flowOn(Dispatchers.IO)
+
+    private fun mergeWithLocalCache(apiSongs: List<Song>): List<SongEntity> {
+        // Get all existing songs from DB (to retrieve old localPath values)
+        val localSongs = songDao.getAllSongsSync()
+
+        // Create map: ID -> LocalPath
+        val localPathMap = localSongs.associate { it.id to it.localPath }
+
+        // Map API data to entities, preserving existing localPath if available
+        return apiSongs.map { song ->
+            val entity = SongEntity.fromDomain(song)
+            val existingPath = localPathMap[song.id]
+
+            // If old DB already has a path, preserve it in the new entity
+            if (existingPath != null) {
+                entity.copy(localPath = existingPath)
+            } else {
+                entity
+            }
+        }
     }
 
     /**
@@ -299,29 +367,35 @@ class MusicHybridRepository @Inject constructor(
      * @param id Song ID
      * @return Resource<Song>
      */
-    override suspend fun getSongById(id: String): Resource<Song> {
-        return try {
+    override suspend fun getSongById(id: String): Resource<Song> = withContext(Dispatchers.IO) {
+        try {
             val response = apiService.getSongById(id)
             if (response.isSuccessful && response.body()?.success == true) {
                 val song = response.body()?.data?.toDomain()
                 if (song != null) {
-                    // Update cache
-                    songDao.insert(SongEntity.fromDomain(song))
-                    Resource.Success(song)
+                    // Retrieve old localPath safely on IO Thread
+                    val oldEntity = songDao.getSongByIdSync(id)
+                    val newEntity = SongEntity.fromDomain(song).let {
+                        if (oldEntity?.localPath != null) {
+                            it.copy(localPath = oldEntity.localPath)
+                        } else {
+                            it
+                        }
+                    }
+
+                    songDao.insert(newEntity)
+                    Resource.Success(newEntity.toDomain())
                 } else {
                     Resource.Failure(Exception("Song not found"))
                 }
             } else {
-                // Fallback to cache
+                // Fallback to cache safely on IO Thread
                 val cached = songDao.getSongByIdSync(id)?.toDomain()
-                cached?.let { Resource.Success(it) }
-                    ?: Resource.Failure(Exception("Song not found"))
+                cached?.let { Resource.Success(it) } ?: Resource.Failure(Exception("Song not found"))
             }
         } catch (e: Exception) {
-            // Fallback to cache
             val cached = songDao.getSongByIdSync(id)?.toDomain()
-            cached?.let { Resource.Success(it) }
-                ?: Resource.Failure(e)
+            cached?.let { Resource.Success(it) } ?: Resource.Failure(e)
         }
     }
 
@@ -447,39 +521,41 @@ class MusicHybridRepository @Inject constructor(
      * @param songId Song ID to toggle
      * @return Resource<Boolean> - true if added, false if removed
      */
-    override suspend fun toggleFavorite(playlistId: String, songId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
-        try {
-            // Get authenticated user and token
-            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Please login"))
-            val token = "Bearer ${user.getIdToken(false).await().token}"
+    override suspend fun toggleFavorite(playlistId: String, songId: String): Resource<Boolean> =
+        withContext(Dispatchers.IO) {
+            try {
+                // Get authenticated user and token
+                val user = firebaseAuth.currentUser
+                    ?: return@withContext Resource.Failure(Exception("Please login"))
+                val token = "Bearer ${user.getIdToken(false).await().token}"
 
-            // Call API to toggle song in playlist
-            val response = apiService.toggleSongInPlaylist(
-                token,
-                playlistId,
-                mapOf("songId" to songId)
-            )
+                // Call API to toggle song in playlist
+                val response = apiService.toggleSongInPlaylist(
+                    token,
+                    playlistId,
+                    mapOf("songId" to songId)
+                )
 
-            // Process response
-            if (response.isSuccessful && response.body()?.success == true) {
-                // Parse isAdded result from server
-                val dataMap = response.body()!!.data as? Map<*, *>
-                val isAdded = dataMap?.get("isAdded") as? Boolean ?: false
+                // Process response
+                if (response.isSuccessful && response.body()?.success == true) {
+                    // Parse isAdded result from server
+                    val dataMap = response.body()!!.data as? Map<*, *>
+                    val isAdded = dataMap?.get("isAdded") as? Boolean ?: false
 
-                // Update UserManager immediately (optimistic update)
-                if (isAdded) {
-                    userManager.addFavoriteSong(songId)
+                    // Update UserManager immediately (optimistic update)
+                    if (isAdded) {
+                        userManager.addFavoriteSong(songId)
+                    } else {
+                        userManager.removeFavoriteSong(songId)
+                    }
+                    Resource.Success(isAdded)
                 } else {
-                    userManager.removeFavoriteSong(songId)
+                    Resource.Failure(Exception("Server connection error"))
                 }
-                Resource.Success(isAdded)
-            } else {
-                Resource.Failure(Exception("Server connection error"))
+            } catch (e: Exception) {
+                Resource.Failure(e)
             }
-        } catch (e: Exception) {
-            Resource.Failure(e)
         }
-    }
 
     /**
      * Hybrid search: fetch Songs, Artists, and Albums from API based on query.
@@ -588,7 +664,7 @@ class MusicHybridRepository @Inject constructor(
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     /**
      * Fetch artist by ID, try API first, fallback to cache.
@@ -661,28 +737,30 @@ class MusicHybridRepository @Inject constructor(
      *
      * @return Resource<List<Artist>> - List of followed artists
      */
-    override suspend fun getFollowedArtists(): Resource<List<Artist>> = withContext(Dispatchers.IO) {
-        try {
-            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Login required"))
-            val token = "Bearer ${user.getIdToken(false).await().token}"
+    override suspend fun getFollowedArtists(): Resource<List<Artist>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val user = firebaseAuth.currentUser
+                    ?: return@withContext Resource.Failure(Exception("Login required"))
+                val token = "Bearer ${user.getIdToken(false).await().token}"
 
-            // Call API (Backend has route /api/users/artists)
-            val response = apiService.getFollowedArtists(token)
+                // Call API (Backend has route /api/users/artists)
+                val response = apiService.getFollowedArtists(token)
 
-            if (response.isSuccessful && response.body()?.success == true) {
-                val artists = response.body()!!.data!!.map { it.toDomain() }
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val artists = response.body()!!.data!!.map { it.toDomain() }
 
-                // Save artist IDs to UserManager
-                userManager.setFollowedArtistIds(artists.map { it.id })
+                    // Save artist IDs to UserManager
+                    userManager.setFollowedArtistIds(artists.map { it.id })
 
-                Resource.Success(artists)
-            } else {
-                Resource.Failure(Exception("Failed to load artists"))
+                    Resource.Success(artists)
+                } else {
+                    Resource.Failure(Exception("Failed to load artists"))
+                }
+            } catch (e: Exception) {
+                Resource.Failure(e)
             }
-        } catch (e: Exception) {
-            Resource.Failure(e)
         }
-    }
 
     /**
      * Toggle follow status for an artist.
@@ -690,30 +768,32 @@ class MusicHybridRepository @Inject constructor(
      * @param artistId Artist ID to follow/unfollow
      * @return Resource<Boolean> - true if following, false if unfollowed
      */
-    override suspend fun toggleFollowArtist(artistId: String): Resource<Boolean> = withContext(Dispatchers.IO) {
-        try {
-            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Login required"))
-            val token = "Bearer ${user.getIdToken(false).await().token}"
+    override suspend fun toggleFollowArtist(artistId: String): Resource<Boolean> =
+        withContext(Dispatchers.IO) {
+            try {
+                val user = firebaseAuth.currentUser
+                    ?: return@withContext Resource.Failure(Exception("Login required"))
+                val token = "Bearer ${user.getIdToken(false).await().token}"
 
-            val response = apiService.toggleFollow(token, mapOf("artistId" to artistId))
+                val response = apiService.toggleFollow(token, mapOf("artistId" to artistId))
 
-            if (response.isSuccessful && response.body()?.success == true) {
-                // Parse result from backend { isFollowing: true/false }
-                val data = response.body()!!.data as? Map<*, *>
-                val isFollowing = data?.get("isFollowing") as? Boolean ?: false
+                if (response.isSuccessful && response.body()?.success == true) {
+                    // Parse result from backend { isFollowing: true/false }
+                    val data = response.body()!!.data as? Map<*, *>
+                    val isFollowing = data?.get("isFollowing") as? Boolean ?: false
 
-                // Update UserManager to ensure sync
-                if (isFollowing) userManager.followArtist(artistId)
-                else userManager.unfollowArtist(artistId)
+                    // Update UserManager to ensure sync
+                    if (isFollowing) userManager.followArtist(artistId)
+                    else userManager.unfollowArtist(artistId)
 
-                Resource.Success(isFollowing)
-            } else {
-                Resource.Failure(Exception("Failed"))
+                    Resource.Success(isFollowing)
+                } else {
+                    Resource.Failure(Exception("Failed"))
+                }
+            } catch (e: Exception) {
+                Resource.Failure(e)
             }
-        } catch (e: Exception) {
-            Resource.Failure(e)
         }
-    }
 
     // ==================== ALBUMS ====================
 
@@ -833,7 +913,11 @@ class MusicHybridRepository @Inject constructor(
      * @param imageFile Image file for playlist cover (optional)
      * @return Resource<Playlist> - Created playlist
      */
-    override suspend fun createPlaylist(name: String, description: String?, imageFile: java.io.File?): Resource<Playlist> =
+    override suspend fun createPlaylist(
+        name: String,
+        description: String?,
+        imageFile: File?
+    ): Resource<Playlist> =
         withContext(Dispatchers.IO) {
             try {
                 val user = firebaseAuth.currentUser
@@ -938,20 +1022,22 @@ class MusicHybridRepository @Inject constructor(
      * @param id Playlist ID to delete
      * @return Resource<Boolean> - true if successful
      */
-    override suspend fun deletePlaylist(id: String): Resource<Boolean> = withContext(Dispatchers.IO) {
-        try {
-            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Login required"))
-            val token = "Bearer ${user.getIdToken(false).await().token}"
-            val response = apiService.deletePlaylist(token, id)
-            if (response.isSuccessful && response.body()?.success == true) {
-                Resource.Success(true)
-            } else {
-                Resource.Failure(Exception("Delete failed: ${response.message()}"))
+    override suspend fun deletePlaylist(id: String): Resource<Boolean> =
+        withContext(Dispatchers.IO) {
+            try {
+                val user = firebaseAuth.currentUser
+                    ?: return@withContext Resource.Failure(Exception("Login required"))
+                val token = "Bearer ${user.getIdToken(false).await().token}"
+                val response = apiService.deletePlaylist(token, id)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    Resource.Success(true)
+                } else {
+                    Resource.Failure(Exception("Delete failed: ${response.message()}"))
+                }
+            } catch (e: Exception) {
+                Resource.Failure(e)
             }
-        } catch (e: Exception) {
-            Resource.Failure(e)
         }
-    }
 
     /**
      * Update a playlist's name and/or image.
@@ -961,9 +1047,14 @@ class MusicHybridRepository @Inject constructor(
      * @param imageFile New image file (optional)
      * @return Resource<Playlist> - Updated playlist
      */
-    override suspend fun updatePlaylist(id: String, name: String, imageFile: java.io.File?): Resource<Playlist> = withContext(Dispatchers.IO) {
+    override suspend fun updatePlaylist(
+        id: String,
+        name: String,
+        imageFile: File?
+    ): Resource<Playlist> = withContext(Dispatchers.IO) {
         try {
-            val user = firebaseAuth.currentUser ?: return@withContext Resource.Failure(Exception("Login required"))
+            val user = firebaseAuth.currentUser
+                ?: return@withContext Resource.Failure(Exception("Login required"))
             val token = "Bearer ${user.getIdToken(false).await().token}"
 
             val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -973,7 +1064,13 @@ class MusicHybridRepository @Inject constructor(
                 okhttp3.MultipartBody.Part.createFormData("image", it.name, requestFile)
             }
 
-            val response = apiService.updatePlaylist(token, id, namePart, null, imagePart) // Description temporarily null
+            val response = apiService.updatePlaylist(
+                token,
+                id,
+                namePart,
+                null,
+                imagePart
+            ) // Description temporarily null
             if (response.isSuccessful && response.body()?.success == true) {
                 Resource.Success(response.body()!!.data!!.toDomain())
             } else {

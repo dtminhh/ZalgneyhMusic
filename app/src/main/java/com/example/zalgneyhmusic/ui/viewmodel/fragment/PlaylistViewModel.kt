@@ -3,7 +3,7 @@ package com.example.zalgneyhmusic.ui.viewmodel.fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.data.repository.auth.AuthRepository
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
@@ -20,60 +20,48 @@ class PlaylistViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : BaseViewModel() {
 
-    // Holds the current user's playlists
+    // User playlists state
     private val _userPlaylists = MutableLiveData<Resource<List<Playlist>>>()
     val userPlaylists: LiveData<Resource<List<Playlist>>> = _userPlaylists
 
-    // Tracks playlist creation state so UI knows when creation is finished
+    // Playlist creation state (null means idle)
     private val _createPlaylistState = MutableLiveData<Resource<Playlist>?>(null)
     val createPlaylistState: LiveData<Resource<Playlist>?> = _createPlaylistState
 
+    // Generic action state (edit/delete/update)
     private val _actionState = MutableLiveData<Resource<String>>()
 
     init {
         loadMyPlaylists()
     }
 
-    /**
-     * Loads the user's personal playlists from the backend.
-     */
+    /** Loads current user's playlists from backend. */
     fun loadMyPlaylists() {
         viewModelScope.launch {
             _userPlaylists.value = Resource.Loading
 
-            // Try to read the user from in-memory session (UserManager)
             var currentUser = userManager.currentUserValue
-            // Check if Firebase has an active session (app reopened case)
             if (currentUser == null) {
                 val firebaseUser = authRepository.currentUser
                 if (firebaseUser != null) {
-                    // Firebase user exists -> sync account data from backend
                     val syncResult = authRepository.syncUserToBackEnd()
-
                     if (syncResult is Resource.Success) {
-                        // Persist synced user in memory for subsequent calls
                         currentUser = syncResult.result
                         userManager.saveUserSession(currentUser)
                     }
                 }
             }
 
-            // Continue based on the final resolved user
             if (currentUser != null) {
-                // User is available (from RAM or freshly synced) -> load playlists
-                val result = musicRepository.getMyPlaylists()
-                _userPlaylists.value = result
+                _userPlaylists.value = musicRepository.getMyPlaylists()
             } else {
-                // Still no user -> force login before accessing playlists
                 _userPlaylists.value =
-                    Resource.Failure(Exception("Please sign in to view playlists"))
+                    Resource.Failure(Exception("error_sign_in_required"))
             }
         }
     }
 
-    /**
-     * Creates a new playlist for the current user.
-     */
+    /** Creates a new playlist for the current user. */
     fun createPlaylist(name: String, description: String? = null, imageFile: java.io.File? = null) {
         if (userManager.currentUserValue == null) return
 
@@ -81,12 +69,9 @@ class PlaylistViewModel @Inject constructor(
             _createPlaylistState.value = Resource.Loading
             val result = musicRepository.createPlaylist(name, description, imageFile)
 
+            _createPlaylistState.value = result
             if (result is Resource.Success) {
-                // Refresh playlists immediately after successful creation
-                loadMyPlaylists()
-                _createPlaylistState.value = result
-            } else {
-                _createPlaylistState.value = result
+                loadMyPlaylists() // refresh after creation
             }
         }
     }
@@ -101,13 +86,12 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             _actionState.value = Resource.Loading
             val result = musicRepository.deletePlaylist(id)
-            if (result is Resource.Success) {
-                _actionState.value = Resource.Success("Playlist deleted")
-                // Reload list to reflect deletion in UI
+            _actionState.value = if (result is Resource.Success) {
                 loadMyPlaylists()
+                Resource.Success("playlist_deleted")
             } else if (result is Resource.Failure) {
-                _actionState.value = Resource.Failure(result.exception)
-            }
+                Resource.Failure(result.exception)
+            } else Resource.Failure(Exception("unknown_result"))
         }
     }
 
@@ -115,12 +99,12 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             _actionState.value = Resource.Loading
             val result = musicRepository.updatePlaylist(id, newName, newImage)
-            if (result is Resource.Success) {
-                _actionState.value = Resource.Success("Playlist updated successfully")
+            _actionState.value = if (result is Resource.Success) {
                 loadMyPlaylists()
+                Resource.Success("playlist_updated_success")
             } else if (result is Resource.Failure) {
-                _actionState.value = Resource.Failure(result.exception)
-            }
+                Resource.Failure(result.exception)
+            } else Resource.Failure(Exception("unknown_result"))
         }
     }
 

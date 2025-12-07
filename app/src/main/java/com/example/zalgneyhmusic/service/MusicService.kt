@@ -29,6 +29,7 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.Song
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @AndroidEntryPoint
 class MusicService : Service() {
@@ -199,19 +200,19 @@ class MusicService : Service() {
             val uri = if (!song.localPath.isNullOrEmpty()) {
                 val file = java.io.File(song.localPath)
                 if (file.exists()) {
-                    // Nếu có file tải về, dùng đường dẫn local
+                    // If the song file exists locally, use the local file URI
                     android.net.Uri.fromFile(file)
                 } else {
-                    // Có path nhưng file không tồn tại (lỗi), fallback về URL online
-                    android.net.Uri.parse(song.url)
+                    // Local path present but file missing; fall back to the online URL
+                    song.url.toUri()
                 }
             } else {
-                // Chưa tải, dùng URL online
-                android.net.Uri.parse(song.url)
+                // File not downloaded; use the online URL
+                song.url.toUri()
             }
 
             MediaItem.Builder()
-                .setUri(uri) // Dùng URI đã xử lý
+                .setUri(uri) // Use processed URI
                 .setMediaId(song.id)
                 .setTag(song)
                 .build()

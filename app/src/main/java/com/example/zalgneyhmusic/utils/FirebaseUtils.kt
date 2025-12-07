@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.data.model.utils
+package com.example.zalgneyhmusic.utils
 
 import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -44,3 +44,4 @@ suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->
         // Firebase Task API doesn't expose a direct cancellation hook, so we just ignore.
     }
 }
+
