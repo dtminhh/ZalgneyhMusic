@@ -3,6 +3,7 @@ package com.example.zalgneyhmusic.data.repository.auth
 import com.example.zalgneyhmusic.data.Resource
 import com.example.zalgneyhmusic.data.model.domain.User
 import com.google.firebase.auth.FirebaseUser
+import java.io.File
 
 /**
  * Repository interface for handling user authentication.
@@ -13,6 +14,8 @@ interface AuthRepository {
      * The currently authenticated Firebase user, or null if no user is logged in.
      */
     val currentUser: FirebaseUser?
+
+    suspend fun updateUserProfile(displayName: String?, imageFile: File?): Resource<User>
 
     /**
      * Logs in a user with the given [email] and [password].

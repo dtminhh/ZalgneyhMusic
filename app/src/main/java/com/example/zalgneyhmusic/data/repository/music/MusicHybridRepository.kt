@@ -815,8 +815,7 @@ class MusicHybridRepository @Inject constructor(
                 val playlists = response.body()!!.data!!.map { it.toDomain() }
 
                 // Use local variable name to avoid confusion with Firebase 'user' variable above
-                val currentAppUser = userManager.currentUser
-
+                val currentAppUser = userManager.currentUserValue
                 if (currentAppUser?.favoritePlaylistId != null) {
                     val favPlaylist = playlists.find { it.id == currentAppUser.favoritePlaylistId }
                     if (favPlaylist != null) {

@@ -25,9 +25,10 @@ class UserManager @Inject constructor(
      * Current logged-in user (null if not logged in).
      * Can only be set through saveUserSession function.
      */
-    var currentUser: User? = null
-        private set
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
+    val currentUserValue: User? get() = _currentUser.value
 
     private val _favoriteSongIds = MutableStateFlow<Set<String>>(loadFavoritesFromCache())
     val favoriteSongIds: StateFlow<Set<String>> = _favoriteSongIds.asStateFlow()
@@ -52,10 +53,10 @@ class UserManager @Inject constructor(
     }
 
     /**
-     * Helper lấy nhanh ID của playlist yêu thích
+     * Helper get ID favorite playlist
      */
     val favoritePlaylistId: String?
-        get() = currentUser?.favoritePlaylistId
+        get() = currentUserValue?.favoritePlaylistId
 
     private fun loadFavoritesFromCache(): Set<String> {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -76,8 +77,7 @@ class UserManager @Inject constructor(
      * @param user User data to save
      */
     fun saveUserSession(user: User) {
-        this.currentUser = user
-        // TODO: Could persist to DataStore in the future to retain across app restarts
+        _currentUser.value = user
     }
 
     /**
@@ -130,7 +130,7 @@ class UserManager @Inject constructor(
     }
 
     fun clearSession() {
-        this.currentUser = null
+        _currentUser.value = null
         _favoriteSongIds.value = emptySet()
         _followedArtistIds.value = emptySet()
 

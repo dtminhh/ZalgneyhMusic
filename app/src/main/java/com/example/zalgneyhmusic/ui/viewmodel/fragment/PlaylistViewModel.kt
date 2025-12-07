@@ -41,10 +41,9 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             _userPlaylists.value = Resource.Loading
 
-            // Step 1: Try to read the user from in-memory session (UserManager)
-            var currentUser = userManager.currentUser
-
-            // Step 2: If missing, check if Firebase has an active session (app reopened case)
+            // Try to read the user from in-memory session (UserManager)
+            var currentUser = userManager.currentUserValue
+            // Check if Firebase has an active session (app reopened case)
             if (currentUser == null) {
                 val firebaseUser = authRepository.currentUser
                 if (firebaseUser != null) {
@@ -59,7 +58,7 @@ class PlaylistViewModel @Inject constructor(
                 }
             }
 
-            // Step 3: Continue based on the final resolved user
+            // Continue based on the final resolved user
             if (currentUser != null) {
                 // User is available (from RAM or freshly synced) -> load playlists
                 val result = musicRepository.getMyPlaylists()
@@ -76,7 +75,7 @@ class PlaylistViewModel @Inject constructor(
      * Creates a new playlist for the current user.
      */
     fun createPlaylist(name: String, description: String? = null, imageFile: java.io.File? = null) {
-        if (userManager.currentUser == null) return
+        if (userManager.currentUserValue == null) return
 
         viewModelScope.launch {
             _createPlaylistState.value = Resource.Loading

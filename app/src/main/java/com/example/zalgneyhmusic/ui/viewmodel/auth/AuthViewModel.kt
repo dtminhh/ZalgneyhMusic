@@ -2,7 +2,9 @@ package com.example.zalgneyhmusic.ui.viewmodel.auth
 
 import androidx.lifecycle.viewModelScope
 import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.domain.User
 import com.example.zalgneyhmusic.data.repository.auth.AuthRepository
+import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,9 +37,11 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val repository: AuthRepository
+    private val repository: AuthRepository,
+    userManager: UserManager
 ) : BaseViewModel() {
 
+    val currentUserFlow: StateFlow<User?> = userManager.currentUser
     private val _loginFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
     val loginFlow: StateFlow<Resource<FirebaseUser>?> = _loginFlow
 

@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.example.zalgneyhmusic.R
@@ -23,6 +24,7 @@ import com.example.zalgneyhmusic.ui.viewmodel.fragment.TopBarState
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.TopBarViewModel
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -91,6 +93,13 @@ class MainFragment : Fragment() {
 
         // Initialize shared ViewModel
         topBarViewModel = ViewModelProvider(requireActivity())[TopBarViewModel::class.java]
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Collect current user from AuthViewModel to update avatar
+            authViewModel.currentUserFlow.collect { user ->
+                ImageUtils.loadImageRounded(binding.imgAvatar, user?.photoUrl)
+            }
+        }
 
         // Check if user is logged in; redirect to LoginFragment if not
         if (authViewModel.currentUser == null) {
