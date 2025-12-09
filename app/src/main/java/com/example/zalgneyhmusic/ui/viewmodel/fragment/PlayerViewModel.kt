@@ -1,6 +1,8 @@
 package com.example.zalgneyhmusic.ui.viewmodel.fragment
 
 import androidx.lifecycle.viewModelScope
+import com.example.zalgneyhmusic.data.model.Resource
+import com.example.zalgneyhmusic.data.model.domain.DownloadState
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.data.repository.music.MusicRepository
 import com.example.zalgneyhmusic.data.session.UserManager
@@ -8,9 +10,15 @@ import com.example.zalgneyhmusic.player.MusicPlayer
 import com.example.zalgneyhmusic.player.RepeatMode
 import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -40,6 +48,19 @@ class PlayerViewModel @Inject constructor(
     val shuffleMode: StateFlow<Boolean> = musicPlayer.shuffleMode
     val repeatMode: StateFlow<RepeatMode> = musicPlayer.repeatMode
     val playlist: StateFlow<List<Song>> = musicPlayer.playlist
+
+    private val _uiMessage = MutableSharedFlow<String>(replay = 0)
+    val uiMessage = _uiMessage.asSharedFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val isCurrentSongDownloaded: StateFlow<Boolean> = musicPlayer.currentSong
+        .flatMapLatest { song ->
+            if (song == null) flowOf(false)
+            else musicRepository.getSongFlow(song.id).map {
+                !it?.localPath.isNullOrEmpty()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     val isCurrentSongFavorite: StateFlow<Boolean> = combine(
         musicPlayer.currentSong,
@@ -142,6 +163,45 @@ class PlayerViewModel @Inject constructor(
      * */
     fun addSongToQueue(song: Song) {
         musicPlayer.addSongToQueue(song)
+    }
+
+    fun toggleDownload(song: Song) {
+        viewModelScope.launch {
+            // Check current download status
+            val songInDb = musicRepository.getSongById(song.id)
+            val currentPath = if (songInDb is Resource.Success) songInDb.result.localPath else null
+            val isDownloaded = !currentPath.isNullOrEmpty() && java.io.File(currentPath).exists()
+
+            if (isDownloaded) {
+                // Remove downloaded song from device
+                val result = musicRepository.removeDownloadedSong(song.id)
+                if (result is Resource.Success) {
+                    _uiMessage.emit("Removed song from device")
+                } else {
+                    _uiMessage.emit("Failed to remove song")
+                }
+            } else {
+                // Start download flow
+                // This returns a Flow<DownloadState> and must be collected
+                musicRepository.downloadSong(song) // [FIX] Pass 'song' object
+                    .collect { state ->
+                        when (state) {
+                            is DownloadState.Downloading -> {
+                                // Optionally show progress: state.progress
+                                // _uiMessage.emit("Downloading ${state.progress}%...")
+                            }
+
+                            is DownloadState.Success -> {
+                                _uiMessage.emit("Download successful")
+                            }
+
+                            is DownloadState.Failure -> {
+                                _uiMessage.emit("Download failed: ${state.exception.message}")
+                            }
+                        }
+                    }
+            }
+        }
     }
 
     /**

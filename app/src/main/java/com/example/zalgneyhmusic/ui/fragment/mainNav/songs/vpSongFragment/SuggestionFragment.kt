@@ -7,12 +7,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.databinding.FragmentSongListBinding
+import com.example.zalgneyhmusic.ui.adapter.home.SuggestionAdapter
 import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SongViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import com.example.zalgneyhmusic.ui.adapter.home.SuggestionAdapter
 
 @AndroidEntryPoint
 class SuggestionFragment : BaseFragment() {
@@ -56,8 +56,9 @@ class SuggestionFragment : BaseFragment() {
         }
     }
 
+    // Observe suggestions from ViewModel
+    // Observes suggestion list and updates UI state accordingly.
     private fun observeData() {
-        // Observe suggestions from ViewModel
         songViewModel.suggestions.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Loading -> {
@@ -72,7 +73,7 @@ class SuggestionFragment : BaseFragment() {
                     binding.txtError.visibility = View.GONE
 
                     if (resource.result.isEmpty()) {
-                        binding.txtError.visibility = View.VISIBLE
+                        // Use localized string resource for empty state
                         binding.txtError.text = getString(R.string.no_suggestions)
                     } else {
                         suggestionAdapter.submitList(resource.result)
@@ -83,7 +84,8 @@ class SuggestionFragment : BaseFragment() {
                     binding.progressBar.visibility = View.GONE
                     binding.rvSongs.visibility = View.GONE
                     binding.txtError.visibility = View.VISIBLE
-                    binding.txtError.text = resource.exception.message ?: getString(R.string.unknown_error)
+                    binding.txtError.text =
+                        resource.exception.message ?: getString(R.string.unknown_error)
                 }
             }
         }

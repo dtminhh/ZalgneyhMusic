@@ -5,7 +5,7 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.fragment.app.FragmentManager
 import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
 import com.example.zalgneyhmusic.data.model.domain.DetailType
@@ -92,6 +92,10 @@ class MediaActionHandler(
                     song.title,
                     context.getString(R.string.share_song_message, song.title, song.artist.name)
                 )
+            }
+
+            is MoreOptionsAction.SongAction.Download -> {
+                playerViewModel.toggleDownload(song)
             }
         }
     }
@@ -332,7 +336,7 @@ class MediaActionHandler(
                         withContext(Dispatchers.Main) {
                             Toast.makeText(
                                 context,
-                                "Đang phát: ${fullAlbum.title}",
+                                context.getString(R.string.toast_playing_album, fullAlbum.title),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -340,7 +344,7 @@ class MediaActionHandler(
                         withContext(Dispatchers.Main) {
                             Toast.makeText(
                                 context,
-                                "Album này chưa có bài hát nào",
+                                context.getString(R.string.album_no_songs),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -351,7 +355,7 @@ class MediaActionHandler(
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             context,
-                            "Lỗi tải Album: ${result.exception.message}",
+                            context.getString(R.string.error_loading_album, result.exception.message),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -411,7 +415,7 @@ class MediaActionHandler(
                         } else {
                             Toast.makeText(
                                 context,
-                                "Nghệ sĩ này chưa có bài hát nào",
+                                context.getString(R.string.artist_no_songs),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -420,7 +424,7 @@ class MediaActionHandler(
                     is Resource.Failure -> {
                         Toast.makeText(
                             context,
-                            "Lỗi tải nhạc: ${result.exception.message}",
+                            context.getString(R.string.error_loading_songs, result.exception.message),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -524,7 +528,7 @@ class MediaActionHandler(
         }
         // show share dialog
         context.startActivity(
-            Intent.createChooser(shareIntent, "Chia sẻ qua").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            Intent.createChooser(shareIntent, context.getString(R.string.share_via)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
 }

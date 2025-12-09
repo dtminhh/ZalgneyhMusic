@@ -42,6 +42,19 @@
         app:layout_constraintTop_toBottomOf="@id/imgAlbumArt"
         tools:text="Song Title" />
 
+    <ImageButton
+        android:id="@+id/btnDownload"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/download"
+        android:src="@drawable/ic_download"
+        app:layout_constraintBottom_toBottomOf="@+id/btnFavorite"
+        app:layout_constraintEnd_toStartOf="@+id/btnQueue"
+        app:layout_constraintTop_toTopOf="@+id/btnFavorite"
+        app:tint="@color/black" />
+
     <!-- Artist Name -->
     <TextView
         android:id="@+id/tvArtistName"

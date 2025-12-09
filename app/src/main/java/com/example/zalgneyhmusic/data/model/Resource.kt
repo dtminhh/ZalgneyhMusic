@@ -1,4 +1,4 @@
-package com.example.zalgneyhmusic.data
+package com.example.zalgneyhmusic.data.model
 
 /**
  * A sealed class that represents the state of a resource being loaded or processed.
@@ -28,3 +28,4 @@ sealed class Resource<out R> {
      */
     object Loading : Resource<Nothing>()
 }
+

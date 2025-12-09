@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
-import com.example.zalgneyhmusic.data.Resource
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.databinding.FragmentArtistListBinding
 import com.example.zalgneyhmusic.ui.adapter.ArtistAdapter
 import com.example.zalgneyhmusic.ui.extension.openArtistDetail

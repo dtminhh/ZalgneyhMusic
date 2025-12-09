@@ -1,11 +1,11 @@
-package com.example.zalgneyhmusic.data.model.utils
+package com.example.zalgneyhmusic.utils
 
-import com.example.zalgneyhmusic.R
 import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
+import com.example.zalgneyhmusic.R
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import javax.inject.Inject
@@ -70,15 +70,5 @@ class GoogleSignInHelper @Inject constructor() {
             Result.failure(e)
         }
     }
-
-    /**
-     * Signs the user out of Google.
-     *
-     * Currently this method only serves as a placeholder
-     * and can be extended to clear cached Google credentials
-     * or revoke tokens if necessary.
-     */
-    fun signOut() {
-        // Clear any cached credentials if needed
-    }
 }
+

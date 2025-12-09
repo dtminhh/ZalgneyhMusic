@@ -14,6 +14,17 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SongDao {
 
+    @Query("UPDATE songs SET localPath = :path WHERE id = :id")
+    suspend fun updateLocalPath(id: String, path: String?)
+
+    // Observe song changes in real-time
+    @Query("SELECT * FROM songs WHERE id = :id")
+    fun getSongFlow(id: String): Flow<SongEntity?>
+
+    // [New] Fetch all downloaded songs
+    @Query("SELECT * FROM songs WHERE localPath IS NOT NULL AND localPath != ''")
+    fun getDownloadedSongs(): Flow<List<SongEntity>>
+
     @Query("SELECT * FROM songs ORDER BY createdAt DESC")
     fun getAllSongs(): Flow<List<SongEntity>>
 

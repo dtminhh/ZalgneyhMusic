@@ -23,6 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zalgneyhmusic.R
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.databinding.DialogEditProfileBinding
 import com.example.zalgneyhmusic.databinding.SideSheetAccountSettingsBinding
 import com.example.zalgneyhmusic.ui.utils.StorageHelper
@@ -137,9 +138,9 @@ class AccountSettingsSideSheet : DialogFragment() {
 
         viewModel.updateState.observe(viewLifecycleOwner) { resource ->
             // Handle update state with loading indicator if needed
-            if (resource is com.example.zalgneyhmusic.data.Resource.Failure) {
+            if (resource is Resource.Failure) {
                 Toast.makeText(context, "Update error: ${resource.exception.message}", Toast.LENGTH_SHORT).show()
-            } else if (resource is com.example.zalgneyhmusic.data.Resource.Success) {
+            } else if (resource is Resource.Success) {
                 Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
             }
         }

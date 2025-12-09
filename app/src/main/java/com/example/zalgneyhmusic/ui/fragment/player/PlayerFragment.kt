@@ -18,6 +18,7 @@ import com.example.zalgneyhmusic.ui.fragment.BaseFragment
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import androidx.core.graphics.toColorInt
 
 /**
  * Player Fragment - Full screen music player
@@ -66,7 +67,14 @@ class PlayerFragment : BaseFragment() {
             if (currentSong != null) {
                 mediaActionHandler.toggleFavorite(currentSong)
             }
+        }
 
+        binding.btnDownload.setOnClickListener {
+            val currentSong = viewModel.currentSong.value
+            if (currentSong != null) {
+                // Gọi hàm download trong ViewModel (bạn cần thêm hàm này vào ViewModel)
+                viewModel.toggleDownload(currentSong)
+            }
         }
 
         // Play/Pause
@@ -119,7 +127,8 @@ class PlayerFragment : BaseFragment() {
 
     private fun observePlayerState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            // Observe current song
+            // 1. Observe song details (Title, Artist, Art, Lyrics)
+            // REMOVED: The stale download logic from here
             launch {
                 viewModel.currentSong.collect { song ->
                     song?.let {
@@ -129,12 +138,10 @@ class PlayerFragment : BaseFragment() {
                         // Load album art
                         ImageUtils.loadImage(binding.imgAlbumArt, it.imageUrl)
 
-                        // Bind lyrics or fallback text
+                        // Bind lyrics
                         if (it.lyrics.isNullOrBlank()) {
                             binding.lyricsContainer.visibility = View.VISIBLE
                             binding.tvLyricsPreview.text = getString(R.string.no_lyrics_found)
-
-                            // Center the fallback text vertically and horizontally
                             val params = binding.tvLyricsPreview.layoutParams
                             params.height = LayoutParams.MATCH_PARENT
                             binding.tvLyricsPreview.layoutParams = params
@@ -143,8 +150,6 @@ class PlayerFragment : BaseFragment() {
                         } else {
                             binding.lyricsContainer.visibility = View.VISIBLE
                             binding.tvLyricsPreview.text = it.lyrics
-
-                            // Restore default layout params and left alignment for normal lyrics
                             val params = binding.tvLyricsPreview.layoutParams
                             params.height = LayoutParams.WRAP_CONTENT
                             binding.tvLyricsPreview.layoutParams = params
@@ -155,7 +160,26 @@ class PlayerFragment : BaseFragment() {
                 }
             }
 
-            // Observe playing state
+            // 2. Observe REAL-TIME Download Status (This fixes the icon not changing)
+            launch {
+                viewModel.isCurrentSongDownloaded.collect { isDownloaded ->
+                    val icon = if (isDownloaded) R.drawable.ic_download_done else R.drawable.ic_download
+                    binding.btnDownload.setImageResource(icon)
+                    // Đổi màu
+                    val color = if (isDownloaded) android.graphics.Color.parseColor("#4CAF50")
+                    else android.graphics.Color.BLACK
+                    binding.btnDownload.setColorFilter(color)
+                }
+            }
+
+            // 3. Observe Toast Messages (This fixes the missing notifications)
+            launch {
+                viewModel.uiMessage.collect { message ->
+                    android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            // 4. Observe playing state
             launch {
                 viewModel.isPlaying.collect { isPlaying ->
                     binding.btnPlayPause.setImageResource(
@@ -164,14 +188,14 @@ class PlayerFragment : BaseFragment() {
                 }
             }
 
-            // Observe favorite toggle state
+            // 5. Observe favorite state
             launch {
                 viewModel.isCurrentSongFavorite.collect { isFavorite ->
                     updateFavoriteIcon(isFavorite)
                 }
             }
 
-            // Observe shuffle state
+            // 6. Observe shuffle state
             launch {
                 viewModel.shuffleMode.collect { isShuffleOn ->
                     binding.btnShuffle.imageAlpha = if (isShuffleOn) 255 else 128
@@ -179,7 +203,7 @@ class PlayerFragment : BaseFragment() {
                 }
             }
 
-            // Observe repeat state
+            // 7. Observe repeat state
             launch {
                 viewModel.repeatMode.collect { mode ->
                     binding.btnRepeat.imageAlpha = if (mode == RepeatMode.NONE) 128 else 255
@@ -191,7 +215,7 @@ class PlayerFragment : BaseFragment() {
                 }
             }
 
-            // Observe position
+            // 8. Observe position
             launch {
                 viewModel.currentPosition.collect { position ->
                     if (!isUserSeeking) {
@@ -202,7 +226,6 @@ class PlayerFragment : BaseFragment() {
                         }
                         binding.tvCurrentTime.text = viewModel.formatTime(position)
                         binding.tvDuration.text = viewModel.formatTime(duration)
-
                     }
                 }
             }

@@ -99,6 +99,10 @@
     <string name="error_loading_recently_heard">Error loading recently heard: %1$s</string>
     <string name="error_loading_suggestions">Error loading suggestions: %1$s</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="error_loading_songs">Error loading songs: %1$s</string>
+    <string name="error_loading_album">Error loading album: %1$s</string>
+    <string name="album_no_songs">This album has no songs</string>
+    <string name="artist_no_songs">This artist has no songs</string>
 
     <!-- Section Titles -->
     <string name="top_artist_in_your_country">Top Artist in your country</string>
@@ -213,6 +217,7 @@
     <string name="share_album_message">Listen to the amazing album %1$s on Zalgneyh Music!</string>
     <string name="share_artist_message">Discover artist %1$s on Zalgneyh Music!</string>
     <string name="share_playlist_message">Listen to the amazing playlist %1$s on Zalgneyh Music!</string>
+    <string name="share_via">Share via</string>
 
     <!-- Form Validation -->
     <string name="error_name_empty">Name cannot be empty</string>
@@ -220,9 +225,17 @@
     <string name="t_n_playlist">Playlist Name</string>
     <string name="mota_tuychon">Description (Optional)</string>
 
+    <string name="download">Download</string>
+    <string name="downloaded">Dowloaded</string>
+
     <plurals name="numberOfSongs">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
     </plurals>
+
+    <!-- ViewModel Messages -->
+    <string name="error_sign_in_required">Please sign in to view playlists</string>
+    <string name="playlist_deleted">Playlist deleted</string>
+    <string name="playlist_updated_success">Playlist updated successfully</string>
 
 </resources>

@@ -25,7 +25,7 @@ import com.example.zalgneyhmusic.data.local.entity.SongEntity
         SearchHistoryEntity::class,
         RecentlyPlayedEntity::class
     ],
-    version = 13,  // Increased for SongEntity column type changes and AlbumEntity schema changes (artist split into artistId & artistName, added coverImage)
+    version = 1, 
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {

@@ -211,8 +211,16 @@
     <string name="t_n_playlist">Tên Playlist</string>
     <string name="mota_tuychon">Mô tả (Tùy chọn)</string>
 
+    <string name="download">Tải về</string>
+    <string name="downloaded">Đã tải</string>
+
     <plurals name="numberOfSongs" tools:ignore="UnusedQuantity">
         <item quantity="one">%d bài hát</item>
         <item quantity="other">%d bài hát</item>
     </plurals>
+
+    <!-- ViewModel Messages -->
+    <string name="error_sign_in_required">Đăng nhập để xem playlist</string>
+    <string name="playlist_deleted">Playlist đã bị xóa</string>
+    <string name="playlist_updated_success">Playlist cập nhật thành công</string>
 </resources>

@@ -29,6 +29,7 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.Song
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @AndroidEntryPoint
 class MusicService : Service() {
@@ -196,8 +197,22 @@ class MusicService : Service() {
 
         exoPlayer.clearMediaItems()
         val mediaItems = songs.map { song ->
+            val uri = if (!song.localPath.isNullOrEmpty()) {
+                val file = java.io.File(song.localPath)
+                if (file.exists()) {
+                    // If the song file exists locally, use the local file URI
+                    android.net.Uri.fromFile(file)
+                } else {
+                    // Local path present but file missing; fall back to the online URL
+                    song.url.toUri()
+                }
+            } else {
+                // File not downloaded; use the online URL
+                song.url.toUri()
+            }
+
             MediaItem.Builder()
-                .setUri(song.url)
+                .setUri(uri) // Use processed URI
                 .setMediaId(song.id)
                 .setTag(song)
                 .build()
