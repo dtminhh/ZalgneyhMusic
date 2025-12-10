@@ -22,7 +22,6 @@ class DownloadedSongsFragment : BaseFragment() {
     private val viewModel: SongViewModel by viewModels()
     private lateinit var songAdapter: SongAdapter
 
-    // [FIX 1] Phải có onCreateView để khởi tạo binding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,6 +71,4 @@ class DownloadedSongsFragment : BaseFragment() {
         super.onDestroyView()
         _binding = null
     }
-
-    // [FIX 3] Đã xóa hàm getLayoutResourceId() vì BaseFragment không hỗ trợ
 }

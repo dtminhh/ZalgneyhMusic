@@ -40,9 +40,6 @@ interface AlbumDao {
     suspend fun insert(album: AlbumEntity) = insertAlbum(album)
     suspend fun insertAll(albums: List<AlbumEntity>) = insertAlbums(albums)
 
-    @Query("DELETE FROM albums WHERE id = :id")
-    suspend fun deleteAlbum(id: String)
-
     @Query("DELETE FROM albums")
     suspend fun deleteAllAlbums()
 
