@@ -35,33 +35,46 @@ class PlaylistViewModel @Inject constructor(
         loadMyPlaylists()
     }
 
-    /** Loads current user's playlists from backend. */
+    /**
+     * Loads the user's personal playlists from the backend.
+     */
     fun loadMyPlaylists() {
         viewModelScope.launch {
             _userPlaylists.value = Resource.Loading
 
+            // Try to read the user from in-memory session (UserManager)
             var currentUser = userManager.currentUserValue
+            // Check if Firebase has an active session (app reopened case)
             if (currentUser == null) {
                 val firebaseUser = authRepository.currentUser
                 if (firebaseUser != null) {
+                    // Firebase user exists -> sync account data from backend
                     val syncResult = authRepository.syncUserToBackEnd()
+
                     if (syncResult is Resource.Success) {
+                        // Persist synced user in memory for subsequent calls
                         currentUser = syncResult.result
                         userManager.saveUserSession(currentUser)
                     }
                 }
             }
 
+            // Continue based on the final resolved user
             if (currentUser != null) {
-                _userPlaylists.value = musicRepository.getMyPlaylists()
+                // User is available (from RAM or freshly synced) -> load playlists
+                val result = musicRepository.getMyPlaylists()
+                _userPlaylists.value = result
             } else {
+                // Still no user -> force login before accessing playlists
                 _userPlaylists.value =
-                    Resource.Failure(Exception("error_sign_in_required"))
+                    Resource.Failure(Exception("Please sign in to view playlists"))
             }
         }
     }
 
-    /** Creates a new playlist for the current user. */
+    /**
+     * Creates a new playlist for the current user.
+     */
     fun createPlaylist(name: String, description: String? = null, imageFile: java.io.File? = null) {
         if (userManager.currentUserValue == null) return
 
@@ -69,9 +82,12 @@ class PlaylistViewModel @Inject constructor(
             _createPlaylistState.value = Resource.Loading
             val result = musicRepository.createPlaylist(name, description, imageFile)
 
-            _createPlaylistState.value = result
             if (result is Resource.Success) {
-                loadMyPlaylists() // refresh after creation
+                // Refresh playlists immediately after successful creation
+                loadMyPlaylists()
+                _createPlaylistState.value = result
+            } else {
+                _createPlaylistState.value = result
             }
         }
     }
@@ -86,12 +102,13 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             _actionState.value = Resource.Loading
             val result = musicRepository.deletePlaylist(id)
-            _actionState.value = if (result is Resource.Success) {
+            if (result is Resource.Success) {
+                _actionState.value = Resource.Success("Playlist deleted")
+                // Reload list to reflect deletion in UI
                 loadMyPlaylists()
-                Resource.Success("playlist_deleted")
             } else if (result is Resource.Failure) {
-                Resource.Failure(result.exception)
-            } else Resource.Failure(Exception("unknown_result"))
+                _actionState.value = Resource.Failure(result.exception)
+            }
         }
     }
 
@@ -99,12 +116,12 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             _actionState.value = Resource.Loading
             val result = musicRepository.updatePlaylist(id, newName, newImage)
-            _actionState.value = if (result is Resource.Success) {
+            if (result is Resource.Success) {
+                _actionState.value = Resource.Success("Playlist updated successfully")
                 loadMyPlaylists()
-                Resource.Success("playlist_updated_success")
             } else if (result is Resource.Failure) {
-                Resource.Failure(result.exception)
-            } else Resource.Failure(Exception("unknown_result"))
+                _actionState.value = Resource.Failure(result.exception)
+            }
         }
     }
 

@@ -262,8 +262,6 @@ class MusicHybridRepository @Inject constructor(
         emit(Resource.Loading)
 
         try {
-            // Backend API does not expose sort params here; fetch limited set then sort client-side.
-            // TODO: switch to a dedicated recent endpoint or server-side sorting when available.
             val response = apiService.getAllSongs(
                 limit = limit
             )

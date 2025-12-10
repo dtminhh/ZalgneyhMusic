@@ -103,7 +103,11 @@ class HomeFragment : BaseFragment() {
                         } catch (e: Exception) {
                             e.printStackTrace()
                             // Use existing localized string resource for missing navigation
-                            Toast.makeText(context, R.string.error_navigation_not_supported, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                R.string.error_navigation_not_supported,
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                     else -> {}
