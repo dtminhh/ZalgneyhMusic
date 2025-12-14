@@ -11,6 +11,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.zalgneyhmusic.data.model.domain.DetailType
 import com.example.zalgneyhmusic.ui.fragment.detail.AlbumDetailBottomSheet
 import com.example.zalgneyhmusic.ui.fragment.detail.ArtistDetailBottomSheet
+import com.example.zalgneyhmusic.ui.fragment.detail.PlaylistDetailBottomSheet
 import com.example.zalgneyhmusic.ui.navigation.DetailNavigator
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,7 +51,7 @@ class MainActivity : AppCompatActivity(), DetailNavigator {
                 AlbumDetailBottomSheet.newInstance(type.id)
             }
             is DetailType.Playlist -> {
-                com.example.zalgneyhmusic.ui.fragment.detail.PlaylistDetailBottomSheet.newInstance(type.id)
+                PlaylistDetailBottomSheet.newInstance(type.id)
             }
         }
         bottomSheet.show(supportFragmentManager, "DETAIL_SHEET_TAG")

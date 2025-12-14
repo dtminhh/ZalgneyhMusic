@@ -16,6 +16,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import androidx.media.app.NotificationCompat.MediaStyle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -29,7 +30,6 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.domain.Song
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import androidx.core.net.toUri
 
 @AndroidEntryPoint
 class MusicService : Service() {
@@ -84,10 +84,19 @@ class MusicService : Service() {
         }
 
         createNotificationChannel()
+        val audioAttributes = androidx.media3.common.AudioAttributes.Builder()
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .setUsage(C.USAGE_MEDIA)
+            .build()
+
+        exoPlayer.setAudioAttributes(audioAttributes, true)
         setupExoPlayerListeners()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action != null && currentPlaylist.isEmpty()) {
+            startForeground(NOTIFICATION_ID, getNotificationBuilder(null, null).build())
+        }
         when (intent?.action) {
             ACTION_PREVIOUS -> playPrevious()
             ACTION_PLAY_PAUSE -> if (exoPlayer.isPlaying) pause() else play()
@@ -95,6 +104,35 @@ class MusicService : Service() {
             ACTION_STOP -> stopSelf()
         }
         return START_NOT_STICKY
+    }
+
+    private fun getNotificationBuilder(song: Song?, bitmap: Bitmap?): NotificationCompat.Builder {
+        val isPlaying = exoPlayer.isPlaying
+        val playPauseIcon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+
+        val contentIntent = Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_SINGLE_TOP }
+        val contentPendingIntent = PendingIntent.getActivity(this, 0, contentIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val prevIntent = PendingIntent.getService(this, 0, Intent(this, MusicService::class.java).setAction(ACTION_PREVIOUS), PendingIntent.FLAG_IMMUTABLE)
+        val playPauseIntent = PendingIntent.getService(this, 1, Intent(this, MusicService::class.java).setAction(ACTION_PLAY_PAUSE), PendingIntent.FLAG_IMMUTABLE)
+        val nextIntent = PendingIntent.getService(this, 2, Intent(this, MusicService::class.java).setAction(ACTION_NEXT), PendingIntent.FLAG_IMMUTABLE)
+
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_music_note)
+            .setContentTitle(song?.title ?: "Zalgneyh Music") // Fallback title
+            .setContentText(song?.artist?.name ?: "Đang chờ...")
+            .setLargeIcon(bitmap ?: BitmapFactory.decodeResource(resources, R.drawable.ic_album_placeholder))
+            .setContentIntent(contentPendingIntent)
+            .setOngoing(isPlaying)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOnlyAlertOnce(true)
+            .setStyle(
+                MediaStyle()
+                    .setMediaSession(mediaSession.sessionToken)
+                    .setShowActionsInCompactView(0, 1, 2)
+            )
+            .addAction(R.drawable.ic_skip_previous, "Prev", prevIntent)
+            .addAction(playPauseIcon, "Play/Pause", playPauseIntent)
+            .addAction(R.drawable.ic_skip_next, "Next", nextIntent)
     }
 
     private fun setupExoPlayerListeners() {
@@ -287,6 +325,30 @@ class MusicService : Service() {
     private fun updateNotification() {
         val song = getCurrentSong() ?: return
 
+        val notification = getNotificationBuilder(song, currentLargeIcon).build()
+        startForeground(NOTIFICATION_ID, notification)
+
+        if (currentLargeIcon == null && song.imageUrl.isNotEmpty()) {
+            Glide.with(this)
+                .asBitmap()
+                .load(song.imageUrl)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        if (getCurrentSong()?.id == song.id) {
+                            currentLargeIcon = resource
+                            updateMediaSessionMetadata()
+
+                            val updatedNotification = getNotificationBuilder(song, resource).build()
+
+                            val manager = getSystemService(NotificationManager::class.java)
+                            manager.notify(NOTIFICATION_ID, updatedNotification)
+                        }
+                    }
+                    override fun onLoadCleared(placeholder: Drawable?) {}
+                    override fun onLoadFailed(errorDrawable: Drawable?) {}
+                })
+        }
+
         val contentIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
@@ -378,9 +440,9 @@ class MusicService : Service() {
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onDestroy() {
+        super.onDestroy()
         mediaSession.release()
         exoPlayer.release()
-        super.onDestroy()
     }
 
     inner class MusicBinder : Binder() {
