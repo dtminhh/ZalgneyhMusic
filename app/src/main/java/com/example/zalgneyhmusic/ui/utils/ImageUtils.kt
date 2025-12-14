@@ -25,6 +25,7 @@ object ImageUtils {
 
         Glide.with(view.context)
             .load(validUrl)
+            .circleCrop()
             .placeholder(placeholder)
             .error(placeholder)
             .fallback(placeholder)
