@@ -19,6 +19,7 @@ import com.example.zalgneyhmusic.databinding.FragmentMainBinding
 import com.example.zalgneyhmusic.ui.utils.UIConstants.Navigation.DEFAULT_NAV_INDEX
 import com.example.zalgneyhmusic.ui.utils.UIConstants.ViewPager.USER_INPUT_ENABLED
 import com.example.zalgneyhmusic.ui.adapter.MainFragmentAdapter
+import com.example.zalgneyhmusic.ui.extension.setOnSingleClickListener
 import com.example.zalgneyhmusic.ui.fragment.auth.LoginFragment
 import com.example.zalgneyhmusic.ui.fragment.player.setupMiniPlayerExt
 import com.example.zalgneyhmusic.ui.viewmodel.auth.AuthViewModel
@@ -397,7 +398,7 @@ class MainFragment : Fragment() {
      */
     private fun setupBottomNavigation() {
         getNavItems().forEachIndexed { index, navItem ->
-            navItem.setOnClickListener {
+            navItem.setOnSingleClickListener {
                 if (currentSelectedIndex != index) {
                     binding.vp2MainContent.currentItem = index
                 }
@@ -408,7 +409,7 @@ class MainFragment : Fragment() {
         }
 
         // Open Account Settings Side Sheet when avatar is clicked
-        binding.imgAvatar.setOnClickListener {
+        binding.imgAvatar.setOnSingleClickListener {
             openAccountSettings()
         }
     }

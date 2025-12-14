@@ -4,7 +4,6 @@ import ImageUtils
 import android.app.AlertDialog
 import android.app.Dialog
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
@@ -12,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
@@ -26,6 +26,7 @@ import com.example.zalgneyhmusic.R
 import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.databinding.DialogEditProfileBinding
 import com.example.zalgneyhmusic.databinding.SideSheetAccountSettingsBinding
+import com.example.zalgneyhmusic.ui.extension.setOnSingleClickListener
 import com.example.zalgneyhmusic.ui.utils.StorageHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,12 +44,17 @@ class AccountSettingsSideSheet : DialogFragment() {
     private var selectedImageUri: Uri? = null
     private var dialogBinding: DialogEditProfileBinding? = null
 
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            selectedImageUri = it
-            dialogBinding?.imgAvatarEdit?.setImageURI(it)
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                selectedImageUri = it
+                val currentDialog = dialog
+                if (currentDialog != null && currentDialog.isShowing) {
+                    val imgView = currentDialog.findViewById<ImageView>(R.id.imgAvatarEdit)
+                    imgView.setImageURI(it)
+                }
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -132,14 +138,23 @@ class AccountSettingsSideSheet : DialogFragment() {
                 binding.txtUserName.text = it.displayName
                 binding.txtUserEmail.text = it.email
                 ImageUtils.loadImageRounded(binding.imgUserAvatar, it.photoUrl)
-                dialogBinding?.imgAvatarEdit?.let { view -> ImageUtils.loadImageRounded(view, it.photoUrl) }
+                dialogBinding?.imgAvatarEdit?.let { view ->
+                    ImageUtils.loadImageRounded(
+                        view,
+                        it.photoUrl
+                    )
+                }
             }
         }
 
         viewModel.updateState.observe(viewLifecycleOwner) { resource ->
             // Handle update state with loading indicator if needed
             if (resource is Resource.Failure) {
-                Toast.makeText(context, "Update error: ${resource.exception.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "Update error: ${resource.exception.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             } else if (resource is Resource.Success) {
                 Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
             }
@@ -198,7 +213,7 @@ class AccountSettingsSideSheet : DialogFragment() {
     }
 
     private fun showLogoutConfirmation() {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.logout_confirmation_title)
             .setMessage(R.string.logout_confirmation_message)
             .setPositiveButton(R.string.confirm) { _, _ ->
@@ -272,30 +287,33 @@ class AccountSettingsSideSheet : DialogFragment() {
                 ((totalSize.toFloat() / (500 * 1024 * 1024)) * 100).toInt().coerceIn(5, 100)
 
             // Progress bar visual (using 500MB as an arbitrary cap for 100%)
-            btnClear.setOnClickListener {
+            btnClear.setOnSingleClickListener {
                 btnClear.text = getString(R.string.cleaning)
                 btnClear.isEnabled = false
 
                 lifecycleScope.launch {
-                    // Clear cache on IO thread
-                    StorageHelper.clearAppCache(requireContext())
+                    context?.let { ctx ->
+                        // Clear cache on IO thread
+                        StorageHelper.clearAppCache(ctx)
+                        if (!isAdded) return@launch
+                        // Calculate storage data
+                        val newTotalSize = StorageHelper.getCacheSize(ctx)
+                        val newImageSize = (newTotalSize * 0.7).toLong()
+                        val newOtherSize = newTotalSize - newImageSize
 
-                    // Calculate storage data
-                    val newTotalSize = StorageHelper.getCacheSize(requireContext())
-                    val newImageSize = (newTotalSize * 0.7).toLong()
-                    val newOtherSize = newTotalSize - newImageSize
+                        // Update UI post-cleanup
+                        txtTotalSize.text = StorageHelper.formatSize(ctx, newTotalSize)
+                        txtImageCache.text = StorageHelper.formatSize(ctx, newImageSize)
+                        txtOtherCache.text = StorageHelper.formatSize(ctx, newOtherSize)
 
-                    // Update UI post-cleanup
-                    txtTotalSize.text = StorageHelper.formatSize(requireContext(), newTotalSize)
-                    txtImageCache.text = StorageHelper.formatSize(requireContext(), newImageSize)
-                    txtOtherCache.text = StorageHelper.formatSize(requireContext(), newOtherSize)
+                        val newProgress =
+                            ((newTotalSize.toFloat() / (500 * 1024 * 1024)) * 100).toInt()
+                                .coerceIn(0, 100)
+                        progressStorage.setProgressCompat(newProgress, true)
 
-                    val newProgress = ((newTotalSize.toFloat() / (500 * 1024 * 1024)) * 100).toInt()
-                        .coerceIn(0, 100)
-                    progressStorage.setProgressCompat(newProgress, true)
-
-                    // [3] Handle "Clean" action
-                    btnClear.text = getString(R.string.cleaned)
+                        // [3] Handle "Clean" action
+                        btnClear.text = getString(R.string.cleaned)
+                    }
                 }
             }
             btnCancel.setOnClickListener { dialog.dismiss() }
@@ -328,10 +346,10 @@ class AccountSettingsSideSheet : DialogFragment() {
             .create()
 
         // Transparent background for rounded corners
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
 
         // 2. Select image
-        dialogBinding.imgAvatarEdit.setOnClickListener {
+        dialogBinding.imgAvatarEdit.setOnSingleClickListener {
             pickImageLauncher.launch("image/*")
         }
 
@@ -339,7 +357,12 @@ class AccountSettingsSideSheet : DialogFragment() {
         dialogBinding.btnSave.setOnClickListener {
             val newName = dialogBinding.etDisplayName.text.toString().trim()
             if (newName.isNotEmpty()) {
-                val imageFile = selectedImageUri?.let { StorageHelper.uriToFile(requireContext(), it) }
+                val imageFile =
+                    selectedImageUri?.let { uri ->
+                        context?.let { ctx ->
+                            StorageHelper.uriToFile(ctx, uri)
+                        }
+                    }
                 viewModel.updateUserProfile(newName, imageFile)
                 dialog.dismiss()
             } else {
@@ -349,7 +372,7 @@ class AccountSettingsSideSheet : DialogFragment() {
 
         dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
 
-        dialog.setOnDismissListener {  dialogBinding.imgAvatarEdit.setImageURI(null) }
+        dialog.setOnDismissListener { dialogBinding.imgAvatarEdit.setImageURI(null) }
         dialog.show()
     }
 
