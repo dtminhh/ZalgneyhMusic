@@ -22,6 +22,7 @@ import com.example.zalgneyhmusic.ui.utils.StorageHelper
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.PlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.core.graphics.drawable.toDrawable
+import com.example.zalgneyhmusic.ui.extension.setOnSingleClickListener
 
 /** Displays playlists in a vertical list. */
 @AndroidEntryPoint
@@ -58,7 +59,7 @@ class PlaylistsFragment : BaseFragment() {
         observePlaylists()
         // Observe create playlist state
         observeCreateState()
-        binding.btnCreatePlaylist.setOnClickListener { showCreatePlaylistDialog() }
+        binding.btnCreatePlaylist.setOnSingleClickListener { showCreatePlaylistDialog() }
     }
 
     /** Observe playlist creation state and show messages. */
