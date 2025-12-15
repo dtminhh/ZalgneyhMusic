@@ -1,10 +1,10 @@
 package com.example.zalgneyhmusic.data.repository.music
 
 import android.content.Context
+import android.net.Uri
 import android.os.Environment
 import android.util.Log
-import com.example.zalgneyhmusic.data.model.domain.DownloadState
-import com.example.zalgneyhmusic.data.model.Resource
+import androidx.core.net.toUri
 import com.example.zalgneyhmusic.data.local.MusicDatabase
 import com.example.zalgneyhmusic.data.local.dao.AlbumDao
 import com.example.zalgneyhmusic.data.local.dao.ArtistDao
@@ -13,14 +13,16 @@ import com.example.zalgneyhmusic.data.local.entity.AlbumEntity
 import com.example.zalgneyhmusic.data.local.entity.ArtistEntity
 import com.example.zalgneyhmusic.data.local.entity.RecentlyPlayedEntity
 import com.example.zalgneyhmusic.data.local.entity.SongEntity
+import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
+import com.example.zalgneyhmusic.data.model.domain.DownloadState
 import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.data.model.domain.Song
-import com.example.zalgneyhmusic.utils.await
 import com.example.zalgneyhmusic.data.session.UserManager
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
+import com.example.zalgneyhmusic.utils.await
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -389,12 +391,34 @@ class MusicHybridRepository @Inject constructor(
             } else {
                 // Fallback to cache safely on IO Thread
                 val cached = songDao.getSongByIdSync(id)?.toDomain()
-                cached?.let { Resource.Success(it) } ?: Resource.Failure(Exception("Song not found"))
+                cached?.let { Resource.Success(it) }
+                    ?: Resource.Failure(Exception("Song not found"))
             }
         } catch (e: Exception) {
             val cached = songDao.getSongByIdSync(id)?.toDomain()
             cached?.let { Resource.Success(it) } ?: Resource.Failure(e)
         }
+    }
+
+    /**
+     * Hybrid song play
+     */
+    override suspend fun getSongUri(songId: String): Uri = withContext(Dispatchers.IO) {
+        val entity = songDao.getSongByIdSync(songId)
+
+        // Check downloaded song
+        if (entity?.localPath != null) {
+            val file = File(entity.localPath)
+            if (file.exists()) {
+                Log.d("MusicRepo", "Playing from Local File: ${file.absolutePath}")
+                return@withContext Uri.fromFile(file)
+            }
+        }
+
+        // URL online
+        val url = entity?.url ?: ""
+        Log.d("MusicRepo", "Playing from URL: $url")
+        return@withContext url.toUri()
     }
 
     /**
