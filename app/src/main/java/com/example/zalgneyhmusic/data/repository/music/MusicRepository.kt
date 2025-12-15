@@ -1,9 +1,10 @@
 package com.example.zalgneyhmusic.data.repository.music
 
-import com.example.zalgneyhmusic.data.model.domain.DownloadState
+import android.net.Uri
 import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.data.model.domain.Album
 import com.example.zalgneyhmusic.data.model.domain.Artist
+import com.example.zalgneyhmusic.data.model.domain.DownloadState
 import com.example.zalgneyhmusic.data.model.domain.Playlist
 import com.example.zalgneyhmusic.data.model.domain.Song
 import com.example.zalgneyhmusic.ui.viewmodel.fragment.SearchResults
@@ -25,6 +26,7 @@ interface MusicRepository {
     fun getRecentSongs(limit: Int = 10): Flow<Resource<List<Song>>>
     fun getNewSongs(limit: Int = 10): Flow<Resource<List<Song>>>
     suspend fun getSongById(id: String): Resource<Song>
+    suspend fun getSongUri(songId: String): Uri
     fun searchSongs(query: String): Flow<Resource<List<Song>>>
 
     suspend fun addToRecentlyPlayed(song: Song)
