@@ -96,27 +96,13 @@ class MainFragment : Fragment() {
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         // Initialize shared ViewModel
         topBarViewModel = ViewModelProvider(requireActivity())[TopBarViewModel::class.java]
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Collect current user from AuthViewModel to update avatar
-            authViewModel.currentUserFlow.collect { user ->
-                ImageUtils.loadImageRounded(binding.imgAvatar, user?.photoUrl)
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            playerViewModel.uiMessage.collect { message ->
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-            }
-        }
-
         // Check if user is logged in; redirect to LoginFragment if not
         if (authViewModel.currentUser == null) {
             findNavController().navigate(R.id.loginFragment)
         }
+        setUpObserver()
         setupViewPager()
         setupBottomNavigation()
         setupTopBarObserver()
@@ -151,6 +137,21 @@ class MainFragment : Fragment() {
                 if (tab != null && !tab.isSelected) {
                     tab.select()
                 }
+            }
+        }
+    }
+
+    private fun setUpObserver(){
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Collect current user from AuthViewModel to update avatar
+            authViewModel.currentUserFlow.collect { user ->
+                ImageUtils.loadImageRounded(binding.imgAvatar, user?.photoUrl)
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            playerViewModel.uiMessage.collect { message ->
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             }
         }
     }

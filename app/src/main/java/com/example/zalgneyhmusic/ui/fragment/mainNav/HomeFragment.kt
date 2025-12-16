@@ -50,6 +50,26 @@ class HomeFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         observeData()
+        setupSwipeRefresh()
+    }
+
+    private fun setupSwipeRefresh() {
+        binding.swipeRefreshLayout.apply {
+            setColorSchemeResources(
+                R.color.center_color_main_app_color,
+                R.color.end_color_main_app_color
+            )
+
+            // listen swipe down
+            setOnRefreshListener {
+                viewModel.refreshData()
+
+                // hide loading if success
+                postDelayed({
+                    isRefreshing = false
+                }, 2000)
+            }
+        }
     }
 
     /**
@@ -97,6 +117,7 @@ class HomeFragment : BaseFragment() {
                             e.printStackTrace()
                         }
                     }
+
                     SectionType.SUGGESTIONS -> {
                         try {
                             findNavController().navigate(R.id.suggestionFragment)
@@ -110,6 +131,7 @@ class HomeFragment : BaseFragment() {
                             ).show()
                         }
                     }
+
                     else -> {}
                 }
             }
@@ -126,6 +148,13 @@ class HomeFragment : BaseFragment() {
      */
     private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launch {
+            launch {
+                viewModel.isHomeLoading.collect { isLoading ->
+                    if (!isLoading) {
+                        binding.swipeRefreshLayout.isRefreshing = false
+                    }
+                }
+            }
             // Observe Featured Songs
             launch {
                 viewModel.featuredSongs.collect { resource ->
