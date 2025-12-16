@@ -27,6 +27,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.zalgneyhmusic.MainActivity
 import com.example.zalgneyhmusic.R
+import androidx.core.app.ServiceCompat
 import com.example.zalgneyhmusic.data.model.domain.Song
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -60,43 +61,32 @@ class MusicService : Service() {
         // Initialize MediaSession
         mediaSession = MediaSessionCompat(this, "MusicServiceTag").apply {
             setCallback(object : MediaSessionCompat.Callback() {
-                override fun onPlay() {
-                    play()
-                }
-
-                override fun onPause() {
-                    pause()
-                }
-
-                override fun onSkipToNext() {
-                    playNext()
-                }
-
-                override fun onSkipToPrevious() {
-                    playPrevious()
-                }
-
-                override fun onSeekTo(pos: Long) {
-                    seekTo(pos)
-                }
+                override fun onPlay() { play() }
+                override fun onPause() { pause() }
+                override fun onSkipToNext() { playNext() }
+                override fun onSkipToPrevious() { playPrevious() }
+                override fun onSeekTo(pos: Long) { seekTo(pos) }
             })
             isActive = true
         }
 
         createNotificationChannel()
+
+        // Configure audio focus for media playback
         val audioAttributes = androidx.media3.common.AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
-
         exoPlayer.setAudioAttributes(audioAttributes, true)
+
         setupExoPlayerListeners()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action != null && currentPlaylist.isEmpty()) {
-            startForeground(NOTIFICATION_ID, getNotificationBuilder(null, null).build())
-        }
+        // [ANR FIX] Always start foreground immediately to avoid being killed in the first 5 seconds
+        val notification = getNotificationBuilder(getCurrentSong(), currentLargeIcon).build()
+        startForeground(NOTIFICATION_ID, notification)
+
         when (intent?.action) {
             ACTION_PREVIOUS -> playPrevious()
             ACTION_PLAY_PAUSE -> if (exoPlayer.isPlaying) pause() else play()
@@ -106,23 +96,30 @@ class MusicService : Service() {
         return START_NOT_STICKY
     }
 
+    // Streamlined builder; removed redundant Intent declarations
     private fun getNotificationBuilder(song: Song?, bitmap: Bitmap?): NotificationCompat.Builder {
         val isPlaying = exoPlayer.isPlaying
         val playPauseIcon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
 
-        val contentIntent = Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_SINGLE_TOP }
-        val contentPendingIntent = PendingIntent.getActivity(this, 0, contentIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val contentIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            this, 0, contentIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         val prevIntent = PendingIntent.getService(this, 0, Intent(this, MusicService::class.java).setAction(ACTION_PREVIOUS), PendingIntent.FLAG_IMMUTABLE)
         val playPauseIntent = PendingIntent.getService(this, 1, Intent(this, MusicService::class.java).setAction(ACTION_PLAY_PAUSE), PendingIntent.FLAG_IMMUTABLE)
         val nextIntent = PendingIntent.getService(this, 2, Intent(this, MusicService::class.java).setAction(ACTION_NEXT), PendingIntent.FLAG_IMMUTABLE)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_music_note)
-            .setContentTitle(song?.title ?: "Zalgneyh Music") // Fallback title
-            .setContentText(song?.artist?.name ?: "Đang chờ...")
+            .setContentTitle(song?.title ?: getString(R.string.app_name))
+            .setContentText(song?.artist?.name ?: "Ready to play")
             .setLargeIcon(bitmap ?: BitmapFactory.decodeResource(resources, R.drawable.ic_album_placeholder))
             .setContentIntent(contentPendingIntent)
-            .setOngoing(isPlaying)
+            .setOngoing(isPlaying) // Make non-dismissible only while playing
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
             .setStyle(
@@ -135,18 +132,54 @@ class MusicService : Service() {
             .addAction(R.drawable.ic_skip_next, "Next", nextIntent)
     }
 
+    private fun updateNotification() {
+        val song = getCurrentSong()
+
+        // 1) Update notification UI immediately
+        val notification = getNotificationBuilder(song, currentLargeIcon).build()
+        val notificationManager = getSystemService(NotificationManager::class.java)
+
+        if (exoPlayer.isPlaying) {
+            // Keep service in foreground while playing
+            startForeground(NOTIFICATION_ID, notification)
+        } else {
+            // When paused, detach foreground but keep showing the notification via notify()
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
+            notificationManager.notify(NOTIFICATION_ID, notification)
+        }
+
+        // 2) Lazy-load cover art if missing
+        if (song != null && currentLargeIcon == null && song.imageUrl.isNotEmpty()) {
+            Glide.with(this)
+                .asBitmap()
+                .load(song.imageUrl)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        // Ensure the track hasn't changed during bitmap loading
+                        if (getCurrentSong()?.id == song.id) {
+                            currentLargeIcon = resource
+                            updateMediaSessionMetadata()
+
+                            // Rebuild and update notification with the loaded artwork
+                            val updatedNotif = getNotificationBuilder(song, resource).build()
+                            notificationManager.notify(NOTIFICATION_ID, updatedNotif)
+                        }
+                    }
+                    override fun onLoadCleared(placeholder: Drawable?) {}
+                    override fun onLoadFailed(errorDrawable: Drawable?) {}
+                })
+        }
+    }
+
     private fun setupExoPlayerListeners() {
         exoPlayer.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_ENDED) {
                     playNext()
                 }
-
-                // [IMPORTANT FIX] Update Duration when Player is ready (Music loaded)
                 if (playbackState == Player.STATE_READY) {
                     updateMediaSessionMetadata()
                 }
-
                 updateMediaSessionState()
                 updateNotification()
             }
@@ -159,25 +192,19 @@ class MusicService : Service() {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 if (mediaItem != null) {
                     currentSongIndex = exoPlayer.currentMediaItemIndex
-                    currentLargeIcon = null
+                    currentLargeIcon = null // Reset cached artwork when switching tracks
 
                     updateMediaSessionMetadata()
-                    updateMediaSessionState() // Reset state immediately on song change
+                    updateMediaSessionState()
                     updateNotification()
                 }
             }
 
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
+            override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
                 updateMediaSessionState()
             }
         })
     }
-
-    // ==================== FIX SEEKBAR BUG (MediaSession) ====================
 
     private fun updateMediaSessionState() {
         val playbackState = if (exoPlayer.isPlaying)
@@ -191,7 +218,7 @@ class MusicService : Service() {
                     playbackState,
                     exoPlayer.currentPosition,
                     1f,
-                    SystemClock.elapsedRealtime() // [MOST IMPORTANT] Time reference for system to calculate seekbar
+                    SystemClock.elapsedRealtime()
                 )
                 .setActions(
                     PlaybackStateCompat.ACTION_PLAY or
@@ -207,8 +234,6 @@ class MusicService : Service() {
 
     private fun updateMediaSessionMetadata() {
         val song = getCurrentSong() ?: return
-
-        // [FIX] Check if duration is valid. If not available (C.TIME_UNSET), set to 0 or don't set temporarily.
         val duration = if (exoPlayer.duration != C.TIME_UNSET) exoPlayer.duration else -1L
 
         val builder = MediaMetadataCompat.Builder()
@@ -226,8 +251,6 @@ class MusicService : Service() {
         mediaSession.setMetadata(builder.build())
     }
 
-    // ==================== Control Methods ====================
-
     fun setPlaylist(songs: List<Song>, startIndex: Int = 0) {
         currentPlaylist = songs
         currentSongIndex = startIndex
@@ -237,20 +260,13 @@ class MusicService : Service() {
         val mediaItems = songs.map { song ->
             val uri = if (!song.localPath.isNullOrEmpty()) {
                 val file = java.io.File(song.localPath)
-                if (file.exists()) {
-                    // If the song file exists locally, use the local file URI
-                    android.net.Uri.fromFile(file)
-                } else {
-                    // Local path present but file missing; fall back to the online URL
-                    song.url.toUri()
-                }
+                if (file.exists()) android.net.Uri.fromFile(file) else song.url.toUri()
             } else {
-                // File not downloaded; use the online URL
                 song.url.toUri()
             }
 
             MediaItem.Builder()
-                .setUri(uri) // Use processed URI
+                .setUri(uri)
                 .setMediaId(song.id)
                 .setTag(song)
                 .build()
@@ -258,21 +274,14 @@ class MusicService : Service() {
         exoPlayer.setMediaItems(mediaItems, startIndex, 0)
         exoPlayer.prepare()
         exoPlayer.play()
-
-        // Call update immediately to show notification, even if duration not available yet
-        updateMediaSessionState()
-        updateMediaSessionMetadata()
-        updateNotification()
     }
 
     fun play() {
         exoPlayer.play()
-        updateMediaSessionState()
     }
 
     fun pause() {
         exoPlayer.pause()
-        updateMediaSessionState()
     }
 
     fun playNext() {
@@ -298,15 +307,12 @@ class MusicService : Service() {
 
     fun seekTo(positionMs: Long) {
         exoPlayer.seekTo(positionMs)
-        updateMediaSessionState()
     }
 
     fun getCurrentSong(): Song? {
         val item = exoPlayer.currentMediaItem ?: return null
         return item.localConfiguration?.tag as? Song
     }
-
-    // ==================== Notification ====================
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -319,121 +325,6 @@ class MusicService : Service() {
             channel.setShowBadge(false)
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
-        }
-    }
-
-    private fun updateNotification() {
-        val song = getCurrentSong() ?: return
-
-        val notification = getNotificationBuilder(song, currentLargeIcon).build()
-        startForeground(NOTIFICATION_ID, notification)
-
-        if (currentLargeIcon == null && song.imageUrl.isNotEmpty()) {
-            Glide.with(this)
-                .asBitmap()
-                .load(song.imageUrl)
-                .into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                        if (getCurrentSong()?.id == song.id) {
-                            currentLargeIcon = resource
-                            updateMediaSessionMetadata()
-
-                            val updatedNotification = getNotificationBuilder(song, resource).build()
-
-                            val manager = getSystemService(NotificationManager::class.java)
-                            manager.notify(NOTIFICATION_ID, updatedNotification)
-                        }
-                    }
-                    override fun onLoadCleared(placeholder: Drawable?) {}
-                    override fun onLoadFailed(errorDrawable: Drawable?) {}
-                })
-        }
-
-        val contentIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-        }
-        val contentPendingIntent = PendingIntent.getActivity(
-            this, 0, contentIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val prevIntent = PendingIntent.getService(
-            this,
-            0,
-            Intent(this, MusicService::class.java).setAction(ACTION_PREVIOUS),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-        val playPauseIntent = PendingIntent.getService(
-            this,
-            1,
-            Intent(this, MusicService::class.java).setAction(ACTION_PLAY_PAUSE),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-        val nextIntent = PendingIntent.getService(
-            this,
-            2,
-            Intent(this, MusicService::class.java).setAction(ACTION_NEXT),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val isPlaying = exoPlayer.isPlaying
-        val playPauseIcon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-
-        fun buildNotification(bitmap: Bitmap?) {
-            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_music_note)
-                .setContentTitle(song.title)
-                .setContentText(song.artist.name)
-                .setLargeIcon(
-                    bitmap ?: BitmapFactory.decodeResource(
-                        resources,
-                        R.drawable.ic_album_placeholder
-                    )
-                )
-                .setContentIntent(contentPendingIntent)
-                .setOngoing(isPlaying)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setOnlyAlertOnce(true) // Prevent notification from blinking continuously when updating seekbar
-
-                // Media Style
-                .setStyle(
-                    MediaStyle()
-                        .setMediaSession(mediaSession.sessionToken)
-                        .setShowActionsInCompactView(0, 1, 2)
-                )
-
-                .addAction(R.drawable.ic_skip_previous, "Previous", prevIntent)
-                .addAction(playPauseIcon, "Play/Pause", playPauseIntent)
-                .addAction(R.drawable.ic_skip_next, "Next", nextIntent)
-                .build()
-
-            startForeground(NOTIFICATION_ID, notification)
-        }
-
-        if (currentLargeIcon != null) {
-            buildNotification(currentLargeIcon)
-        } else if (song.imageUrl.isNotEmpty()) {
-            Glide.with(this)
-                .asBitmap()
-                .load(song.imageUrl)
-                .into(object : CustomTarget<Bitmap>() {
-                    override fun onResourceReady(
-                        resource: Bitmap,
-                        transition: Transition<in Bitmap>?
-                    ) {
-                        currentLargeIcon = resource
-                        // When image is loaded, update Metadata again to display image on lock screen
-                        updateMediaSessionMetadata()
-                        buildNotification(resource)
-                    }
-
-                    override fun onLoadCleared(placeholder: Drawable?) {}
-                    override fun onLoadFailed(errorDrawable: Drawable?) {
-                        buildNotification(null)
-                    }
-                })
-        } else {
-            buildNotification(null)
         }
     }
 
