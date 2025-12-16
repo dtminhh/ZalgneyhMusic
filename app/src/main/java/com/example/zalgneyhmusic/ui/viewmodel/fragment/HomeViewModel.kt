@@ -9,8 +9,11 @@ import com.example.zalgneyhmusic.data.model.Resource
 import com.example.zalgneyhmusic.ui.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -64,6 +67,10 @@ class HomeViewModel @Inject constructor(
         loadFeaturedAlbums()
         loadRecentlyHeard()
         loadSuggestions()
+    }
+
+    fun refreshData(){
+        loadHomeData()
     }
 
     /** Loads top 5 featured songs from repository */
@@ -121,6 +128,17 @@ class HomeViewModel @Inject constructor(
     fun refresh() {
         loadHomeData()
     }
+
+    val isHomeLoading: StateFlow<Boolean> = combine(
+        _featuredSongs,
+        _topArtists,
+        _featuredAlbums,
+        _recentlyHeard,
+        _suggestions
+    ) { flows ->
+        // Return true if any flow on loading
+        flows.any { it is Resource.Loading }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     companion object {
         const val LIMIT_LOAD_DATA_VALUE = 10

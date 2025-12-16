@@ -19,11 +19,11 @@ import com.example.zalgneyhmusic.utils.GoogleSignInHelper
 import javax.inject.Inject
 import android.content.Intent
 import android.provider.Settings
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.zalgneyhmusic.ui.utils.PASSWORD_LENGTH_REQUIREMENT
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 /**
  * Fragment responsible for handling user login functionality.
@@ -190,12 +190,12 @@ class LoginFragment : Fragment() {
      * Shows a dialog prompting the user to add a Google account
      * in order to use Google Sign-In.
      *
-     * - "Add Account" button opens device Settings to add a new Google account.
+     * - "Add Account" button opens device Settings to add a new Google  account.
      * - "Cancel" button dismisses the dialog.
      * - The dialog is non-cancelable to ensure user makes a choice.
      */
     private fun showAddAccountDialog() {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.google_account_required))
             .setMessage(getString(R.string.to_use_google_sign_in_please_add_a_google_account_to_your_device))
             .setPositiveButton(getString(R.string.add_account)) { _, _ ->
