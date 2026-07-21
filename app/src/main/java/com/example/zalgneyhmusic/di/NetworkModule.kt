@@ -1,7 +1,7 @@
 package com.example.zalgneyhmusic.di
 
-import com.example.zalgneyhmusic.data.model.api.AlbumDeserializer
 import com.example.zalgneyhmusic.data.model.api.AlbumDTO
+import com.example.zalgneyhmusic.data.model.api.AlbumDeserializer
 import com.example.zalgneyhmusic.data.model.api.ArtistDTO
 import com.example.zalgneyhmusic.data.model.api.ArtistDeserializer
 import com.example.zalgneyhmusic.service.ZalgneyhApiService
@@ -30,7 +30,7 @@ object NetworkModule {
      * Base URL for the backend API.
      * Note: consider moving to BuildConfig for environment-based switching.
      */
-    private const val BASE_URL = "https://zalgneyh-backend-production.up.railway.app/api/"
+    private const val BASE_URL = "http://localhost:3000/api/"
 
     /**
      * Provides Gson instance for JSON (de)serialization.
